@@ -9,10 +9,9 @@ services:
             - ./db-data:/var/lib/postgresql/data/
 
     worker:
-        image: 'ptrxyz/chemotion:21.04-1'
+        image: 'ptrxyz/chemotion:latest'
         depends_on:
             - 'db'
-        init: false
         environment:
             - ELN_ROLE=worker
         volumes:
@@ -20,10 +19,9 @@ services:
             - ./shared:/shared
 
     eln:
-        image: 'ptrxyz/chemotion:21.04-1'
+        image: 'ptrxyz/chemotion:latest'
         depends_on:
             - 'db'
-        init: false
         environment:
             - ELN_ROLE=app
         expose:
