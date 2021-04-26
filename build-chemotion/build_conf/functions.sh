@@ -29,5 +29,6 @@ msg() {
 }
 
 export -f error
+export -f note
 export -f info
 export -f msg
