@@ -1,13 +1,12 @@
 FROM ubuntu:latest
 
-# RUN sed -i 's~http://archive.ubuntu.com/ubuntu/~http://de.archive.ubuntu.com/ubuntu/~g' /etc/apt/sources.list
+RUN sed -i 's~http://archive.ubuntu.com/ubuntu/~http://de.archive.ubuntu.com/ubuntu/~g' /etc/apt/sources.list
 RUN apt-get -y update
 RUN apt-get -y upgrade && apt-get -y autoremove
 
 SHELL ["/bin/bash", "-c"]
 
 ENV TIMEZONE=Europe/Berlin
-ENV PANDOC_VERSION=2.10.1
 
 ARG CHEMOTION_VERSION
 ARG FLAVOR=production
@@ -38,6 +37,7 @@ RUN apt-get -y --autoremove --fix-missing install \
     xfonts-scalable rsyslog tini make gcc vim
 
 ## Pandoc
+ENV PANDOC_VERSION=2.10.1
 RUN pandoc_pkg="pandoc-${PANDOC_VERSION}-1-amd64.deb" && \
     curl -o /tmp/${pandoc_pkg} -L https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/${pandoc_pkg} && \
     dpkg -i /tmp/${pandoc_pkg}
@@ -90,6 +90,7 @@ COPY ./src/ ${APP_DIR}/app
 RUN chown -R ${PROD}:${PROD} ${APP_DIR}
 RUN chown -R ${PROD}:${PROD} /shared
 
+## We do not have cron installed, we do not need logrotate...
 RUN echo -e ""\
     "${APP_DIR}/app/log/*.log {\n"\
     "  weekly\n"\
@@ -207,7 +208,7 @@ RUN echo -e "${RAILS_ENV}:\n"\
     "\n"\
     "  :localcollectors:\n"\
     "    - :path: '/home/ftpuser'\n"\
-    "    - :path: '/home/eln/public'\n"\ | sed 's/^ //g' >${APP_DIR}/app/config/datacollectors.yml
+    "    - :path: '/home/eln/public'\n" | sed 's/^ //g' >${APP_DIR}/app/config/datacollectors.yml
 
 RUN cat ${APP_DIR}/app/config/datacollectors.yml
 
