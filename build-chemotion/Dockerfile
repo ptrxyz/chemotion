@@ -56,6 +56,7 @@ ARG FLAVOR=production
 ENV CHEMOTION_VERSION=${CHEMOTION_VERSION}
 ENV FLAVOR=${FLAVOR}
 ENV VERSION_FILE=/shared/.version
+ENV INIT_BASE=/etc/init
 
 ## User
 ENV PROD=chemotion
@@ -286,15 +287,8 @@ RUN cd ${APP_DIR}/app && \
 
 USER root
 
-ENV INIT_BASE=/etc/init
-
 RUN mkdir -p ${INIT_BASE} ${INIT_BASE}/init-scripts
-COPY ./build_conf/init.sh         ${INIT_BASE}/init.sh
-COPY ./build_conf/cmd.sh          ${INIT_BASE}/cmd.sh
-COPY ./build_conf/run-app.sh      ${INIT_BASE}/run-app.sh
-COPY ./build_conf/run-worker.sh   ${INIT_BASE}/run-worker.sh
-COPY ./build_conf/functions.sh    ${INIT_BASE}/functions.sh
-COPY ./build_conf/init-scripts/*  ${INIT_BASE}/init-scripts/
+COPY ./build_conf ${INIT_BASE}
 
 RUN chmod +x ${INIT_BASE}/init.sh ${INIT_BASE}/run-app.sh ${INIT_BASE}/run-worker.sh \
     ${INIT_BASE}/cmd.sh
