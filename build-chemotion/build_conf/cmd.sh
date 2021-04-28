@@ -69,7 +69,7 @@ function usage()
     echo ""
 }
 
-case "$1" in;
+case "$1" in
     info)
         containerInfo
         ;;
