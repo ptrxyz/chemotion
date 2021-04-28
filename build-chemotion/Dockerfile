@@ -8,11 +8,6 @@ SHELL ["/bin/bash", "-c"]
 
 ENV TIMEZONE=Europe/Berlin
 
-ARG CHEMOTION_VERSION
-ARG FLAVOR=production
-
-ENV VERSION_FILE=/shared/.version
-
 RUN AREA=$(echo $TIMEZONE | cut -d'/' -f1) && \
     REGION=$(echo $TIMEZONE | cut -d'/' -f2) && \
     rm -f /etc/localtime && \
@@ -53,6 +48,14 @@ RUN pandoc_pkg="pandoc-${PANDOC_VERSION}-1-amd64.deb" && \
 
 ## MinIO client
 RUN curl -L -o /bin/mcli https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x /bin/mcli
+
+# Container
+ARG CHEMOTION_VERSION
+ARG FLAVOR=production
+
+ENV CHEMOTION_VERSION=${CHEMOTION_VERSION}
+ENV FLAVOR=${FLAVOR}
+ENV VERSION_FILE=/shared/.version
 
 ## User
 ENV PROD=chemotion
@@ -287,12 +290,14 @@ ENV INIT_BASE=/etc/init
 
 RUN mkdir -p ${INIT_BASE} ${INIT_BASE}/init-scripts
 COPY ./build_conf/init.sh         ${INIT_BASE}/init.sh
+COPY ./build_conf/cmd.sh          ${INIT_BASE}/cmd.sh
 COPY ./build_conf/run-app.sh      ${INIT_BASE}/run-app.sh
 COPY ./build_conf/run-worker.sh   ${INIT_BASE}/run-worker.sh
 COPY ./build_conf/functions.sh    ${INIT_BASE}/functions.sh
 COPY ./build_conf/init-scripts/*  ${INIT_BASE}/init-scripts/
 
-RUN chmod +x ${INIT_BASE}/init.sh ${INIT_BASE}/run-app.sh ${INIT_BASE}/run-worker.sh 
+RUN chmod +x ${INIT_BASE}/init.sh ${INIT_BASE}/run-app.sh ${INIT_BASE}/run-worker.sh \
+    ${INIT_BASE}/cmd.sh
 
 # Lines needed to be compatible with docker 1.26+ versions of tini
 # as of Apr. 28, we use cmd.sh as init system.
