@@ -17,3 +17,6 @@ sleep 10
 time docker build --build-arg CHEMOTION_VERSION=${VERSION}@$(git log -1 --pretty='%h') --network "${PID}_net" -t ptrxyz/chemotion:${VERSION} $@ .
 docker rm -f db
 docker network rm ${PID}_net
+
+docker tag ptrxyz/chemotion:21.04-2 ptrxyz/chemotion:latest-local
+echo "Done. Version: $VERSION"
