@@ -7,7 +7,6 @@
     exit 1
 }
 
-whoami
 info "Creating database..."
 
 if ! (echo "\q" | psql -d "${DB_NAME}" -h "${DB_HOST}" -U "${DB_ROLE}" 2>/dev/null) || [[ x"${INITIALIZE}" == x"yes" ]]; then
@@ -52,3 +51,5 @@ DB_PW='${DB_PW}'
 DB_HOST='${DB_HOST}'
 DB_PORT=${DB_PORT}
 EOF
+
+chown ${PROD}:${PROD} /chemotion/app/.env

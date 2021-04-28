@@ -11,6 +11,8 @@ ENV TIMEZONE=Europe/Berlin
 ARG CHEMOTION_VERSION
 ARG FLAVOR=production
 
+ENV VERSION_FILE=/shared/.version
+
 RUN AREA=$(echo $TIMEZONE | cut -d'/' -f1) && \
     REGION=$(echo $TIMEZONE | cut -d'/' -f2) && \
     rm -f /etc/localtime && \
@@ -245,9 +247,10 @@ RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \
 ## Seed files:
 # we link some shared folders here, 
 RUN cd ${APP_DIR}/app && \
+    rm -rf ${APP_DIR}/app/uploads && \
     mkdir -p ${APP_DIR}/seed && \
-    ln -s /shared/uploads/         uploads/ && \
-    ln -s /shared/tmp_uploads/     tmp/uploads
+    ln -s /shared/uploads/         ${APP_DIR}/app/uploads && \
+    ln -s /shared/tmp_uploads/     ${APP_DIR}/app/tmp/uploads
 
 # move files to seed folder
 RUN cd ${APP_DIR}/app && \
@@ -292,6 +295,7 @@ COPY ./build_conf/init-scripts/*  ${INIT_BASE}/init-scripts/
 RUN chmod +x ${INIT_BASE}/init.sh ${INIT_BASE}/run-app.sh ${INIT_BASE}/run-worker.sh 
 
 # Lines needed to be compatible with docker 1.26+ versions of tini
+# as of Apr. 28, we use cmd.sh as init system.
 RUN ln -s /usr/bin/tini /tini
-RUN ln -s ${INIT_BASE}/init.sh /init.sh
-ENTRYPOINT ["/tini", "--", "/init.sh"]
+RUN ln -s ${INIT_BASE}/cmd.sh /init
+ENTRYPOINT ["/tini", "--", "/init"]

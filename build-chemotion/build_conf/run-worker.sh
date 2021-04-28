@@ -1,1 +1,1 @@
-run-app.sh
+init-scripts/library/run.sh

@@ -20,3 +20,5 @@ cp -R ${APP_DIR}/seed/.env /shared  || {
     msg "The storage needs to be read and writeable by $(id)"
     exit 1
 }
+
+setVersion
