@@ -41,7 +41,7 @@ initalizeContainer() {
 }
 
 upgradeContainer() {
-    execute "${INIT_BASE}/init-scripts/available/eln-upgrade.sh"
+    execute "${INIT_BASE}/init-scripts/library/eln-upgrade.sh"
 }
 
 startELN() {
