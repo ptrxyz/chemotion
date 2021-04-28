@@ -85,6 +85,9 @@ case "$1" in
     start-worker)
         startBGWorker
         ;;
+    cmd | bash)
+        exec /bin/bash
+        ;;
     *)
         usage
         ;;
