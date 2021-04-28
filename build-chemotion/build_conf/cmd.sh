@@ -35,7 +35,7 @@ containerInfo() {
 
 initalizeContainer() {
     export INITIALIZE=yes
-    execute "${INIT_BASE}/init-scripts/library/shared-storage.sh"
+    execute "${INIT_BASE}/init-scripts/library/shared-storage-init.sh"
     execute "${INIT_BASE}/init-scripts/library/db-init.sh"
     execute "${INIT_BASE}/init-scripts/library/eln-init.sh"
 }

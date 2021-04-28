@@ -53,7 +53,7 @@ execute() {
     # looks for "RUNAS: root|user" in the first two lines and sets the 
     # execution context accordingly
 
-    ff="${1}"
+    ff="$1"
     while [[ ! -z ${ff} ]]; do
         if [[ ! -f "${ff}" ]]; then
             echo -e "${CC_RED}File not found:${CC_NC} ${ff}"
@@ -68,6 +68,7 @@ execute() {
             fi            
         fi
         shift
+        ff="$1"
     done
 }
 
@@ -81,7 +82,7 @@ waitForDB() {
 }
 
 setVersion() {    
-    [[ -d ${VERSION_FILE} ]] || {
+    [[ -d "$(dirname ${VERSION_FILE})" ]] || {
         warn "Could not write version file!"
         msg "Make sure [$VERSION_FILE] is writeable for UID $(id -u ${PROD})"
     }
