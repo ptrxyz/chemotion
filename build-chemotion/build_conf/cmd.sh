@@ -22,7 +22,7 @@ containerInfo() {
     echo " - Memory:"
     echo "    - ${meminfo[0]} (total)  ${meminfo[1]} (free)"
     echo " - Storage:"
-    echo "    - root   : ${storage[0]} (total)  ${storage[1]} (free)"
+    echo "    - root  : ${storage[0]} (total)  ${storage[1]} (free)"
     echo "    - hared : ${storage[2]} (total)  ${storage[2]} (free)"
     echo ""
     info "Used versions:"
@@ -57,7 +57,7 @@ startBGWorker() {
 function usage()
 {
     echo "Usage:"
-    echo "$(basename $0) COMMAND\n"
+    echo -e "$(basename $0) COMMAND\n"
     echo "Commands:"
     echo "         info: display basic info." 
     echo "         init: initialize the shared storage and database.sh"
