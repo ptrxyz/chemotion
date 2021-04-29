@@ -10,20 +10,18 @@ services:
 
     worker:
         image: 'ptrxyz/chemotion:latest'
+        command: ["start-worker"]
         depends_on:
             - 'db'
-        environment:
-            - ELN_ROLE=worker
         volumes:
             - ./config:/config:ro
             - ./shared:/shared
 
     eln:
         image: 'ptrxyz/chemotion:latest'
+        command: ["start-eln"]
         depends_on:
             - 'db'
-        environment:
-            - ELN_ROLE=app
         expose:
             - '4000'
         ports:
