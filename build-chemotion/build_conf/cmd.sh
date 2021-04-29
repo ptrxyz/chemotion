@@ -35,22 +35,26 @@ containerInfo() {
 
 initalizeContainer() {
     export INITIALIZE=yes
+    waitForDB
     execute "${INIT_BASE}/init-scripts/library/shared-storage-init.sh"
     execute "${INIT_BASE}/init-scripts/library/db-init.sh"
     execute "${INIT_BASE}/init-scripts/library/eln-init.sh"
 }
 
 upgradeContainer() {
+    waitForDB
     execute "${INIT_BASE}/init-scripts/library/eln-upgrade.sh"
 }
 
 startELN() {
     export ELN_ROLE=app
+    waitForDB
     execute "${INIT_BASE}/init-scripts/library/run.sh"
 }
 
 startBGWorker() {
-    export ELN_ROLE=app
+    export ELN_ROLE=worker
+    waitForDB
     execute "${INIT_BASE}/init-scripts/library/run.sh"
 }
 
