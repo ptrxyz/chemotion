@@ -81,6 +81,18 @@ waitForDB() {
     done
 }
 
+DBConnect() {
+    # This makes sure that we can connect as the 'proper' DB user to
+    # the DB used by the actual app
+
+    (echo "\q" | psql -d "${DB_NAME}" -h "${DB_HOST}" -U "${DB_ROLE}") || {
+        error "Could not connect to database. Make sure to initialize it!"
+        return $?
+    }
+    info "Connection to database succeeded."
+    return 0
+}
+
 setVersion() {    
     [[ -d "$(dirname ${VERSION_FILE})" ]] || {
         warn "Could not write version file!"
@@ -94,21 +106,9 @@ setVersion() {
     }
 }
 
-DBConnect() {
-    # This makes sure that we can connect as the 'proper' DB user to
-    # the DB used by the actual app
-
-    (echo "\q" | psql -d "${DB_NAME}" -h "${DB_HOST}" -U "${DB_ROLE}") || {
-        error "Could not connect to database. Make sure to initialize it!"
-        return $?
-    }
-    info "Connection to database succeeded."
-    return 0
-}
-
 versionMatching() {
     # Check if we initalized with this container version
-    thisVersion="$(${CHEMOTION_VERSION}-${FLAVOR})"
+    thisVersion="${CHEMOTION_VERSION}-${FLAVOR}"
     theirVersion="$(cat ${VERSION_FILE} 2>/dev/null || echo 'unknown')"
 
     if [[ ! -f "${VERSION_FILE}" ]]; then
