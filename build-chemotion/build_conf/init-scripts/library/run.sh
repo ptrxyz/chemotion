@@ -14,6 +14,8 @@ versionMatching || {
 . ${HOME}/.profile;
 
 cd ${APP_DIR}/app
+
+echo "Role: $ELN_ROLE"
 if [[ ${ELN_ROLE} == "eln" || ${ELN_ROLE} == "app" ]]; then 
     # start ketcher background service if present
     if [ -f "${APP_DIR}/app/lib/node_service/nodeService.js" ]; then
