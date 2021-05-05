@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(date +%+2y.%+2m)-2
+VERSION=$(date +%+2y.%+2m)-3
 PID=$(pwd | md5sum | cut -c -16)
 GITHASH=$(cd src; git log --pretty=format:'%h' -n 1)
 GITTAG=$(cd src; git describe --exact-match --tags ${GITHASH})
@@ -18,5 +18,5 @@ time docker build --build-arg CHEMOTION_VERSION=${VERSION}@$(git log -1 --pretty
 docker rm -f db
 docker network rm ${PID}_net
 
-docker tag ptrxyz/chemotion:21.04-2 ptrxyz/chemotion:latest-local
+docker tag ptrxyz/chemotion:${VERSION} ptrxyz/chemotion:latest-local
 echo "Done. Version: $VERSION"
