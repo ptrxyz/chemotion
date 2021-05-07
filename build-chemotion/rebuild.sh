@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(date +%+2y.%+2m)-1
+VERSION=$(date +%y.%m)-1
 PID=$(pwd | md5sum | cut -c -16)
 GITHASH=$(cd src; git log --pretty=format:'%h' -n 1)
 GITTAG=$(cd src; git describe --exact-match --tags ${GITHASH} || echo ${GITHASH})
