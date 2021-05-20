@@ -18,7 +18,7 @@ services:
         stop_signal: SIGINT
 
     spectra:
-        image: 0be28050f9cc
+        image: ptrxyz/spectra-app:21.05-1
         depends_on:
             - msconvert
         ports:

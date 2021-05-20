@@ -9,7 +9,7 @@ services:
             - ./db-data:/var/lib/postgresql/data/
 
     worker:
-        image: 'ptrxyz/chemotion:latest'
+        image: 'ptrxyz/chemotion:21.05-1'
         command: ["start-worker"]
         depends_on:
             - 'db'
@@ -18,7 +18,7 @@ services:
             - ./shared:/shared
 
     eln:
-        image: 'ptrxyz/chemotion:latest'
+        image: 'ptrxyz/chemotion:21.05-1'
         command: ["start-eln"]
         depends_on:
             - 'db'
