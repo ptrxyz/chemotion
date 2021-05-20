@@ -1,0 +1,37 @@
+version: '3'
+services:
+    msconvert:
+        image: chambm/pwiz-skyline-i-agree-to-the-vendor-licenses
+        container_name: msconvert
+        expose:
+            - 8088
+        ports:
+            - 8088:8088
+        volumes:
+            - ${PWD}/spectra-shared:/data:rw
+            - ${PWD}/scripts/dist/flaskrun35:/bin/mscrun:ro
+            - ${PWD}/scripts/mscrunner.py:/bin/mscrunner.py:ro
+        entrypoint: /bin/mscrun /bin/mscrunner.py
+        environment:
+            WINEDEBUG: '-all'
+            MSC_PORT: '8088'
+        stop_signal: SIGINT
+
+    spectra:
+        image: 0be28050f9cc
+        depends_on:
+            - msconvert
+        ports:
+            - 3007:3007
+        volumes:
+            - ${PWD}/spectra_config.py:/app/instance/config.py:ro
+            - ${PWD}/spectra-shared:/shared:rw
+        restart: unless-stopped
+        stop_signal: SIGINT
+        environment:
+            FLASK_ENV: 'production'
+            MSC_HOST: 'msconvert'
+            MSC_PORT: '8088'
+            MSC_VALIDATE: 'true'
+            SHARE: ${PWD}/spectra-shared
+# vim: set shiftwidth=2 tabstop=2 softtabstop=-1 expandtab:
