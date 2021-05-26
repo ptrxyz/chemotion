@@ -30,6 +30,30 @@ msg() {
     echo $@
 }
 
+function confirm() {
+    # ask for confirmation.
+    # $1: text to show. Should indicate what's accepted 
+    #     as confirmation (i.e. "Please enter 'yes' to continue")
+    # $2: string considered as confirmation
+    
+    text="$1"
+    confirm="$2"
+
+    if [[ -z "$text" || -z "$confirm" ]]; then
+        echo "Syntax error"
+        return 1
+    fi
+
+    echo -e "$text"
+    echo -n "> "
+    read a
+
+    if [[ x"$a" == x"$confirm" ]]; then
+        return 0
+    fi
+    return 1
+}
+
 ensureRoot() {
     # Returns 0 if we are root, 1 otherwise
 

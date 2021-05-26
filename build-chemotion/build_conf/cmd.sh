@@ -80,7 +80,7 @@ case "$1" in
         containerInfo
         ;;
     init)
-        ensureRoot && initalizeContainer
+        confirm "This is a destructive action and data will be lost! Type 'continue' to go on, anything else to abort" "continue" && ensureRoot && initalizeContainer
         ;;
     upgrade)
         ensureRoot && upgradeContainer
