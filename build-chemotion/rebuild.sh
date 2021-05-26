@@ -14,7 +14,7 @@ docker network rm ${PID}_net
 docker network create ${PID}_net
 docker run -d --name db --network "${PID}_net" -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_USER=root postgres
 sleep 10
-time docker build --build-arg CHEMOTION_VERSION=${VERSION}@{GITTAG} --network "${PID}_net" -t ptrxyz/chemotion:${VERSION} $@ .
+time docker build --build-arg CHEMOTION_VERSION=${VERSION}@${GITTAG} --network "${PID}_net" -t ptrxyz/chemotion:${VERSION} $@ .
 docker rm -f db
 docker network rm ${PID}_net
 
