@@ -21,7 +21,7 @@ cd ${APP_DIR}/app
 info "Initializing database schemas..."
 bundle exec rake db:create
 info "Database created."
-bundle exec rake db:migrate >/dev/null
+bundle exec rake db:migrate
 info "Database migrated."
 bundle exec rake db:seed
 info "Database seeded."
