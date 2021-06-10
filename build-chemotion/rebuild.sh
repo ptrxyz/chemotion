@@ -1,6 +1,12 @@
 #!/bin/bash
 
 VERSION=$(date +%y.%m)-3
+FLAVOR=development
+
+if [[ ${FLAVOR} == "development" ]]; then
+	VERSION="local-dev"
+fi
+
 PID=$(pwd | md5sum | cut -c -16)
 GITHASH=$(cd src; git log --pretty=format:'%h' -n 1)
 GITTAG=$(cd src; git describe --exact-match --tags ${GITHASH} || echo ${GITHASH})
@@ -39,9 +45,9 @@ docker network create ${PID}_net >/dev/null && info "Build network created."
 docker run -d --name db --network "${PID}_net" -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_USER=root postgres >/dev/null && info "Created database for the build process."
 echo "Waiting for database to spin up ..."
 sleep 10
-time docker build --build-arg CHEMOTION_VERSION=${VERSION}@${GITTAG} --network "${PID}_net" -t ptrxyz/chemotion:${VERSION} $@ . && (
+time docker build --build-arg FLAVOR=${FLAVOR} --build-arg CHEMOTION_VERSION=${VERSION}@${GITTAG} --network "${PID}_net" -t ptrxyz/chemotion:${VERSION} $@ . && (
 	ok "Image successfully built."
-	docker tag ptrxyz/chemotion:${VERSION} ptrxyz/chemotion:latest-local
+	[[ ${FLAVOR} == "development" ]] || docker tag ptrxyz/chemotion:${VERSION} ptrxyz/chemotion:latest-local
 	echo -e "Version: \033[0;97m$VERSION\033[0m"
 ) || (
 	error "Build process failed."	

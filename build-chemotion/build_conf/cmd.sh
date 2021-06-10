@@ -38,6 +38,7 @@ initalizeContainer() {
     waitForDB
     execute "${INIT_BASE}/init-scripts/library/shared-storage-init.sh"
     execute "${INIT_BASE}/init-scripts/library/db-init.sh"
+    [[ "$1" == "dev" ]] && execute "${INIT_BASE}/init-scripts/library/patch4dev.sh"
     execute "${INIT_BASE}/init-scripts/library/block-pubchem.sh"
     execute "${INIT_BASE}/init-scripts/library/eln-init.sh"
     execute "${INIT_BASE}/init-scripts/library/unblock-pubchem.sh"
@@ -83,6 +84,9 @@ case "$1" in
         ;;
     init)
         confirm "This is a destructive action and data will be lost! Type 'continue' to go on, anything else to abort" "continue" && ensureRoot && initalizeContainer
+        ;;
+    init-dev)
+        confirm "This is a destructive action and data will be lost! Type 'continue' to go on, anything else to abort" "continue" && ensureRoot && initalizeContainer "dev"
         ;;
     upgrade)
         ensureRoot && upgradeContainer

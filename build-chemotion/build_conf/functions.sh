@@ -132,6 +132,9 @@ setVersion() {
 
 versionMatching() {
     # Check if we initalized with this container version
+
+    [[ ${FLAVOR} == "development" ]] && return 0
+
     thisVersion="${CHEMOTION_VERSION}-${FLAVOR}"
     theirVersion="$(cat ${VERSION_FILE} 2>/dev/null || echo 'unknown')"
 
