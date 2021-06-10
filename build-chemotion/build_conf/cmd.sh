@@ -66,6 +66,8 @@ function usage()
     echo -e "$(basename $0) COMMAND\n"
     echo "Commands:"
     echo "         info: display basic info." 
+    echo "        shell: drops you to a root shell." 
+    echo "   user-shell: drops you to a user shell." 
     echo "         init: initialize the shared storage and database.sh"
     echo "               WARNING: This will delete all data in your database"
     echo "                        and create a new one."
@@ -91,7 +93,11 @@ case "$1" in
     start-worker)
         startBGWorker
         ;;
-    cmd | bash)
+    user-shell)
+        cd ${APP_DIR}/app 2>/dev/null
+        odus 'exec /bin/bash'
+	;;
+    cmd | bash | shell)
         exec /bin/bash
         ;;
     *)
