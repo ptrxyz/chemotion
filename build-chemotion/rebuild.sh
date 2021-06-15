@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo rm -R db-data/ 
+
 VERSION=$(date +%y.%m)-2
 PID=$(pwd | md5sum | cut -c -16)
 GITHASH=$(cd src; git log --pretty=format:'%h' -n 1)

@@ -41,10 +41,10 @@ RUN pandoc_pkg="pandoc-${PANDOC_VERSION}-1-amd64.deb" && \
 
 ## Passenger. Use own repos for standalone version
 ## As of version 21.04-1 this is deprecated and we use `gem install` to install passenger standalone.
-#
-# RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 561F9B9CAC40B2F7
-# RUN . /etc/lsb-release && echo "deb https://oss-binaries.phusionpassenger.com/apt/passenger ${DISTRIB_CODENAME} main" >/etc/apt/sources.list.d/passenger.list
-# RUN apt-get -y update && apt-get -y --autoremove --fix-missing install passenger=1:6.0.5-1~focal1
+
+ RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 561F9B9CAC40B2F7
+ RUN . /etc/lsb-release && echo "deb https://oss-binaries.phusionpassenger.com/apt/passenger ${DISTRIB_CODENAME} main" >/etc/apt/sources.list.d/passenger.list
+ RUN apt-get -y update && apt-get -y --autoremove --fix-missing install passenger=1:6.0.5-1~focal1
 
 ## MinIO client
 RUN curl -L -o /bin/mcli https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x /bin/mcli
@@ -90,11 +90,19 @@ ENV RAILS_ENV=${FLAVOR}
 RUN useradd -mUs /bin/bash -d ${PROD_HOME} ${PROD}
 RUN mkdir -p ${APP_DIR}/app
 RUN mkdir -p /shared
+RUN mkdir -p ${APP_DIR}/app/mustash
 
 COPY ./src/ ${APP_DIR}/app
+COPY ./mustash/ ${APP_DIR}/app/mustash
+
+COPY ./reconfig.sh ${APP_DIR}/app
 
 RUN chown -R ${PROD}:${PROD} ${APP_DIR}
 RUN chown -R ${PROD}:${PROD} /shared
+#RUN chmod +x ${APP_DIR}/app/mustash/mo
+#RUN chown -R ${PROD}:${PROD} ${APP_DIR}/app/reconfig.sh
+
+#RUN ${APP_DIR}/app/reconfig.sh
 
 ## We do not have cron installed, we do not need logrotate...
 RUN echo -e ""\
@@ -121,9 +129,9 @@ RUN gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462
 RUN curl -sSL https://get.rvm.io | bash -s stable --ruby=${RUBY_VERSION} --auto-dotfiles
 RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && gem install bundler -v ${BUNDLER_VERSION}
 
-# RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash
-# RUN . ~/.nvm/nvm.sh; nvm install ${NODE_VERSION}
-# RUN . ~/.nvm/nvm.sh && nvm use ${NODE_VERSION} && npm install -g npm@${NPM_VERSION}
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash
+RUN . ~/.nvm/nvm.sh; nvm install ${NODE_VERSION}
+RUN . ~/.nvm/nvm.sh && nvm use ${NODE_VERSION} && npm install -g npm@${NPM_VERSION}
 
 RUN cd ${APP_DIR}/app && \
     npm install .
@@ -141,80 +149,83 @@ RUN cd ${APP_DIR}/app && \
     config log public/simulations public/assets public/images \
     tmp/pids tmp/sockets tmp/cache uploads
 
-RUN echo -e "SECRET_KEY_BASE='${SECRET_KEY_BASE}'\n"\
-    "DB_NAME='${DB_NAME}'\n"\
-    "DB_ROLE='${DB_ROLE}'\n"\
-    "DB_PW='${DB_PW}'\n"\
-    "DB_HOST='${DB_HOST}'\n"\
-    "DB_PORT=${DB_PORT}\n"\
-    "RAILS_ENV=${RAILS_ENV}\n" | sed 's/^ //g' >>${APP_DIR}/app/.env 
+# Generate config files from templates
+RUN ${APP_DIR}/app/reconfig.sh
 
-RUN echo -e "${RAILS_ENV}:\n"\
-    "  adapter: postgresql\n"\
-    "  encoding: unicode\n"\
-    "  database: <%=ENV['DB_NAME']%>\n"\
-    "  pool: 5\n"\
-    "  username: <%=ENV['DB_ROLE']%>\n"\
-    "  password: <%=ENV['DB_PW']%>\n"\
-    "  host: <%=ENV['DB_HOST']%>\n"\
-    "  port: <%=ENV['DB_PORT']%>\n" | sed 's/^ //g' >${APP_DIR}/app/config/database.yml
+#RUN echo -e "SECRET_KEY_BASE='${SECRET_KEY_BASE}'\n"\
+#    "DB_NAME='${DB_NAME}'\n"\
+#    "DB_ROLE='${DB_ROLE}'\n"\
+#    "DB_PW='${DB_PW}'\n"\
+#    "DB_HOST='${DB_HOST}'\n"\
+#    "DB_PORT=${DB_PORT}\n"\
+#    "RAILS_ENV=${RAILS_ENV}\n" | sed 's/^ //g' >>${APP_DIR}/app/.env 
 
-RUN echo -e "${RAILS_ENV}:\n"\
-    "  :primary_store: 'local'\n"\
-    "  :secundary_store: ''\n"\
-    "  :stores:\n"\
-    "    :tmp:\n"\
-    "      :data_folder: 'tmp/uploads/'\n"\
-    "      :thumbnail_folder: 'tmp/uploads/'\n"\
-    "    :local:\n"\
-    "      :data_folder: 'uploads'\n"\
-    "      :thumbnail_folder: 'uploads'\n" | sed 's/^ //g' >${APP_DIR}/app/config/storage.yml
+#RUN echo -e "${RAILS_ENV}:\n"\
+#    "  adapter: postgresql\n"\
+#    "  encoding: unicode\n"\
+#    "  database: <%=ENV['DB_NAME']%>\n"\
+#    "  pool: 5\n"\
+#    "  username: <%=ENV['DB_ROLE']%>\n"\
+#    "  password: <%=ENV['DB_PW']%>\n"\
+#    "  host: <%=ENV['DB_HOST']%>\n"\
+#    "  port: <%=ENV['DB_PORT']%>\n" | sed 's/^ //g' >${APP_DIR}/app/config/database.yml
 
-RUN echo -e "${RAILS_ENV}:\n"\
-    "  :name_abbreviation:\n"\
-    "    :reserved_list:\n"\
-    "      - 'CRR'\n"\
-    "      - 'CRS'\n"\
-    "      - 'CRD'\n"\
-    "    :length_group: [2, 5]\n"\
-    "    :length_device: [2, 6]\n"\
-    "    :length_default: [2, 3]\n" | sed 's/^ //g' >${APP_DIR}/app/config/user_props.yml
+#RUN echo -e "${RAILS_ENV}:\n"\
+#    "  :primary_store: 'local'\n"\
+#    "  :secundary_store: ''\n"\
+#    "  :stores:\n"\
+#    "    :tmp:\n"\
+#    "      :data_folder: 'tmp/uploads/'\n"\
+#    "      :thumbnail_folder: 'tmp/uploads/'\n"\
+#    "    :local:\n"\
+#    "      :data_folder: 'uploads'\n"\
+#    "      :thumbnail_folder: 'uploads'\n" | sed 's/^ //g' >${APP_DIR}/app/config/storage.yml
 
-RUN echo -e "${RAILS_ENV}:\n"\
-    "  secret_key_base: <%=ENV['SECRET_KEY_BASE']%>\n" | sed 's/^ //g' >${APP_DIR}/app/config/secrets.yml
+#RUN echo -e "${RAILS_ENV}:\n"\
+#    "  :name_abbreviation:\n"\
+#    "    :reserved_list:\n"\
+#    "      - 'CRR'\n"\
+#    "      - 'CRS'\n"\
+#    "      - 'CRD'\n"\
+#    "    :length_group: [2, 5]\n"\
+#    "    :length_device: [2, 6]\n"\
+#    "    :length_default: [2, 3]\n" | sed 's/^ //g' >${APP_DIR}/app/config/user_props.yml
 
-RUN echo -e "${RAILS_ENV}:\n"\
-    "  :services:\n"\
-    "    - :name: 'mailcollector'\n"\
-    "      :every: 5 # minutes\n"\
-    "    - :name: 'folderwatchersftp'\n"\
-    "      :every: 5 # minutes\n"\
-    "    - :name: 'folderwatcherlocal'\n"\
-    "      :every: 5 # minutes\n"\
-    "    - :name: 'filewatchersftp'\n"\
-    "      :every: 2 # minutes\n"\
-    "    - :name: 'filewatcherlocal'\n"\
-    "      :every: 2 # minutes\n"\
-    "\n"\
-    "  :mailcollector:\n"\
-    "    :server: 'imap.server.de'\n"\
-    "    :mail_address: 'service@mail'\n"\
-    "    :password: 'password'\n"\
-    "    # :port: 993 default\n"\
-    "    # :ssl: true default\n"\
-    "    :aliases:\n"\
-    "      - 'alias_one@kit.edu'\n"\
-    "      - 'alias_two@kit.edu'\n"\
-    "\n"\
-    "  :sftpusers:\n"\
-    "    - :user: 'user1'\n"\
-    "      :password: 'pass'\n"\
-    "    - :user: 'user2'\n"\
-    "      :password: 'pass'\n"\
-    "\n"\
-    "  :localcollectors:\n"\
-    "    - :path: '/home/ftpuser'\n"\
-    "    - :path: '/home/eln/public'\n" | sed 's/^ //g' >${APP_DIR}/app/config/datacollectors.yml
+#RUN echo -e "${RAILS_ENV}:\n"\
+#    "  secret_key_base: <%=ENV['SECRET_KEY_BASE']%>\n" | sed 's/^ //g' >${APP_DIR}/app/config/secrets.yml
+
+#RUN echo -e "${RAILS_ENV}:\n"\
+#    "  :services:\n"\
+#    "    - :name: 'mailcollector'\n"\
+#    "      :every: 5 # minutes\n"\
+#    "    - :name: 'folderwatchersftp'\n"\
+#    "      :every: 5 # minutes\n"\
+#    "    - :name: 'folderwatcherlocal'\n"\
+#    "      :every: 5 # minutes\n"\
+#    "    - :name: 'filewatchersftp'\n"\
+#    "      :every: 2 # minutes\n"\
+#    "    - :name: 'filewatcherlocal'\n"\
+#    "      :every: 2 # minutes\n"\
+#    "\n"\
+#    "  :mailcollector:\n"\
+#    "    :server: 'imap.server.de'\n"\
+#    "    :mail_address: 'service@mail'\n"\
+#    "    :password: 'password'\n"\
+#    "    # :port: 993 default\n"\
+#    "    # :ssl: true default\n"\
+#    "    :aliases:\n"\
+#    "      - 'alias_one@kit.edu'\n"\
+#    "      - 'alias_two@kit.edu'\n"\
+#    "\n"\
+#    "  :sftpusers:\n"\
+#    "    - :user: 'user1'\n"\
+#    "      :password: 'pass'\n"\
+#    "    - :user: 'user2'\n"\
+#    "      :password: 'pass'\n"\
+#    "\n"\
+#    "  :localcollectors:\n"\
+#    "    - :path: '/home/ftpuser'\n"\
+#    "    - :path: '/home/eln/public'\n" | sed 's/^ //g' >${APP_DIR}/app/config/datacollectors.yml
 
 RUN cat ${APP_DIR}/app/config/datacollectors.yml
 
@@ -237,8 +248,8 @@ RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \
     bundle exec rake db:create
 RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \
     bundle exec rake db:migrate
-# RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \
-#     bundle exec rake db:seed
+ RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \
+     bundle exec rake db:seed
 RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \
     bundle exec rake assets:precompile
 RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && cd ${APP_DIR}/app && \

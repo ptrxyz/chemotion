@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#. /etc/init/variables.sh
+#echo "##### executing reconfig.sh #####"
+#${APP_DIR}/app/reconfig.sh
+
+#echo "#### executing finished   #####"
+
+
 [[ ! -z "${INIT_BASE}" ]] && [[ -f ${INIT_BASE}/functions.sh ]] && source ${INIT_BASE}/functions.sh || {
     echo "Could not load base functions!"
     exit 1
@@ -34,6 +41,9 @@ containerInfo() {
 }
 
 initalizeContainer() {
+   # . /etc/init/variables.sh
+   # execute "${APP_DIR}/app/reconfig.sh"
+
     export INITIALIZE=yes
     waitForDB
     execute "${INIT_BASE}/init-scripts/library/shared-storage-init.sh"
@@ -62,7 +72,7 @@ startBGWorker() {
 
 function usage()
 {
-    echo "Usage:"
+    echo "Usage: test"
     echo -e "$(basename $0) COMMAND\n"
     echo "Commands:"
     echo "         info: display basic info." 
@@ -75,7 +85,17 @@ function usage()
     echo ""
 }
 
+#chown +x ./etc/init/updateConfigParam.sh
+chown -R ${PROD}:${PROD} ./etc/init/reconfig.sh
+#chown -R ${PROD}:${PROD} ./config.sh
+
 case "$1" in
+    testFunction)
+        updateParam
+	testFunction
+        #execute "/config.sh"
+        execute "${INIT_BASE}/reconfig.sh"
+	;;
     info)
         containerInfo
         ;;

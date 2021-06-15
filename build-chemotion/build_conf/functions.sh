@@ -30,6 +30,46 @@ msg() {
     echo $@
 }
 
+function updateParam(){
+    DB_ROLE="$1"
+    DB_NAME="$2"
+    DB_PW="$3"
+    DB_HOST="$4"
+    DB_PORT="$5"
+    
+   # if [[ -z "DB_PW" || -z "b" || -z "DB_PW" ]]; then
+   #     echo "invalid argument, please check!"
+   #     return 1
+   # fi
+
+    echo "### values before ###"
+    
+    echo "(1 of 5) DB_ROLLE ::: please insert Database role:"
+    read DB_ROLLE
+    echo "(2 of 5) Db_NAME ::: please insert Database name:"
+    read DB_NAME
+    echo "(3 of 5) Db_PW ::: please insert database password:"
+    read  DB_PW
+    echo "(4 of 5) DB_HOST ::: please insert database Host:"
+    read DB_HOST
+    echo "(5 of 5) DB_PORT ::: please insert database port"
+    read DB_PORT
+
+    info "setting new values for environment variables..."
+    export DB_ROLE="$DB_ROLLE"
+    export DB_NAME="$DB_NAME"
+    export DB_PW="$DB_PW"
+    export DB_HOST="$DB_HOST"
+    export DB_PORT="$DB_PORT" 
+    
+    info "all environment variables has be reassigned with new values"
+    echo "DB_ROLLE: "$DB_ROLLE
+    echo "DB_NAME: "$DB_NAME
+    echo "DB_PW: "$DB_PW
+    echo "DB_HOST: "$DB_HOST
+    echo "DB_PORT: "$DB_PORT
+}
+
 function confirm() {
     # ask for confirmation.
     # $1: text to show. Should indicate what's accepted 
@@ -151,3 +191,12 @@ versionMatching() {
 
     return 0
 }
+
+function testFunction()
+{
+    info "echo some variables from host machine"
+    echo "some test environment variable from external file"
+    echo "variable DB_PW $DB_PW"
+    echo "variable DB_ROLLE $DB_ROLLE"
+}
+#. /etc/init/variables.sh
