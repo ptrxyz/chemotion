@@ -6,7 +6,7 @@ export CC_YELLOW='\033[0;33m'
 export CC_CYAN='\033[0;36m'
 export CC_NC='\033[0m'
 
-[[ -f ${INIT_BASE}/overwrite.env ]] && source ${INIT_BASE}/overwrite.env
+[[ -f /config/overwrite.env ]] && source /config/overwrite.env
 
 error() {
     echo -ne "${CC_RED}"
