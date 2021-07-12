@@ -1,1 +1,6 @@
 src
+config
+shared
+db-data
+Dockerfile.save
+Dockerfile_backup
