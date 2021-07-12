@@ -1,0 +1,133 @@
+<html>
+  <head>
+    <title></title>
+  </head>
+
+  <body>
+    <table>
+      <tr>
+        <th>
+          Article Reference
+        </th>
+        <th>
+          Article DOI
+        </th>
+      </tr>
+      <tr>
+        <td class="c-artical">
+          reference
+        </td>
+        <td class="c-artical">
+          doi:
+        </td>
+      </tr>
+    </table>
+
+    <table>
+      <tr>
+        <th>
+          Label
+        </th>
+        <th>
+          Image
+        </th>
+        <th>
+          Name
+        </th>
+        <th>
+          InChI
+        </th>
+        <th>
+          InChIKey
+        </th>
+        <th>
+          Long-RInChIKey
+        </th>
+        <th>
+          Web-RInChIKey
+        </th>
+        <th>
+          Short-RInChIKey
+        </th>
+      </tr>
+      <% rows.each do |row| %>
+        <tr>
+          <td class="col-12"><%= row[:label] %></td>
+          <td class="col-12 molecule"><%= row[:svg_image] %></td>
+          <td class="col-12"><span><%= row[:showed_name] %></span></td>
+          <td class="col-12"><span><%= row[:inchi] %></span></td>
+          <td class="col-12"><span><%= row[:inchikey] %></span></td>
+          <td class="col-12"><%= row[:long_key] %></td>
+          <td class="col-12"><span><%= row[:web_key] %></span></td>
+          <td class="col-12"><span><%= row[:short_key] %></span></td>
+        </tr>
+      <% end %>
+    </table>
+  </body>
+
+
+  <!-- * * * * * * * * * * * * * * * * * * * * * * * * * -->
+  <style>
+
+    table {
+      border-collapse: collapse;
+      margin: 10px;
+      width: 99%;
+    }
+
+    table, th, td {
+      border: 1px solid #666666;
+    }
+
+    th {
+      background-color: #333333;
+      color: white;
+    }
+
+    tr {
+      line-height: 2;
+    }
+
+    tr:nth-child(odd) {
+      background-color: #f2f2f2;
+    }
+
+    th, td {
+      padding: 5px;
+      text-align: left;
+    }
+
+    span {
+      display: block;
+      overflow-wrap: break-word;
+      width: 99%;
+      word-break: break-all;
+      word-wrap: break-word;
+    }
+
+    .c-artical {
+      color: #aaaaaa;
+    }
+
+    .col-05 {
+      width: 5% !important;
+    }
+
+    .col-12 {
+      width: 12% !important;
+    }
+
+    .col-15 {
+      width: 15% !important;
+    }
+
+    .col-30 {
+      width: 30% !important;
+    }
+
+    .molecule svg {
+      width: 99% !important;
+    }
+
+  </style>
+</html>

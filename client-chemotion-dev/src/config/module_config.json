@@ -1,0 +1,80 @@
+{
+  "AdvancedSearch":{
+    "SearchParams":{
+      "prototype": {
+        "content": {
+          "label": "label",
+          "value": {
+           "table": "db_table_name",
+           "column": "table_column_name",
+           "label": "label"
+          }
+        },
+        "on":      "()=>true"
+      }
+    }
+  },
+  "CollectionManagement": {
+    "Tabs": {
+      "prototype": {
+        "content": "<div/>",
+        "title":   "<div/>",
+        "on":      "()=>false"
+      }
+    }
+  },
+  "CollectionTree": {
+     "div": {}
+  },
+  "ElementsTableEntries": {
+    "TdCont": {}
+  },
+  "ElementsTableSampleEntries": {
+    "MolHeadCont": {}
+  },
+  "Home": {
+    "Home": {
+
+    }
+  },
+  "ReactionDetails": {
+    "Tabs": {
+      "prototype": {
+        "content": "<div/>",
+        "title":   "<div/>",
+        "on":      "()=>true"
+      }
+    }
+  },
+  "SampleDetails": {
+    "Tabs": {
+      "prototype": {
+        "content": "<div/>",
+        "title":   "<div/>",
+        "on":      "()=>true"
+      }
+    },
+    "Labels" :{
+      "prototype": {
+        "content": "<div/>",
+        "on":      "()=>true"
+      }
+    }
+  },
+
+  "CollectionStore": {
+    "state": {},
+    "listeners": {},
+    "handlers": {}
+  },
+
+  "ElementStore": {
+    "state": {},
+    "listeners": {},
+    "handlers": {}
+  },
+
+  "routes": {
+    "routes": {}
+  }
+}

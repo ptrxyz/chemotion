@@ -1,0 +1,36 @@
+.polymer-section, .chem-identifiers-section {
+  tr td {
+    vertical-align: top;
+  }
+
+  td.cross_linkage {
+    padding-left: 5px;
+    input {
+      height: 38px;
+    }
+  }
+
+  button#external-save-btn {
+    margin-top: 25px;
+    margin-left: -10px;
+    float: right;
+  }
+
+  @media screen and (max-height: 768px) {
+    button#external-save-btn {
+      margin-left: -30px;
+    }
+  }
+
+  .elem-composition-header, .chem-identifiers-header {
+    padding-left: 0px;
+  }
+}
+
+td.loading-input .form-group {
+  margin-top: 3px;
+}
+
+span.ea-section {
+  border-top: none;
+}
