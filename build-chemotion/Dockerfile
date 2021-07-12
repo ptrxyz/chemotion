@@ -99,10 +99,6 @@ COPY ./reconfig.sh ${APP_DIR}/app
 
 RUN chown -R ${PROD}:${PROD} ${APP_DIR}
 RUN chown -R ${PROD}:${PROD} /shared
-#RUN chmod +x ${APP_DIR}/app/mustash/mo
-#RUN chown -R ${PROD}:${PROD} ${APP_DIR}/app/reconfig.sh
-
-#RUN ${APP_DIR}/app/reconfig.sh
 
 ## We do not have cron installed, we do not need logrotate...
 RUN echo -e ""\
@@ -124,8 +120,8 @@ RUN npm --version
 RUN node --version
 
 USER ${PROD}
-RUN gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB || true
-RUN gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB || true
+RUN gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB || true
+RUN gpg2 --keyserver hkp://keyserver.ubuntu.com --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB || true
 RUN curl -sSL https://get.rvm.io | bash -s stable --ruby=${RUBY_VERSION} --auto-dotfiles
 RUN . ~/.rvm/scripts/rvm && rvm use ${RUBY_VERSION} && gem install bundler -v ${BUNDLER_VERSION}
 
