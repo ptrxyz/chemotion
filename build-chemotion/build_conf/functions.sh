@@ -6,7 +6,7 @@ export CC_YELLOW='\033[0;33m'
 export CC_CYAN='\033[0;36m'
 export CC_NC='\033[0m'
 
-[[ -f ${INIT_BASE}/overwrite.env ]] && source ${INIT_BASE}/overwrite.env
+[[ -f /config/overwrite.env ]] && source /config/overwrite.env
 
 error() {
     echo -ne "${CC_RED}"
@@ -37,16 +37,22 @@ function updateParam(){
     DB_HOST="$4"
     DB_PORT="$5"
     
-    echo "(1 of 5) DB_ROLLE ::: please insert Database role:"
-    read DB_ROLLE
-    echo "(2 of 5) Db_NAME ::: please insert Database name:"
-    read DB_NAME
-    echo "(3 of 5) Db_PW ::: please insert database password:"
-    read  DB_PW
-    echo "(4 of 5) DB_HOST ::: please insert database Host:"
-    read DB_HOST
-    echo "(5 of 5) DB_PORT ::: please insert database port"
-    read DB_PORT
+    info "To use default values, just press Enter"
+    
+    read -p "(1 of 5) ::: Database role [default: chemotion]" DB_ROLLE
+    DB_ROLLE=${DB_ROLLE:-chemotion}
+   
+    read -p "(2 of 5) ::: Database name [default: chemotion]" DB_NAME
+    DB_NAME=${DB_NAME:-chemotion}
+   
+    read -p "(3 of 5) ::: database password [default: changeme]" DB_PW
+    DB_PW=${DB_PW:-changeme}
+    
+    read -p "(4 of 5) ::: Database Host [default: db]" DB_HOST
+    DB_HOST=${DB_HOST:-db}
+
+    read -p "(5 of 5) ::: Database port [default:5432]" DB_PORT
+    DB_PORT=${DB_PORT:-5432}
 
     info "setting new values for environment variables..."
     export DB_ROLE="$DB_ROLLE"
@@ -55,12 +61,14 @@ function updateParam(){
     export DB_HOST="$DB_HOST"
     export DB_PORT="$DB_PORT" 
     
-    info "all environment variables has be reassigned with new values"
+    info "all environment variables has been reassigned with new values"
+    echo "-----"
     echo "DB_ROLLE: "$DB_ROLLE
     echo "DB_NAME: "$DB_NAME
     echo "DB_PW: "$DB_PW
     echo "DB_HOST: "$DB_HOST
     echo "DB_PORT: "$DB_PORT
+    echo "-----"
 
     export mustash=${APP_DIR}/app/mustash/mo
     export templates=${APP_DIR}/app/mustash/templates
@@ -86,14 +94,19 @@ function updateParam(){
     ${mustash} ${templates}/storage_template.mo 	> ${APP_DIR}/seed/config/storage.yml
     ${mustash} ${templates}/user_props_template.mo 	> ${APP_DIR}/seed/config/user_props.yml
 
+    echo "-----"    
     echo "content of ${APP_DIR}/app/.env"
     cat ${APP_DIR}/app/.env
+    echo "-----" 
     echo "content of ${APP_DIR}/seed/.env"
     cat ${APP_DIR}/seed/.env
+    echo "-----" 
     echo "content of ${APP_DIR}/app/config/database.yml"
     cat ${APP_DIR}/app/config/database.yml
+    echo "-----" 
     echo "content of ${APP_DIR}/seed/config/database.yml"
     cat ${APP_DIR}/seed/config/database.yml
+    printf "\n" 
 }
 
 function confirm() {
