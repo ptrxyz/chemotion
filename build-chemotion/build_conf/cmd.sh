@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#. /etc/init/variables.sh
+#echo "##### executing reconfig.sh #####"
+#${APP_DIR}/app/reconfig.sh
+
+#echo "#### executing finished   #####"
+
+
 [[ ! -z "${INIT_BASE}" ]] && [[ -f ${INIT_BASE}/functions.sh ]] && source ${INIT_BASE}/functions.sh || {
     echo "Could not load base functions!"
     exit 1
@@ -34,6 +41,9 @@ containerInfo() {
 }
 
 initalizeContainer() {
+   # . /etc/init/variables.sh
+   # execute "${APP_DIR}/app/reconfig.sh"
+
     export INITIALIZE=yes
     waitForDB
     execute "${INIT_BASE}/init-scripts/library/shared-storage-init.sh"
@@ -75,12 +85,11 @@ function usage()
     echo ""
 }
 
+#chown +x ./etc/init/updateConfigParam.sh
 chown -R ${PROD}:${PROD} ./etc/init/reconfig.sh
+#chown -R ${PROD}:${PROD} ./config.sh
 
 case "$1" in
-    reconfig)
-	updateParam
-	;;
     testFunction)
         updateParam
 	testFunction
@@ -91,7 +100,6 @@ case "$1" in
         containerInfo
         ;;
     init)
-	CHANGE_DB_PASS
         confirm "This is a destructive action and data will be lost! Type 'continue' to go on, anything else to abort" "continue" && ensureRoot && initalizeContainer
         ;;
     upgrade)

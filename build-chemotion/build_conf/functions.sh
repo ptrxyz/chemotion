@@ -6,7 +6,7 @@ export CC_YELLOW='\033[0;33m'
 export CC_CYAN='\033[0;36m'
 export CC_NC='\033[0m'
 
-[[ -f /config/overwrite.env ]] && source /config/overwrite.env
+[[ -f ${INIT_BASE}/overwrite.env ]] && source ${INIT_BASE}/overwrite.env
 
 error() {
     echo -ne "${CC_RED}"
@@ -30,19 +30,19 @@ msg() {
     echo $@
 }
 
-function CHANGE_DB_PASS(){
-    DB_PW=$1
-    echo "insert a password"
-    read DB_PW
-    export DB_PW="$DB_PW"
-}
-
 function updateParam(){
     DB_ROLE="$1"
     DB_NAME="$2"
     DB_PW="$3"
     DB_HOST="$4"
     DB_PORT="$5"
+    
+   # if [[ -z "DB_PW" || -z "b" || -z "DB_PW" ]]; then
+   #     echo "invalid argument, please check!"
+   #     return 1
+   # fi
+
+    echo "### values before ###"
     
     echo "(1 of 5) DB_ROLLE ::: please insert Database role:"
     read DB_ROLLE
@@ -68,39 +68,6 @@ function updateParam(){
     echo "DB_PW: "$DB_PW
     echo "DB_HOST: "$DB_HOST
     echo "DB_PORT: "$DB_PORT
-
-    export mustash=${APP_DIR}/app/mustash/mo
-    export templates=${APP_DIR}/app/mustash/templates
-
-    env | grep -e "^DB_NAME" -e "^DB_PW=" -e "^DB_HOST="  -e "^DB_ROLLE" -e "^DB_PORT" >> /config/overwrite.env
-
-    ${mustash} ${templates}/env_template.mo > ${APP_DIR}/app/.env
-    ${mustash} ${templates}/env_template.mo > ${APP_DIR}/seed/.env 
-
-    ${mustash} ${templates}/database_template.mo	> ${APP_DIR}/app/config/database.yml    
-    ${mustash} ${templates}/datacollectors_template.mo	> ${APP_DIR}/app/config/datacollectors.yml
-    #${mustash} ${templates}/editors_template.mo 	> ${APP_DIR}/app/config/editors.yml
-    #${mustash} ${templates}/inference_template.mo 	> ${APP_DIR}/app/config/inference.yml
-    ${mustash} ${templates}/secrets_template.mo 	> ${APP_DIR}/app/config/secrets.yml
-    #${mustash} ${templates}/spectra_template.mo 	> ${APP_DIR}/app/config/spectra.yml
-    ${mustash} ${templates}/storage_template.mo 	> ${APP_DIR}/app/config/storage.yml
-    ${mustash} ${templates}/user_props_template.mo 	> ${APP_DIR}/app/config/user_props.yml
-    #${APP_DIR}/seed/config/database.yml
-
-    ${mustash} ${templates}/database_template.mo 	> ${APP_DIR}/seed/config/database.yml
-    ${mustash} ${templates}/datacollectors_template.mo > ${APP_DIR}/seed/config/datacontrollrs.yml
-    ${mustash} ${templates}/secrets_template.mo 	> ${APP_DIR}/seed/config/secrets.yml
-    ${mustash} ${templates}/storage_template.mo 	> ${APP_DIR}/seed/config/storage.yml
-    ${mustash} ${templates}/user_props_template.mo 	> ${APP_DIR}/seed/config/user_props.yml
-
-    echo "content of ${APP_DIR}/app/.env"
-    cat ${APP_DIR}/app/.env
-    echo "content of ${APP_DIR}/seed/.env"
-    cat ${APP_DIR}/seed/.env
-    echo "content of ${APP_DIR}/app/config/database.yml"
-    cat ${APP_DIR}/app/config/database.yml
-    echo "content of ${APP_DIR}/seed/config/database.yml"
-    cat ${APP_DIR}/seed/config/database.yml
 }
 
 function confirm() {
@@ -224,3 +191,12 @@ versionMatching() {
 
     return 0
 }
+
+function testFunction()
+{
+    info "echo some variables from host machine"
+    echo "some test environment variable from external file"
+    echo "variable DB_PW $DB_PW"
+    echo "variable DB_ROLLE $DB_ROLLE"
+}
+#. /etc/init/variables.sh
