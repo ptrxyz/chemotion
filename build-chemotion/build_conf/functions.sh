@@ -30,45 +30,93 @@ msg() {
     echo $@
 }
 
-function updateParam(){
+function reconfigdb(){
+    export INITIALIZE=yes
+    if ! (echo "\q" | psql -d "${DB_NAME}" -h "${DB_HOST}" -U "${DB_ROLE}" 2>/dev/null) || [[ x"${INITIALIZE}" == x"yes" ]]; then
+        info "Can not connect to database or database needs to be initialized."
+        if [[ "x${CREATE_USER}" == x"yes" || x"${INITIALIZE}" == x"yes" ]]; then
+            psql --host="${DB_HOST}" --username 'postgres' -c "
+                DROP DATABASE IF EXISTS ${DB_NAME};"
+            psql --host="${DB_HOST}" --username 'postgres' -c "
+		REASSIGN OWNED BY ${DB_ROLE} TO postgres;
+		DROP OWNED BY ${DB_ROLE};
+		DROP USER IF EXISTS ${DB_ROLE};"
+               # DROP ROLE IF EXISTS ${DB_ROLE};"
+	    
+	    # update parameters values
+	    updateParameters
+    	    echo "-----"
+	    echo "DB_ROLLE: "$DB_ROLLE
+	    echo "DB_NAME: "$DB_NAME
+	    echo "DB_PW: "$DB_PW
+	    echo "DB_HOST: "$DB_HOST
+	    echo "DB_PORT: "$DB_PORT
+	    echo "-----"
+	    psql --host="${DB_HOST}" --username 'postgres' -c "
+		CREATE ROLE ${DB_ROLE} LOGIN CREATEDB NOSUPERUSER PASSWORD '${DB_PW}';"
+            psql --host="${DB_HOST}" --username 'postgres' -c "            
+                CREATE DATABASE ${DB_NAME} OWNER ${DB_ROLE};
+            " || {
+                error "Could not create database. PSQL returned [$?]."
+                exit 1
+            }
+            psql --host="${DB_HOST}" --username="${DB_ROLE}" -c "
+                CREATE EXTENSION IF NOT EXISTS \"pg_trgm\";
+                CREATE EXTENSION IF NOT EXISTS \"hstore\";
+                CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";
+                ALTER USER ${DB_ROLE} PASSWORD '${DB_PW}';
+            " || {
+                error "Failed to set password for database user. PSQL returned [$?]."
+                exit 1
+            }
+        else
+            error "Could not connect to database. Make sure to specify connection parameters using DB_HOST, DB_ROLE, DB_NAME, DB_PW."
+            exit 1
+        fi
+    fi
+    # check if everything is ok
+    (echo "\q" | psql -d "${DB_NAME}" -h "${DB_HOST}" -U "${DB_ROLE}") || exit $?
+    info "Connection to database succeeded."
+
+}
+
+
+function updateParameters(){
     DB_ROLE="$1"
     DB_NAME="$2"
     DB_PW="$3"
-    DB_HOST="$4"
-    DB_PORT="$5"
+    #DB_HOST="$4"
+    #DB_PORT="$5"
     
     info "To use default values, just press Enter"
     
-    read -p "(1 of 5) ::: Database role [default: chemotion]" DB_ROLLE
+    read -p "(1 of 3) ::: Database role [default: chemotion] " DB_ROLLE
     DB_ROLLE=${DB_ROLLE:-chemotion}
    
-    read -p "(2 of 5) ::: Database name [default: chemotion]" DB_NAME
+    read -p "(2 of 3) ::: Database name [default: chemotion] " DB_NAME
     DB_NAME=${DB_NAME:-chemotion}
    
-    read -p "(3 of 5) ::: database password [default: changeme]" DB_PW
+    read -p "(3 of 3) ::: database password [default: changeme] " DB_PW
     DB_PW=${DB_PW:-changeme}
     
-    read -p "(4 of 5) ::: Database Host [default: db]" DB_HOST
-    DB_HOST=${DB_HOST:-db}
+    #read -p "(4 of 5) ::: Database Host [default: db] " DB_HOST
+    #DB_HOST=${DB_HOST:-db}
 
-    read -p "(5 of 5) ::: Database port [default:5432]" DB_PORT
-    DB_PORT=${DB_PORT:-5432}
+    #read -p "(5 of 5) ::: Database port [default:5432] " DB_PORT
+    #DB_PORT=${DB_PORT:-5432}
 
-    info "setting new values for environment variables..."
+    info "setting new values for environment variables... "
     export DB_ROLE="$DB_ROLLE"
     export DB_NAME="$DB_NAME"
     export DB_PW="$DB_PW"
-    export DB_HOST="$DB_HOST"
-    export DB_PORT="$DB_PORT" 
     
-    info "all environment variables has been reassigned with new values"
-    echo "-----"
-    echo "DB_ROLLE: "$DB_ROLLE
+    info "Following param values has been updated"
+
+    echo "--------------------------"
+    echo "DB_ROLLE/USER: "$DB_ROLLE
     echo "DB_NAME: "$DB_NAME
     echo "DB_PW: "$DB_PW
-    echo "DB_HOST: "$DB_HOST
-    echo "DB_PORT: "$DB_PORT
-    echo "-----"
+    echo "--------------------------"
 
     export mustash=${APP_DIR}/app/mustash/mo
     export templates=${APP_DIR}/app/mustash/templates
@@ -78,19 +126,34 @@ function updateParam(){
     ${mustash} ${templates}/env_template.mo > ${APP_DIR}/app/.env
     ${mustash} ${templates}/env_template.mo > ${APP_DIR}/seed/.env 
 
+    export SECRET_KEY_BASE=SecretKey
+
+    sed -i 's/^.*SECRET_KEY_BASE=.*$/SECRET_KEY_BASE="${SECRET_KEY_BASE}"/' ${APP_DIR}/app/.env
+    sed -i 's/^.*SECRET_KEY_BASE=.*$/SECRET_KEY_BASE="${SECRET_KEY_BASE}"/' ${APP_DIR}/seed/.env
+
+    #sed -i 's/^.*SECRET_KEY_BASE=.*$/SECRET_KEY_BASE="${SECRET_KEY_BASE}"/' ${APP_DIR}/app/.env
+    #sed -i 's/^.*SECRET_KEY_BASE=.*$/SECRET_KEY_BASE="${SECRET_KEY_BASE}"/' ${APP_DIR}/seed/.env
+
+    #env | grep -e "^RAILS_ENV" >> ${APP_DIR}/app/.env && echo 'SECRET_KEY_BASE=SecretKey' >> ${APP_DIR}/app/.env
+    #env | grep -e "^RAILS_ENV" >> ${APP_DIR}/seed/.env && echo 'SECRET_KEY_BASE=SecretKey' >> ${APP_DIR}/seed/.env
+
     ${mustash} ${templates}/database_template.mo	> ${APP_DIR}/app/config/database.yml    
     ${mustash} ${templates}/datacollectors_template.mo	> ${APP_DIR}/app/config/datacollectors.yml
     #${mustash} ${templates}/editors_template.mo 	> ${APP_DIR}/app/config/editors.yml
     #${mustash} ${templates}/inference_template.mo 	> ${APP_DIR}/app/config/inference.yml
     ${mustash} ${templates}/secrets_template.mo 	> ${APP_DIR}/app/config/secrets.yml
+    #sed -i 's/^.*secret.*$/  secret_key_base: <%=ENV["SECRET_KEY_BASE"]%>/' ${APP_DIR}/app/config/secrets.yml
+
     #${mustash} ${templates}/spectra_template.mo 	> ${APP_DIR}/app/config/spectra.yml
     ${mustash} ${templates}/storage_template.mo 	> ${APP_DIR}/app/config/storage.yml
     ${mustash} ${templates}/user_props_template.mo 	> ${APP_DIR}/app/config/user_props.yml
     #${APP_DIR}/seed/config/database.yml
 
     ${mustash} ${templates}/database_template.mo 	> ${APP_DIR}/seed/config/database.yml
-    ${mustash} ${templates}/datacollectors_template.mo > ${APP_DIR}/seed/config/datacontrollrs.yml
+    ${mustash} ${templates}/datacollectors_template.mo 	> ${APP_DIR}/seed/config/datacontrollrs.yml
     ${mustash} ${templates}/secrets_template.mo 	> ${APP_DIR}/seed/config/secrets.yml
+    sed -i 's/^.*secret.*$/  secret_key_base: <%=ENV["SECRET_KEY_BASE"]%>/' ${APP_DIR}/seed/config/secrets.yml
+
     ${mustash} ${templates}/storage_template.mo 	> ${APP_DIR}/seed/config/storage.yml
     ${mustash} ${templates}/user_props_template.mo 	> ${APP_DIR}/seed/config/user_props.yml
 

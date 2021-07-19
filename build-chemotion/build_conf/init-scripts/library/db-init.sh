@@ -15,9 +15,17 @@ if ! (echo "\q" | psql -d "${DB_NAME}" -h "${DB_HOST}" -U "${DB_ROLE}" 2>/dev/nu
         psql --host="${DB_HOST}" --username 'postgres' -c "
             DROP DATABASE IF EXISTS ${DB_NAME};"
         psql --host="${DB_HOST}" --username 'postgres' -c "
-            DROP ROLE IF EXISTS ${DB_ROLE};
+            DROP ROLE IF EXISTS ${DB_ROLE};"
+	
+	info " ::: old param values  ::: db_role=${DB_ROLE} ::: db_name=${DB_NAME} ::: "
+	# update DB-parameter values
+	updateParameters
+	info " ::: new param values  ::: db_role=${DB_ROLE} ::: db_name=${DB_NAME} ::: "
+
+	psql --host="${DB_HOST}" --username 'postgres' -c "
             CREATE ROLE ${DB_ROLE} LOGIN CREATEDB NOSUPERUSER PASSWORD '${DB_PW}';"
-        psql --host="${DB_HOST}" --username 'postgres' -c "            
+        
+	psql --host="${DB_HOST}" --username 'postgres' -c "            
             CREATE DATABASE ${DB_NAME} OWNER ${DB_ROLE};
         " || {
             error "Could not create database. PSQL returned [$?]."

@@ -6,6 +6,8 @@
     exit 1
 }
 
+#updateParam
+
 # make sure we do this before DB config...
 info "Setting up shared folders..."
 cd /shared

@@ -75,11 +75,9 @@ function usage()
     echo ""
 }
 
-#chown -R ${PROD}:${PROD} ./etc/init/reconfig.sh
-
 case "$1" in
     reconfig)
-        updateParam
+        reconfigdb
 	;;
     info)
         containerInfo
