@@ -1,0 +1,31 @@
+version: '3'
+services:
+    db:
+        image: postgres:latest
+        restart: unless-stopped
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_DB=postgres
+            - POSTGRES_HOST_AUTH_METHOD=trust
+
+    chemotion:
+        build:
+            context: .
+            dockerfile: Dockerfile.vscode
+        depends_on:
+            - 'db'
+        environment:
+            - RAILS_ENV=development
+            - BUNDLE_JOBS=24
+            - THOR_SILENCE_DEPRECATION=1
+        volumes:
+            - .:/workspace/chemotion:cached
+        network_mode: service:db
+        command: sleep infinity
+
+# Persist database information after your VM shuts down (just these two lines!)
+volumes:
+    db_data:
