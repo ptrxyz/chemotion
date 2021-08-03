@@ -34,7 +34,17 @@ To start an additional container for a database server, `docker-compose.vscode` 
 $ git clone https://github.com/ComPlat/chemotion_ELN /workspace/chemotion
 ```
 
-**Step 2:** place all files from this folder into Chemotion's source directory:
+**Step 2:** Do now create the configuration files for Chemotion ELN. For that purpose, remove the ".example" extension from the following files:
+
+-   config/storage.yml.example
+-   config/datacollectors.yml.example
+-   config/database.yml.example
+
+Only the `database.yml` file should need manual editing: change the database host for all configurations to `db`, as this is the hostname of the sidecar container.
+
+Additionally rename `public/welcome-message-sample.md` to `public/welcome-message.md`, otherwise the ELN will work, yet some tests might fail.
+
+**Step 3:** place all files from this folder into Chemotion's source directory:
 
 ```
 $ cp * .* /workspace/chemotion
@@ -59,18 +69,20 @@ public         .rspec                     README.md
 
 (You want to make sure that `.devcontainer`, `docker-compose.vscode` and `Dockerfile.vscode` reside in the Chemotion source's root directory as shown here)
 
-**Step 3:** Open VSCode and open the Chemotion folder: `File` -> `Open Folder` -> select the right folder, here `/workspace/chemotion`.
+**Step 4:** Open VSCode and open the Chemotion folder: `File` -> `Open Folder` -> select the right folder, here `/workspace/chemotion`.
 
-**Step 4:** If the Remote Development Extensions for Docker are installed, you will prompted to reopen the folder in a container. Confirm and the container will be created (this will take a while...).
+**Step 5:** If the Remote Development Extensions for Docker are installed, you will prompted to reopen the folder in a container. Confirm and the container will be created (this will take a while...).
 
 If the prompt does not show, install the extension pack as mentioned above. Then, you will find an icon similar to `><` in the very bottom left of VSCode's status bar. Click on it and select "Reopen in Container".
 
-**Step 5:** After the container is build, you will be able to access a terminal in the container using VSCode (`Terminal` -> `New Terminal`). If all steps were followed correclty, the container will already be initalised with seed data. This was done by the `postCreateCommand` in the `.devcontainer/devcontainer.json` file. See that file for how it is done.
+**Step 6:** After the container is build, you will be able to access a terminal in the container using VSCode (`Terminal` -> `New Terminal`). If all steps were followed correclty, the container will already be initalised with seed data. This was done by the `postCreateCommand` in the `.devcontainer/devcontainer.json` file. See that file for how it is done.
 
 You are now ready to do some basic testing: run `bundle exec rails server` in the terminal and open the website in your browser (defaults to `localhost:3000`) when prompted. For the first time, this will take some time as sprites need to be generated and Javascripts need to be transpiled/bundled. You can now log in using the seeded admin user "ADM" with password "PleaseChangeYourPassword".
 
-**Optional**: the container is ready to be used with the rspec testing framework. You can do some basic testing executing this command:
+**Optional:** The container is ready to be used with the rspec testing framework. You can do some basic testing executing this command:
 
 ```
 $ RAILS_ENV=test bundle exec rspec ./spec/features
 ```
+
+**Optional:** For a better development experience it's also recommended to install the `solargraph` and the `ruby-debug-ide` gems to enable language server and debugging support in VScode for Ruby. This can be done by executing `gem install solargraph ruby-debug-ide`
