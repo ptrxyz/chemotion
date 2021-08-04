@@ -60,7 +60,7 @@ RUN echo -e "LANG=${LANG}\nLC_ALL=${LANG}" > /etc/locale.conf
 RUN sed -i '/'${LANG}'/s/^# //g' /etc/locale.gen && \
     locale-gen
 
-RUN echo ". $HOME/.asdf/asdf.sh" >> "/etc/bash.bashrc"
+RUN echo '. $HOME/.asdf/asdf.sh' >> "/etc/bash.bashrc"
 
 RUN useradd -mU -s /bin/bash vscode
 USER vscode
