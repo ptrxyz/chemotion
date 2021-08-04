@@ -64,18 +64,13 @@ RUN echo '. $HOME/.asdf/asdf.sh' >> "/etc/bash.bashrc"
 
 RUN useradd -mU -s /bin/bash vscode
 USER vscode
+WORKDIR /home/vscode/
 
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.1
 
-## The following is used to load ASDF manually
-# PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-# export ASDF_DIR=/root/.asdf
-# export PATH=/root/.asdf/shims:/root/.asdf/bin:$PATH
-
+SHELL ["/bin/bash", "-c"]
 ENV ASDF_DIR=/home/vscode/.asdf
 ENV PATH=/home/vscode/.asdf/shims:/home/vscode/.asdf/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-
-SHELL ["/bin/bash", "-c"]
 
 RUN asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git
 RUN asdf install nodejs 14.16.0
@@ -91,3 +86,4 @@ RUN asdf plugin add python https://github.com/danhper/asdf-python.git
 # RUN asdf global python $(asdf list python)
 
 ENV RAILS_ENV=development
+

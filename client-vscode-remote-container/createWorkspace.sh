@@ -1,5 +1,16 @@
 #!/bin/bash
 
+function confirm() {	
+	while : ; do
+		read -p "$1 (y/n)? " choice
+		case "$choice" in
+			[yY][eE][sS]|[yY] ) return 0;;
+			[nN][oO]|[nN] ) return 1;;
+			* ) echo "Invalid choice.";;
+		esac
+	done
+}
+
 dest=$1
 
 [[ -z "${dest}" ]] && {
@@ -11,14 +22,10 @@ dest=$(realpath ${dest})
 
 echo "Chosen target directory is: ${dest}"
 echo "Please make sure the folder ist empty!"
-while : ; do
-	read -p "Continue (Y/n)? " choice
-	case "$choice" in
-		[yY][eE][sS]|[yY] ) break;;
-		[nN][oO]|[nN] ) echo "See you around then..."; exit 0;;
-		* ) echo "Invalid choice.";;
-	esac
-done
+confirm "Confirm" || {
+	echo "See you around then..."
+	exit 0
+}
 
 procs=$(nproc 2>/dev/null || echo "4")
 echo "Info: ${procs} cores detected."
@@ -51,6 +58,21 @@ command -v code &>/dev/null && {
 } || {
 	echo "VSCode not detected. Please make sure the Remote Development Extension Pack is installed."
 	echo "Get it here: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack"
+}
+
+echo "The rdkit_chem gem takes ages to compile (even on potent machines)."
+echo "It can be embedded into the container image (recommended) as opposed "
+echo "to compiling the gem upon first use."
+confirm "Embed the rdkit_chem gem?" && {
+	echo "Ok. rdkit_chem will be embedded."
+	cat >> ${dest}/Dockerfile.vscode <<-EOF
+	# Pre-cache the most annoying gems...
+	RUN echo "gem 'rdkit_chem', git: 'https://github.com/CamAnNguyen/rdkit_chem'" > Gemfile
+	RUN bundle install --jobs $(nproc)
+	RUN rm Gemfile
+	EOF
+} || {
+	echo "rdkit_chem will NOT be embedded."
 }
 
 echo "done."
