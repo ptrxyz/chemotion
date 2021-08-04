@@ -28,6 +28,10 @@ To start an additional container for a database server, `docker-compose.vscode` 
 
 # Usage
 
+> As of now, the script "createWorkspace.sh <someFolder>" will create a workspace for you in the folder specified.
+> This includes cloning the chemotion source repository and copying all files where they belong.
+> This should be an easier alternative to the steps below.
+
 **Step 1:** First, check out the Chemotion ELN source from the [GitHub Repo](https://github.com/ComPlat/chemotion_ELN). In the following `/workspace/chemotion` will be used as the target directory:
 
 ```
