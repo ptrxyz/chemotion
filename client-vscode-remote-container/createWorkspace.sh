@@ -60,19 +60,20 @@ command -v code &>/dev/null && {
 	echo "Get it here: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack"
 }
 
-echo "The rdkit_chem gem takes ages to compile (even on potent machines)."
-echo "It can be embedded into the container image (recommended) as opposed "
-echo "to compiling the gem upon first use."
-confirm "Embed the rdkit_chem gem?" && {
+echo "The rdkit_chem and openbabel gems take ages to compile (even on potent machines)."
+echo "They can be embedded into the container image (recommended) as opposed "
+echo "to compiling them upon first use."
+confirm "Embed the rdkit_chem and openbabel gems?" && {
 	echo "Ok. rdkit_chem will be embedded."
 	cat >> ${dest}/Dockerfile.vscode <<-EOF
 	# Pre-cache the most annoying gems...
 	RUN echo "gem 'rdkit_chem', git: 'https://github.com/CamAnNguyen/rdkit_chem'" > Gemfile
+	RUN echo "gem 'openbabel', '2.4.90.3', git: 'https://github.com/ComPlat/openbabel-gem.git', branch: 'hot-fix-svg'" >> Gemfile
 	RUN bundle install --jobs $(nproc)
 	RUN rm Gemfile
 	EOF
 } || {
-	echo "rdkit_chem will NOT be embedded."
+	echo "rdkit_chem and openbabel will NOT be embedded."
 }
 
 echo "done."
