@@ -46,7 +46,7 @@ cp docker-compose.vscode ${dest}/
 sed -i 's/BUNDLE_JOBS=.*/BUNDLE_JOBS='${procs}'/g' ${dest}/docker-compose.vscode
 
 # adjust config files for chemotion
-cp ${dest}/public/welcome-message-sample.md ${dest}/welcome-message.md
+cp ${dest}/public/welcome-message-sample.md ${dest}/public/welcome-message.md
 cp ${dest}/config/datacollectors.yml.example ${dest}/config/datacollectors.yml
 cp ${dest}/config/storage.yml.example ${dest}/config/storage.yml
 cp ${dest}/config/database.yml.example ${dest}/config/database.yml
