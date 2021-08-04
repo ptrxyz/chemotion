@@ -20,14 +20,24 @@ while : ; do
 	esac
 done
 
+procs=$(nproc 2>/dev/null || echo "4")
+echo "Info: ${procs} cores detected."
+
+
 echo "Creating workspace in ${dest}..."
+
+# clone the repo
 mkdir -p ${dest}/
 git clone https://github.com/ptrxyz/chemotion_ELN.git ${dest}/ || exit 1
 
+# copy over config files for VSCode
 cp -r .devcontainer ${dest}/
 cp Dockerfile.vscode ${dest}/
 cp dbinit.sh ${dest}/
 cp docker-compose.vscode ${dest}/
+
+# adjust number of CPUs used
+sed -i 's/BUNDLE_JOBS=.*/BUNDLE_JOBS='${procs}'/g' ${dest}/docker-compose.vscode
 
 echo "done."
 echo "Please open the folder [${dest}] in VSCode and confirm"
