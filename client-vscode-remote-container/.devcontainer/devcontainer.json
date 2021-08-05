@@ -53,11 +53,7 @@
     "forwardPorts": [3000, 4000],
 
     // Uncomment the next line to run commands after the container is created - for example installing curl.
-    "postCreateCommand": [
-        "/bin/bash",
-        "-c",
-        "yarn install && bash dbinit.sh && bundle install && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rake db:seed"
-    ],
+    "postCreateCommand": ["/bin/bash", "postCreate.sh"],
 
     // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
     // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],

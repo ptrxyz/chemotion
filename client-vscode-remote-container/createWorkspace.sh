@@ -40,6 +40,7 @@ git clone https://github.com/ptrxyz/chemotion_ELN.git ${dest}/ || exit 1
 cp -r .devcontainer ${dest}/
 cp Dockerfile.vscode ${dest}/
 cp dbinit.sh ${dest}/
+cp postCreate.sh ${dest}/
 cp docker-compose.vscode ${dest}/
 
 # adjust number of CPUs used
@@ -60,20 +61,19 @@ command -v code &>/dev/null && {
 	echo "Get it here: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack"
 }
 
-echo "The rdkit_chem and openbabel gems take ages to compile (even on potent machines)."
-echo "They can be embedded into the container image (recommended) as opposed "
-echo "to compiling them upon first use."
-confirm "Embed the rdkit_chem and openbabel gems?" && {
-	echo "Ok. rdkit_chem will be embedded."
-	cat >> ${dest}/Dockerfile.vscode <<-EOF
-	# Pre-cache the most annoying gems...
-	RUN echo "gem 'rdkit_chem', git: 'https://github.com/CamAnNguyen/rdkit_chem'" > Gemfile
-	RUN echo "gem 'openbabel', '2.4.90.3', git: 'https://github.com/ComPlat/openbabel-gem.git', branch: 'hot-fix-svg'" >> Gemfile
-	RUN bundle install --jobs $(nproc)
-	RUN rm Gemfile
-	EOF
+echo "Some gems take ages to compile (even on potent machines). Some "
+echo "native libraries are precompiled for x64 systems and can be "
+echo "embedded into the workspace to speed up container creation by "
+echo "a lot."
+
+# todo: explain why this is not default...
+
+confirm "Embed precompiled libraries?" && {
+	echo "Native extensions will be embedded."
+	cp rdkit_chem.tar.gz ${dest}/rdkit_chem.tar.gz
+	sed -i "s#^gem 'rdkit_chem'.*#gem 'rdkit_chem', git: 'https://github.com/ptrxyz/rdkit_chem', ref: 'b7532a4bbbb154ed2bb7d49d15a79c26eb2c8086'#g" ${dest}/Gemfile
 } || {
-	echo "rdkit_chem and openbabel will NOT be embedded."
+	echo "Native extensions will NOT be embedded."
 }
 
 echo "done."
