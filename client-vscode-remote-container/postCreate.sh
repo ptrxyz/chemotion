@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o xtrace
 
-[[ -d /workspace/chemotion/rdkit_chem.tar.gz ]] && ln -s /workspace/chemotion/rdkit_chem.tar.gz /precompiled/
+[[ -f /workspace/chemotion/rdkit_chem.tar.gz ]] && ln -s /workspace/chemotion/rdkit_chem.tar.gz /precompiled/
 
 yarn install
 bash dbinit.sh
