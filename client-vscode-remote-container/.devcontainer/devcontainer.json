@@ -4,7 +4,10 @@
     "name": "Chemotion Dockerfile",
 
     // Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-    "dockerComposeFile": "../docker-compose.vscode",
+    "dockerComposeFile": [
+        "./docker/docker-compose.vscode",
+        "./docker/docker-compose.gemvolume.yml"
+    ],
     "service": "chemotion",
     "workspaceFolder": "/workspace/chemotion",
 
@@ -53,7 +56,7 @@
     "forwardPorts": [3000, 4000],
 
     // Uncomment the next line to run commands after the container is created - for example installing curl.
-    "postCreateCommand": ["/bin/bash", "postCreate.sh"],
+    "postCreateCommand": ["/bin/bash", ".devcontainer/scripts/postCreate.sh"],
 
     // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
     // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
@@ -62,5 +65,11 @@
     // "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
 
     // Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "vscode"
+    "remoteUser": "vscode",
+
+    // stop compose when quitting
+    "shutdownAction": "stopCompose",
+
+    // make sure to override startup command to run forever.
+    "overrideCommand": true
 }
