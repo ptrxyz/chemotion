@@ -31,11 +31,13 @@ To start an additional container for a database server, `docker-compose.vscode` 
 > As of now, the script "createWorkspace.sh <someFolder>" will create a workspace for you in the folder specified.
 > This includes cloning the chemotion source repository and copying all files where they belong.
 > This should be an easier alternative to the steps below.
+> **Optional:** download a suitable version of the file `gems.tar.gz` from [here](https://github.com/ptrxyz/chemotion_gems). It contains precompiled gems and
+> speeds up the whole building process by A LOT! Place it in the same folder as `createWorkspace.sh`.
 
-**Step 1:** First, check out the Chemotion ELN source from the [GitHub Repo](https://github.com/ComPlat/chemotion_ELN). In the following `/workspace/chemotion` will be used as the target directory:
+**Step 1:** First, check out the Chemotion ELN source from the [GitHub Repo](https://github.com/ComPlat/chemotion_ELN). In the following `/host/workspace/chemotion` will be used as the target directory:
 
 ```
-$ git clone https://github.com/ComPlat/chemotion_ELN /workspace/chemotion
+$ git clone https://github.com/ComPlat/chemotion_ELN /host/workspace/chemotion
 ```
 
 **Step 2:** Do now create the configuration files for Chemotion ELN. For that purpose, remove the ".example" extension from the following files:
@@ -48,40 +50,29 @@ Only the `database.yml` file should need manual editing: change the database hos
 
 Additionally rename `public/welcome-message-sample.md` to `public/welcome-message.md`, otherwise the ELN will work, yet some tests might fail.
 
-**Step 3:** place all files from this folder into Chemotion's source directory:
+**Step 3:** place the `.devcontainer` folder into Chemotion's source directory:
 
 ```
-$ cp * .* /workspace/chemotion
-$ ls /workspace/chemotion
-.              scripts                    .rubocop.yml                Rakefile
-..             spec                       .rubocop_todo.yml           VERSION
-.bundle        tmp                        .ruby-gemset.example        config.ru
-.devcontainer  uploads                    .ruby-version.example       createDB.mjs
-.git           vendor                     .simplecov                  dbinit.sh
-.github        .babelrc.bak               .travis.yml                 docker-compose.test.yml
-app            .dockerignore              CHANGELOG.md                docker-compose.vscode
-backup         .env.development           Capfile                     fontcustom.yml
-bin            .env.production.example    Dockerfile.vscode           output.json
-config         .env.test                  Dockerfile.focal.gitlab-ci  package.json
-data           .eslintrc                  Gemfile                     run.sh
-db             .fontcustom-manifest.json  Gemfile.lock                secret_key.conf
-lib            .gitignore                 Gemfile.plugin.example      yarn.lock
-log            .gitlab-ci.yml             INSTALL.md                  yarn-error.log
-node_modules   .nvmrc                     LICENSE
-public         .rspec                     README.md
+$ cp -R .devcontainer /host/workspace/chemotion
 ```
 
-(You want to make sure that `.devcontainer`, `docker-compose.vscode` and `Dockerfile.vscode` reside in the Chemotion source's root directory as shown here)
+**Step 4:** create an empty folder for gems. This folder will be used as gem cache and speeds up the container building process in consecutive buildings:
 
-**Step 4:** Open VSCode and open the Chemotion folder: `File` -> `Open Folder` -> select the right folder, here `/workspace/chemotion`.
+```
+$ mkdir -p /host/workspace/chemotion && chown 1000:1000 /host/workspace/chemotion
+```
 
-**Step 5:** If the Remote Development Extensions for Docker are installed, you will prompted to reopen the folder in a container. Confirm and the container will be created (this will take a while...).
+Attention: make sure the folder is writeable by UID 1000 as shown in the snippet here.
+
+**Step 5:** Open VSCode and open the Chemotion folder: `File` -> `Open Folder` -> select the right folder, here `/workspace/chemotion`.
+
+**Step 6:** If the Remote Development Extensions for Docker are installed, you will prompted to reopen the folder in a container. Confirm and the container will be created (this will take a while...).
 
 If the prompt does not show, install the extension pack as mentioned above. Then, you will find an icon similar to `><` in the very bottom left of VSCode's status bar. Click on it and select "Reopen in Container".
 
 **Step 6:** After the container is build, you will be able to access a terminal in the container using VSCode (`Terminal` -> `New Terminal`). If all steps were followed correclty, the container will already be initalised with seed data. This was done by the `postCreateCommand` in the `.devcontainer/devcontainer.json` file. See that file for how it is done.
 
-You are now ready to do some basic testing: run `bundle exec rails server` in the terminal and open the website in your browser (defaults to `localhost:3000`) when prompted. For the first time, this will take some time as sprites need to be generated and Javascripts need to be transpiled/bundled. You can now log in using the seeded admin user "ADM" with password "PleaseChangeYourPassword".
+**Step 7:** You are now ready to do some basic testing: run `bundle exec rails server` in the terminal and open the website in your browser (defaults to `localhost:3000`) when prompted. For the first time, this will take some time as sprites need to be generated and Javascripts need to be transpiled/bundled. You can now log in using the seeded admin user "ADM" with password "PleaseChangeYourPassword".
 
 **Optional:** The container is ready to be used with the rspec testing framework. You can do some basic testing executing this command:
 
