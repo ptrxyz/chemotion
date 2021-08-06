@@ -3,6 +3,7 @@
 This folder contains anything you need to use Visual Studio Code's remote developing features to start developing on the Chemotion ELN inside a Docker development container.
 
 Video Tutorial here: [YouTube](https://www.youtube.com/watch?v=HZCAbC6ldzE)
+[![YouTube](https://img.youtube.com/vi/HZCAbC6ldzE/0.jpg)](https://www.youtube.com/watch?v=HZCAbC6ldzE)
 
 ## Requirements
 
