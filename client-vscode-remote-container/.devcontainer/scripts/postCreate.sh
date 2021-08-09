@@ -1,7 +1,7 @@
 #!/bin/bash
 set -o xtrace
 
-yarn install
+yarn install --network-timeout 1000000000
 
 [[ -f .devcontainer/scripts/dbinit.sh ]] && (
 	bash .devcontainer/scripts/dbinit.sh
