@@ -1,4 +1,4 @@
-# Contianer files for VS-Code Remote Editing
+# Container files for VS-Code Remote Editing
 
 This folder contains anything you need to use Visual Studio Code's remote developing features to start developing on the Chemotion ELN inside a Docker development container.
 
@@ -72,7 +72,7 @@ Attention: make sure the folder is writeable by UID 1000 as shown in the snippet
 
 If the prompt does not show, install the extension pack as mentioned above. Then, you will find an icon similar to `><` in the very bottom left of VSCode's status bar. Click on it and select "Reopen in Container".
 
-**Step 6:** After the container is build, you will be able to access a terminal in the container using VSCode (`Terminal` -> `New Terminal`). If all steps were followed correclty, the container will already be initalised with seed data. This was done by the `postCreateCommand` in the `.devcontainer/devcontainer.json` file. See that file for how it is done.
+**Step 6:** After the container is build, you will be able to access a terminal in the container using VSCode (`Terminal` -> `New Terminal`). If all steps were followed correctly, the container will already be initialised with seed data. This was done by the `postCreateCommand` in the `.devcontainer/devcontainer.json` file. See that file for how it is done.
 
 **Step 7:** You are now ready to do some basic testing: run `bundle exec rails server` in the terminal and open the website in your browser (defaults to `localhost:3000`) when prompted. For the first time, this will take some time as sprites need to be generated and Javascripts need to be transpiled/bundled. You can now log in using the seeded admin user "ADM" with password "PleaseChangeYourPassword".
 

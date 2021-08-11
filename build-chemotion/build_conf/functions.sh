@@ -131,7 +131,7 @@ setVersion() {
 }
 
 versionMatching() {
-    # Check if we initalized with this container version
+    # Check if we initialized with this container version
 
     [[ ${FLAVOR} == "development" ]] && return 0
 
@@ -140,8 +140,8 @@ versionMatching() {
 
     if [[ ! -f "${VERSION_FILE}" ]]; then
         error "Can not find container version info."
-        msg "Please make sure the container is properly initalized."
-        msg "Expected version is: $thisVersion"        
+        msg "Please make sure the container is properly initialized."
+        msg "Expected version is: $thisVersion"
         return 1
     fi
 
