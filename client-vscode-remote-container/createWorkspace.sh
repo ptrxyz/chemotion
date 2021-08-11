@@ -72,13 +72,15 @@ if [[ -f gems.tar.gz ]]; then
 
 		# This was the alternate approach. Probably will be removed in the future.
 		# cp rdkit_chem.tar.gz ${dest}/rdkit_chem.tar.gz
-		# sed -i "s#^gem 'rdkit_chem'.*#gem 'rdkit_chem', git: 'https://github.com/ptrxyz/rdkit_chem', ref: 'b7532a4bbbb154ed2bb7d49d15a79c26eb2c8086'#g" ${dest}/Gemfile	
+		# sed -i "s#^gem 'rdkit_chem'.*#gem 'rdkit_chem', git: 'https://github.com/ptrxyz/rdkit_chem', ref: 'b7532a4bbbb154ed2bb7d49d15a79c26eb2c8086'#g" ${dest}/Gemfile
 	} || {
 		echo "Info: precompiled libraries will be NOT embedded."
 		mkdir -p ${dest}/.devcontainer/gems
 		chown 1000:1000 ${dest}/.devcontainer/gems || echo "Warning: could not set permissions for gems volume!"
 	}
 else
+	mkdir -p ${dest}/.devcontainer/gems
+	chown 1000:1000 ${dest}/.devcontainer/gems || echo "Warning: could not set permissions for gems volume!"
 	echo "Info: precompiled libraries not found. skipping..."
 fi
 
