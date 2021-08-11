@@ -10,7 +10,7 @@ See `docker-compose run eln help` for more info.
 ## Usage:
 
 ```
-./firstrun.sh                          # necessary before first run to initalize the container
+./firstrun.sh                          # necessary before first run to initialize the container
 docker-compose up                      # to start the development environment
 docker-compose down --remove-orphans   # tear things down
 docker-compose logs -f eln             # show logs of a specific service (-f for follow)
