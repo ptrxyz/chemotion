@@ -52,7 +52,8 @@ RUN apt-get -y --autoremove --fix-missing install \
     libeigen3-dev \
     imagemagick \
     libmagickcore-dev \
-    xvfb
+    xvfb \
+    inkscape
 
 # set the locale
 ENV LANG=en_US.UTF-8
@@ -67,6 +68,9 @@ RUN echo '. $HOME/.asdf/asdf.sh' >> "/etc/bash.bashrc"
 RUN useradd -mU -s /bin/bash vscode
 USER vscode
 WORKDIR /home/vscode/
+
+RUN mkdir -p /home/vscode/.config/fontconfig/
+COPY fonts.conf /home/vscode/.config/fontconfig/fonts.conf
 
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.8.1
 

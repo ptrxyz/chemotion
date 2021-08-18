@@ -5,7 +5,7 @@
 
     // Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
     "dockerComposeFile": [
-        "./docker/docker-compose.vscode",
+        "./docker/docker-compose.yml",
         "./docker/docker-compose.gemvolume.yml"
     ],
     "service": "chemotion",
