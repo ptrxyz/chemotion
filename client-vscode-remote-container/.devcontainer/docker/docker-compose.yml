@@ -14,7 +14,7 @@ services:
     chemotion:
         build:
             context: .
-            dockerfile: Dockerfile.yml
+            dockerfile: Dockerfile
         depends_on:
             - 'db'
         environment:
