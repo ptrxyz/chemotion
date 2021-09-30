@@ -40,7 +40,7 @@ git clone https://github.com/ptrxyz/chemotion_ELN.git ${dest}/ || exit 1
 cp -r .devcontainer ${dest}/
 
 # adjust number of CPUs used
-sed -i 's/BUNDLE_JOBS=.*/BUNDLE_JOBS='${procs}'/g' ${dest}/.devcontainer/docker/docker-compose.vscode
+sed -i 's/BUNDLE_JOBS=.*/BUNDLE_JOBS='${procs}'/g' ${dest}/.devcontainer/docker/docker-compose.yml
 
 # adjust config files for chemotion
 cp ${dest}/public/welcome-message-sample.md ${dest}/public/welcome-message.md
