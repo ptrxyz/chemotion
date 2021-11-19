@@ -1,0 +1,28 @@
+################################################################################
+# NODE                                                                         #
+################################################################################
+FROM ubuntu:21.04 AS node
+# set timezone
+ARG TZ=Europe/Berlin
+RUN ln -s /usr/share/zoneinfo/${TZ} /etc/localtime
+
+# install system packages
+RUN apt-get -y update && apt-get -y upgrade
+
+# wget: to download node
+# git: for "npm install"
+RUN apt-get -y install wget git 
+
+ARG NODE_VERSION=v14.16.0
+ARG NODE_STRING=node-${NODE_VERSION}-linux-x64
+RUN wget -O /tmp/node.tar.gz https://nodejs.org/dist/${NODE_VERSION}/${NODE_STRING}.tar.gz
+RUN cd / && tar xfvz /tmp/node.tar.gz
+RUN mv ${NODE_STRING} /node
+RUN PATH=/node/bin:$PATH npm install -g yarn
+RUN find /node/bin/ | xargs -i ln -s {} /bin/
+
+ARG NODE_PATH=/node_modules
+ARG NODE_OPTIONS=" --max-old-space-size=3072"
+
+COPY ./src /src
+RUN cd /src && yarn install --production=true --modules-folder ${NODE_PATH} --cache-folder /yarn/cache

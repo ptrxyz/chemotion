@@ -1,0 +1,48 @@
+version: '1.02'
+files:
+    item1:
+        name: 'environment'
+        item: '.env'
+    item2:
+        name: 'database'
+        item: 'config/database.yml'
+    item3:
+        name: 'datacollectors'
+        item: 'config/datacollectors.yml'
+    item4:
+        name: 'storage'
+        item: 'config/storage.yml'
+    item5:
+        name: 'welcome-message'
+        item: 'public/welcome-message.md'
+    item6:
+        name: 'secrets'
+        item: 'config/secrets.yml'
+    item7:
+        name: 'editors'
+        item: 'config/editors.yml'
+folders:
+    item1:
+        name: 'log'
+        item: 'log'
+    item2:
+        name: 'tmp'
+        item: 'tmp'
+    item3:
+        name: 'uploads'
+        item: 'uploads'
+    item4:
+        name: 'webpacker packs'
+        item: 'public/packs'
+    item5:
+        name: 'node assets'
+        item: 'public/assets'
+    item6:
+        name: 'images ketcherails'
+        item: 'public/images/ketcherails'
+    item7:
+        name: 'images molecules'
+        item: 'public/images/molecules'
+    item8:
+        name: 'images samples'
+        item: 'public/images/samples'

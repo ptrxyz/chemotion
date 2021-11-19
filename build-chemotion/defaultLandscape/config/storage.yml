@@ -1,0 +1,49 @@
+development:
+  :primary_store: 'local'
+  :secondary_store: ''
+  :stores:
+    :tmp:
+      :data_folder: 'tmp/uploads/development'
+      :thumbnail_folder: 'tmp/uploads/development'
+    :local:
+      :data_folder: 'uploads/development'
+      :thumbnail_folder: 'uploads/development'
+    :local_user:
+      :data_folder: 'uploadNew/users'
+      :thumbnail_folder: 'uploadNew/thumbnails/users'
+    :local_dataset:
+      :data_folder: 'uploads/datasets'
+      :thumbnail_folder: 'uploads/datasets'
+
+  # :sftp:
+    # :data_folder:
+    # :thumbnail_folder:
+      # :host: 'host'
+      # :username: 'username'
+      # :password: 'password'
+  # :s3os:
+    # :bucket:
+    # :secret_access_key:
+
+
+test:
+  :primary_store: 'local'
+  :secondary_store: ''
+  :stores:
+    :tmp:
+      :data_folder: 'tmp/test/uploads/tmp/'
+      :thumbnail_folder: 'tmp/test/uploads/tmp/'
+    :local:
+      :data_folder: 'tmp/test/uploads/local'
+      :thumbnail_folder: 'tmp/test/uploads/local'
+
+production:
+  :primary_store: 'local'
+  :secondary_store: ''
+  :stores:
+    :tmp:
+      :data_folder: 'tmp/test/uploads/tmp/'
+      :thumbnail_folder: 'tmp/test/uploads/tmp/'
+    :local:
+      :data_folder: 'uploads'
+      :thumbnail_folder: 'uploads'

@@ -1,16 +1,21 @@
 version: '3'
 services:
     db:
-        image: 'postgres:latest'
+        image: 'postgres:13'
         restart: unless-stopped
         environment:
             - POSTGRES_HOST_AUTH_METHOD=trust
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
         volumes:
             - ./db-data:/var/lib/postgresql/data/
 
     worker:
-        image: 'ptrxyz/chemotion:21.06-3'
-        command: ["start-worker"]
+        image: 'ptrxyz/chemotion:1.0.3D0.1'
+        restart: unless-stopped
+        command: ["starteln"]
+        environment:
+            - CONFIG_ROLE="worker"
         depends_on:
             - 'db'
         volumes:
@@ -18,8 +23,9 @@ services:
             - ./shared:/shared
 
     eln:
-        image: 'ptrxyz/chemotion:21.06-3'
-        command: ["start-eln"]
+        image: 'ptrxyz/chemotion:1.0.3D0.1'
+        restart: unless-stopped
+        command: ["starteln"]
         depends_on:
             - 'db'
         expose:
@@ -27,5 +33,4 @@ services:
         ports:
             - 4000:4000
         volumes:
-            - ./config:/config:ro
             - ./shared:/shared

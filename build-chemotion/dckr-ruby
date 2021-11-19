@@ -1,0 +1,41 @@
+################################################################################
+# RUBY                                                                         #
+################################################################################
+FROM ubuntu:21.04 AS ruby
+# set timezone
+ARG TZ=Europe/Berlin
+RUN ln -s /usr/share/zoneinfo/${TZ} /etc/localtime
+
+# install system packages
+RUN apt-get -y update && apt-get -y upgrade
+RUN apt-get -y --autoremove --fix-missing install \
+    build-essential git \
+    curl `# for pandoc` \
+    libssl-dev libreadline-dev zlib1g-dev `# for building ruby`
+
+# for the gems
+RUN apt-get -y --autoremove --fix-missing install \
+    cmake libpq-dev swig \
+    libboost-serialization-dev \
+    libboost-iostreams-dev \
+    libboost-system-dev \
+    libeigen3-dev \
+    libmagickcore-dev \
+    python3-dev libsqlite3-dev
+
+# install ruby
+RUN cd /tmp && \
+    curl https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.8.tar.bz2 2>/dev/null | tar xvj
+
+RUN cd /tmp/ruby-2.6.8 && \
+    ./configure --enable-shared --prefix /ruby && \
+    make -j$(getconf _NPROCESSORS_ONLN) && \
+    make install
+
+RUN find /ruby/bin | xargs -i ln -s {} /bin/
+RUN gem install bundler -v 1.17.3
+
+# install the gems
+COPY ./src /src
+RUN cd /src && RAILS_ENV=production bundle install --jobs=$(getconf _NPROCESSORS_ONLN)
+RUN cd /src && RAILS_ENV=production bundle add passenger
