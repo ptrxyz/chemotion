@@ -19,7 +19,6 @@ services:
         depends_on:
             - 'db'
         volumes:
-            - ./config:/config:ro
             - ./shared:/shared
 
     eln:
