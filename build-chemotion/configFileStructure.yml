@@ -41,8 +41,29 @@ folders:
         name: 'images ketcherails'
         item: 'public/images/ketcherails'
     item7:
+        name: 'docx'
+        item: 'public/docx'
+    item8:
+        name: 'zip'
+        item: 'public/zip'
+    item9:
+        name: 'simulations'
+        item: 'public/simulations'
+    item10:
+        name: 'app packs src components extra'
+        item: 'app/packs/src/components/extra'
+    item11:
         name: 'images molecules'
         item: 'public/images/molecules'
-    item8:
+    item12:
         name: 'images samples'
         item: 'public/images/samples'
+    item13:
+        name: 'images qr'
+        item: 'public/images/qr'
+    item14:
+        name: 'images reactions'
+        item: 'public/images/reactions'
+    item15:
+        name: 'images research plans'
+        item: 'public/images/research_plans'    
