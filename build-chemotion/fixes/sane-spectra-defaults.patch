@@ -1,0 +1,18 @@
+diff --git a/config/spectra.yml.example b/config/spectra.yml.example
+index 048e3176..d6609d1d 100644
+--- a/config/spectra.yml.example
++++ b/config/spectra.yml.example
+@@ -1,11 +1,3 @@
+-development:
+-  :url: '123.123.123.123'
+-  :port: '2412'
+-
+-test:
+-  :url: '123.123.123.123'
+-  :port: '2412'
+-
+ production:
+-  :url: '123.123.123.123'
+-  :port: '2412'
++  :url: 'spectra'
++  :port: '3007'
