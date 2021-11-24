@@ -96,6 +96,16 @@ echo "    Database up and running."
 
 cd /chemotion/app
 
+for file in $(ls /shared/eln/config/); do
+    if [ -f config/${file} ]; then
+        rm -f config/${file}
+        ln -s /shared/eln/config/${file} config/${file}
+    fi
+    if ! [ -L config/${file} ]; then
+        ln -s /shared/eln/config/${file} config/${file}
+    fi
+done
+
 echo "Role: $CONFIG_ROLE"
 if [[ ${CONFIG_ROLE} == "eln" || ${CONFIG_ROLE} == "app" ]]; then 
     bundle exec rake db:migrate
