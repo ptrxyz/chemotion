@@ -44,6 +44,10 @@ BLDTAG=$(git --git-dir=${BLDGITDIR} describe --abbrev=0 --tags 2>/dev/null || ec
 echo "Versions: " | $LOG
 echo -e "CHEMOTION_REF=${ELNREF}\nCHEMOTION_TAG=${ELNTAG}\nBUILDSYSTEM_REF=${BLDREF}\nBUILDSYSTEM_TAG=${BLDTAG}" | tee $REPO/.version | sed 's/^/  /g' | $LOG
 
+[[ -d ${WORKDIR}/fixes ]] && (
+    cd $REPO; $GIT apply ${WORKDIR}/fixes/*.patch
+)
+
 for foldername in $($YMLPARSE read --collect ${BASEDIR}/configFileStructure.yml folders.item); do
     echo "Exposing [${foldername}] ..."; \
     rm -rf $REPO/${foldername}; \
