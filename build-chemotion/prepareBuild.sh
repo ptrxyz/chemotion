@@ -10,8 +10,12 @@ BASEDIR=$(realpath $(dirname $0))
 [[ -z "$1" ]] && LOGFILE="build.log" || LOGFILE=$1
 [[ -z "$2" ]] && TARGET="<default>"  || TARGET=$2
 
+[[ -d "${BASEDIR}/.git" ]] && BLDGITDIR=${BASEDIR}/.git
+[[ -d "${BASEDIR}/../.git" ]] && BLDGITDIR=$(realpath ${BASEDIR}/../.git)
+
 REPO="$WORKDIR/src"
 GIT="git -c advice.detachedHead=false --git-dir $REPO/.git "
+BLDGIT="git -c advice.detachedHead=false --git-dir ${BLDGITDIR}/.git "
 YMLPARSE="python3 ${BASEDIR}/scripts/parseYML.py"
 LOGFILE=$(realpath $LOGFILE)
 LOG="tee -a ${LOGFILE}"
@@ -35,8 +39,8 @@ $GIT clone ${BRANCH} https://github.com/ComPlat/chemotion_ELN $REPO
 
 ELNREF=$($GIT rev-parse --short HEAD)
 ELNTAG=$($GIT describe --abbrev=0 --tags)""
-BLDREF=$(git --git-dir=${BASEDIR}/.git rev-parse --short HEAD || echo "D0.1")
-BLDTAG=$(git --git-dir=${BASEDIR}/.git describe --abbrev=0 --tags 2>/dev/null || echo "<no tag>")
+BLDREF=$(git --git-dir=${BLDGITDIR} rev-parse --short HEAD 2>/dev/null || echo "D0.1")
+BLDTAG=$(git --git-dir=${BLDGITDIR} describe --abbrev=0 --tags 2>/dev/null || echo "<no tag>")
 echo "Versions: " | $LOG
 echo -e "CHEMOTION_REF=${ELNREF}\nCHEMOTION_TAG=${ELNTAG}\nBUILDSYSTEM_REF=${BLDREF}\nBUILDSYSTEM_TAG=${BLDTAG}" | tee $REPO/.version | sed 's/^/  /g' | $LOG
 
