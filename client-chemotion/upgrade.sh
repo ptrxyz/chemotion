@@ -8,10 +8,14 @@ Do you wish to proceed ? [yes/N] " YN
 [[ $YN != "yes" ]] && exit 1
 
 sharedTmp=$(date +"%FT%H%M")_shared
+if [ -d shared/eln ]; then
+   echo "Folder shared/eln already exists. Has an upgrade already been perfromed for this Chemotion ELN setup?"
+   exit 1
+fi
 if [ -d shared ]; then
     mv shared/ $sharedTmp && mkdir shared && mv $sharedTmp shared/eln/
 else
-   echo "Folder shared/ does not exist. Are you in the right folder of an <1.0.3 Chemotion ELN setup?"
+   echo "Folder shared/ does not exist. Are you in the right folder of a <1.0.3 Chemotion ELN setup?"
    exit 1
 fi
 
@@ -24,7 +28,7 @@ if [ -f shared/eln/config/database.yml ]; then
     database.yml exists in your old setup. Do you want to transfer it to the new setup ? [yes/N] " YN
     [[ $YN == "yes" ]] &&  cp shared/eln/config/database.yml shared/landscapes/$oldLandscape/config/
     read -e -p "
-    Overwrite other configuration files with default configuration files ? [yes/N] " YN
+    Overwrite configuration files with default configuration files ? [yes/N] " YN
     [[ $YN == "yes" ]] && docker-compose run eln landscape deploy --name $oldLandscape
 else
     read -e -p "
@@ -32,6 +36,12 @@ else
     [[ $YN == "yes" ]] && docker-compose run eln landscape deploy
 fi
 
+secret="production:\n   secret_key_base: $(date +"%FT%H%M")"
+
 read -e -p "
-Run upgrade script (generating secret, migrating database, generating sprites, compiliing assets) ? [yes/N] " YN
+    Do you want to update the secrets.yml file ? [yes/N] " YN
+[[ $YN == "yes" ]] && echo -e $secret > shared/eln/config/secrets.yml
+
+read -e -p "
+    Run upgrade script (generating secret, migrating database, generating sprites, compiling assets) ? [yes/N] " YN
 [[ $YN == "yes" ]] && docker-compose run eln upgrade
