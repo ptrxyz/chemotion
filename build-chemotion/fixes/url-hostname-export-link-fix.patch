@@ -1,0 +1,15 @@
+diff --git a/app/jobs/export_collections_job.rb b/app/jobs/export_collections_job.rb
+index 9ef2dc6e..8b17ed0b 100644
+--- a/app/jobs/export_collections_job.rb
++++ b/app/jobs/export_collections_job.rb
+@@ -36,9 +36,9 @@ class ExportCollectionsJob < ApplicationJob
+     begin
+       @labels = Collection.where(id: collection_ids[0..9]).pluck(:label)
+       @link = if Rails.env.production?
+-                "https://#{ENV['HOST'] || ENV['SMTP_DOMAIN']}/zip/#{job_id}.#{extname}"
++                "#{(ENV['URL_USE_SSL'] == 1 || ENV['URL_USE_SSL'] == 'true') && 'https' || 'http'}://#{ENV['URL_HOST'] || ENV['HOST'] || ENV['SMTP_DOMAIN']}/zip/#{job_id}.#{extname}"
+               else
+-                "http://#{ENV['HOST'] || 'localhost:3000'}/zip/#{job_id}.#{extname}"
++                "http://#{ENV['URL_HOST'] || ENV['HOST'] || 'localhost:3000'}/zip/#{job_id}.#{extname}"
+               end
+       @expires_at = Time.now + 24.hours
