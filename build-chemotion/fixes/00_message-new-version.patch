@@ -1,3 +1,4 @@
+FIXEDBY 0a7976843651f6202ee122e46c922661f155ef38
 diff --git a/app/api/chemotion/message_api.rb b/app/api/chemotion/message_api.rb
 index 9ad4a0db..37fd2e4a 100644
 --- a/app/api/chemotion/message_api.rb
