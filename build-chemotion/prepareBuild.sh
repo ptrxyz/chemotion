@@ -45,7 +45,30 @@ echo "Versions: " | $LOG
 echo -e "CHEMOTION_REF=${ELNREF}\nCHEMOTION_TAG=${ELNTAG}\nBUILDSYSTEM_REF=${BLDREF}\nBUILDSYSTEM_TAG=${BLDTAG}" | tee $REPO/.version | sed 's/^/  /g' | $LOG
 
 [[ -d ${WORKDIR}/fixes ]] && (
-    cd $REPO; $GIT apply ${WORKDIR}/fixes/*.patch
+    cd $REPO;
+    echo ""
+    for patch in $(ls ${WORKDIR}/fixes/*.patch | sort); do
+        echo "Working on ${patch} ..."
+        doApply=true
+        fixedBy=$(head -n1 ${patch} | awk  '/FIXEDBY /{print $2}')
+        if [[ -n "${fixedBy}" ]]; then
+            echo "  - [${patch}] has a fix with commit [${fixedBy}]."
+            git rev-list HEAD 2>/dev/null | grep ${fixedBy} 1>/dev/null 2>&1 && {
+                echo "  - Current state includes this commit. Will not apply patch."
+                doApply=false            
+            } || {
+                echo "  - Current state DOES NOT include this commit. Patch will be applied."
+                doApply=true
+            }
+        fi
+        if [[ ${doApply} == "true" ]]; then
+            echo "  - Applying [${patch}]..."
+            $GIT apply ${patch} || echo "  ! WARNING: Could not apply patch!"
+        else
+            echo "  - NOT applying [$patch]..."
+        fi
+        echo ""
+    done
 )
 
 for foldername in $($YMLPARSE read --collect ${BASEDIR}/configFileStructure.yml folders.item); do
