@@ -1,4 +1,3 @@
-FIXEDBY 0a7976843651f6202ee122e46c922661f155ef38
 diff --git a/app/jobs/export_collections_job.rb b/app/jobs/export_collections_job.rb
 index 9ef2dc6e..8b17ed0b 100644
 --- a/app/jobs/export_collections_job.rb
