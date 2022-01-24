@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 Peter Krauß, peter.krauss@kit.edu
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
