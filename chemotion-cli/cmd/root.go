@@ -31,25 +31,29 @@ POSSIBILITY OF SUCH DAMAGE.
 package cmd
 
 import (
+	"fmt"
 	"os"
+
 	"github.com/spf13/cobra"
 )
 
-
+// baseCommand defines the name of the CLI command to execute this program
+var baseCommand = "chemotion"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "chemotion-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   baseCommand,
+	Short: "CLI for Chemotion ELN",
+	Long: `Chemotion ELN is an Electronic Lab Notebook solution
+developed at Karlsruhe Institute of Technology (KIT).
+Developed for chemists, with the help of chemists,
+the software aims to ease research. For more see,
+https://www.chemotion.net.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("Welcome to Chemotion! Learn how to use it by running\n\n%s --help\n", baseCommand)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -70,7 +74,6 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
-
-
