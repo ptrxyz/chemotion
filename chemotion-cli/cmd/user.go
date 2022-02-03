@@ -59,8 +59,17 @@ var userCmd = &cobra.Command{
 	Long:       "Perform user-related actions in " + baseCommand + " using one of the available actions",
 	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// Raising error because user shouldn't execute `user` without specifying action
-		fmt.Println("Invalid command: `" + args[0] + "`. Please use `" + baseCommand + " user -h` to know more.")
+		fmt.Println("Chemotion user actions:")
+		switch prompter([]string{"add", "show", "passwd", "remove"}) {
+		case "add":
+			addUser.Run(&cobra.Command{}, []string{})
+		case "show":
+			showUser.Run(&cobra.Command{}, []string{})
+		case "passwd":
+			passwdUser.Run(&cobra.Command{}, []string{})
+		case "remove":
+			removeUser.Run(&cobra.Command{}, []string{})
+		}
 	},
 }
 

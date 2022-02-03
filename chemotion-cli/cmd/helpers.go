@@ -4,7 +4,23 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/manifoldco/promptui"
 )
+
+// prompting function
+func prompter(items []string) (result string) {
+	active_instance := "default"
+	prompt := promptui.Select{
+		Label: fmt.Sprintf("[%s] ", active_instance) + "Select one of the following:",
+		Items: items,
+	}
+	_, result, err := prompt.Run()
+	if err != nil {
+		panic("Prompt failed!")
+	}
+	return
+}
 
 var failedMessage = "Failed to execute command: "
 

@@ -28,6 +28,6 @@ One should be able to execute the following combinations:
 
 resource | alias | supported actions
 ---------|-------|------------------
-instance | i     | status, create, upgrade,     start,  pause, stop, restart, delete
-user     | u     | show,   add,    remove,      passwd
-system   | s     | info,   shell,  rails-shell
+instance | i     | status, create, upgrade, switch, start,  pause, stop, restart, delete
+user     | u     | show,   add,    remove,  passwd
+system   | s     | info,   shell,  rails

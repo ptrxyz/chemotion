@@ -49,10 +49,18 @@ developed at Karlsruhe Institute of Technology (KIT).
 Developed for chemists, with the help of chemists,
 the software aims to ease research. For more see,
 https://www.chemotion.net.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	// The following lines are the action associated with
+	// a bare application run i.e. without any arguments
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Welcome to Chemotion! Learn how to use it by running\n\n%s --help\n", baseCommand)
+		fmt.Println("Welcome to Chemotion!")
+		switch prompter([]string{"instance", "user", "system"}) {
+		case "instance":
+			instanceCmd.Run(&cobra.Command{}, []string{})
+		case "user":
+			userCmd.Run(&cobra.Command{}, []string{})
+		case "system":
+			systemCmd.Run(&cobra.Command{}, []string{})
+		}
 	},
 }
 

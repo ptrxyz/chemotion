@@ -29,7 +29,7 @@ var statusInstance = &cobra.Command{
 }
 
 // Upgrade an existing instance of Chemotion
-var updateInstance = &cobra.Command{
+var upgradeInstance = &cobra.Command{
 	Use:        "upgrade <name_of_instance>",
 	SuggestFor: []string{"upg"},
 	Args:       cobra.MinimumNArgs(1),
@@ -94,17 +94,47 @@ var deleteInstance = &cobra.Command{
 	},
 }
 
+// Change currently selected instance
+var switchInstance = &cobra.Command{
+	Use:        "switch <name_of_instance>",
+	SuggestFor: []string{"swi"},
+	Args:       cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("Switiching to", args[0]+"...")
+		//TODO
+	},
+}
+
 // Backbone for instance-related commands
 var instanceCmd = &cobra.Command{
-	Use:        "instance {create|status|upgrade|start|pause|stop|restart|delete} <name_of_instance>",
+	Use:        "instance {create|status|upgrade|switch|start|pause|stop|restart|delete} <name_of_instance>",
 	Aliases:    []string{"i"},
 	SuggestFor: []string{"i"},
 	Short:      "Manipulate instances of " + baseCommand,
 	Long:       "Manipulate instances of " + baseCommand + " using one of the available actions",
 	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// Raising error because user shouldn't execute `instance` without specifying action
-		fmt.Println("Invalid command: `" + args[0] + "`. Please use `" + baseCommand + " instance -h` to know more.")
+		fmt.Println("Chemotion. Actions on instance:")
+		switch prompter([]string{"create", "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}) {
+		case "create":
+			createInstance.Run(&cobra.Command{}, []string{})
+		case "status":
+			statusInstance.Run(&cobra.Command{}, []string{})
+		case "upgrade":
+			upgradeInstance.Run(&cobra.Command{}, []string{})
+		case "switch":
+			switchInstance.Run(&cobra.Command{}, []string{})
+		case "start":
+			startInstance.Run(&cobra.Command{}, []string{})
+		case "pause":
+			pauseInstance.Run(&cobra.Command{}, []string{})
+		case "stop":
+			stopInstance.Run(&cobra.Command{}, []string{})
+		case "restart":
+			restartInstance.Run(&cobra.Command{}, []string{})
+		case "delete":
+			deleteInstance.Run(&cobra.Command{}, []string{})
+		}
 	},
 }
 
@@ -112,7 +142,8 @@ func init() {
 	rootCmd.AddCommand(instanceCmd)
 	instanceCmd.AddCommand(createInstance)
 	instanceCmd.AddCommand(statusInstance)
-	instanceCmd.AddCommand(updateInstance)
+	instanceCmd.AddCommand(upgradeInstance)
+	instanceCmd.AddCommand(switchInstance)
 	instanceCmd.AddCommand(startInstance)
 	instanceCmd.AddCommand(pauseInstance)
 	instanceCmd.AddCommand(stopInstance)

@@ -62,8 +62,15 @@ var systemCmd = &cobra.Command{
 	Long:       "Perform system-oriented actions using one of the available actions",
 	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		// Raising error because user shouldn't execute `system` without specifying action
-		fmt.Println("Invalid command: `" + args[0] + "`. Please use `" + baseCommand + " system -h` to know more.")
+		fmt.Println("Chemotion system resources:")
+		switch prompter([]string{"info", "shell", "rails"}) {
+		case "info":
+			infoSystem.Run(&cobra.Command{}, []string{})
+		case "shell":
+			shellSystem.Run(&cobra.Command{}, []string{})
+		case "rails":
+			railsSystem.Run(&cobra.Command{}, []string{})
+		}
 	},
 }
 
