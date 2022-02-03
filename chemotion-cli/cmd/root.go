@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 Peter Krauß, peter.krauss@kit.edu
+Copyright © 2022 Peter Krauß, Shashank S. Harivyasi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Global variables
 // baseCommand defines the name of the CLI command to execute this program
 var baseCommand = "chemotion"
+var quiet = false
+var active_instance = "no installed instance found"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -52,8 +55,9 @@ https://www.chemotion.net.`,
 	// The following lines are the action associated with
 	// a bare application run i.e. without any arguments
 	Run: func(cmd *cobra.Command, args []string) {
+		is_quiet(baseCommand)
 		fmt.Println("Welcome to Chemotion!")
-		switch prompter([]string{"instance", "user", "system"}) {
+		switch selectOpt([]string{"instance", "user", "system"}) {
 		case "instance":
 			instanceCmd.Run(&cobra.Command{}, []string{})
 		case "user":
@@ -83,5 +87,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "do not start an interactive prompt even if arguments are missing.")
 }

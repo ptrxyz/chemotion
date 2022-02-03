@@ -10,9 +10,9 @@ import (
 var createInstance = &cobra.Command{
 	Use:        "create <name_of_instance>",
 	SuggestFor: []string{"cre"},
-	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("We are now going to create an instance called", args[0])
+		label := getArgs(args, "Please enter name of the instance you want to create")
+		fmt.Println("We are now going to create an instance called", label)
 		//TODO
 	},
 }
@@ -21,7 +21,6 @@ var createInstance = &cobra.Command{
 var statusInstance = &cobra.Command{
 	Use:        "status <name_of_instance>",
 	SuggestFor: []string{"stat"},
-	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("This is what we know about the instance called", args[0])
 		//TODO
@@ -112,10 +111,9 @@ var instanceCmd = &cobra.Command{
 	SuggestFor: []string{"i"},
 	Short:      "Manipulate instances of " + baseCommand,
 	Long:       "Manipulate instances of " + baseCommand + " using one of the available actions",
-	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Chemotion. Actions on instance:")
-		switch prompter([]string{"create", "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}) {
+		switch selectOpt([]string{"create", "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}) {
 		case "create":
 			createInstance.Run(&cobra.Command{}, []string{})
 		case "status":

@@ -60,7 +60,7 @@ var userCmd = &cobra.Command{
 	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Chemotion user actions:")
-		switch prompter([]string{"add", "show", "passwd", "remove"}) {
+		switch selectOpt([]string{"add", "show", "passwd", "remove"}) {
 		case "add":
 			addUser.Run(&cobra.Command{}, []string{})
 		case "show":

@@ -63,7 +63,7 @@ var systemCmd = &cobra.Command{
 	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Chemotion system resources:")
-		switch prompter([]string{"info", "shell", "rails"}) {
+		switch selectOpt([]string{"info", "shell", "rails"}) {
 		case "info":
 			infoSystem.Run(&cobra.Command{}, []string{})
 		case "shell":
