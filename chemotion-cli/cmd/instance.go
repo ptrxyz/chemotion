@@ -10,41 +10,46 @@ import (
 var createInstance = &cobra.Command{
 	Use:        "create <name_of_instance>",
 	SuggestFor: []string{"cre"},
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		label := getArgs(args, "Please enter name of the instance you want to create")
-		fmt.Println("We are now going to create an instance called", label)
+		actOn := getArg(args, "Please enter name of the instance you want to create")
+		fmt.Println("We are now going to create an instance called", actOn)
 		//TODO
 	},
 }
 
-// Determine status of an existing instance of Chemotion
+// Determine status of the active/named instance of Chemotion
 var statusInstance = &cobra.Command{
 	Use:        "status <name_of_instance>",
 	SuggestFor: []string{"stat"},
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("This is what we know about the instance called", args[0])
+		actOn := getInstance(args)
+		fmt.Println("This is what we know about the instance called", actOn)
 		//TODO
 	},
 }
 
-// Upgrade an existing instance of Chemotion
+// Upgrade the active/named instance of Chemotion
 var upgradeInstance = &cobra.Command{
 	Use:        "upgrade <name_of_instance>",
 	SuggestFor: []string{"upg"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("We are now upgrade the instance called", args[0])
+		actOn := getInstance(args)
+		fmt.Println("We now upgrade the instance called", actOn)
 		//TODO
 	},
 }
 
-// Start an existing instance of Chemotion
+// Start an existing named of Chemotion
 var startInstance = &cobra.Command{
 	Use:        "start <name_of_instance>",
 	SuggestFor: []string{"star"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Starting", args[0]+"...")
+		actOn := getArg(args, "Name the instance you want to start.")
+		fmt.Printf("Starting %s...\n", actOn)
 		//TODO
 	},
 }
@@ -53,9 +58,10 @@ var startInstance = &cobra.Command{
 var pauseInstance = &cobra.Command{
 	Use:        "pause <name_of_instance>",
 	SuggestFor: []string{"pau"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Pausing", args[0]+"...")
+		actOn := getInstance(args)
+		fmt.Printf("Pausing %s...\n", actOn)
 		//TODO
 	},
 }
@@ -64,9 +70,10 @@ var pauseInstance = &cobra.Command{
 var stopInstance = &cobra.Command{
 	Use:        "stop <name_of_instance>",
 	SuggestFor: []string{"sto"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Stopping", args[0]+"...")
+		actOn := getInstance(args)
+		fmt.Printf("Stopping %s...\n", actOn)
 		//TODO
 	},
 }
@@ -75,9 +82,10 @@ var stopInstance = &cobra.Command{
 var restartInstance = &cobra.Command{
 	Use:        "restart <name_of_instance>",
 	SuggestFor: []string{"res"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Restarting", args[0]+"...")
+		actOn := getInstance(args)
+		fmt.Printf("Restarting %s...\n", actOn)
 		//TODO
 	},
 }
@@ -86,9 +94,11 @@ var restartInstance = &cobra.Command{
 var deleteInstance = &cobra.Command{
 	Use:        "delete <name_of_instance>",
 	SuggestFor: []string{"del"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Deleting", args[0]+"...")
+		actOn := getInstance(args)
+		fmt.Printf("Deleting %s...\n", actOn)
+		// Remember to change back to the fallback instance
 		//TODO
 	},
 }
@@ -97,9 +107,10 @@ var deleteInstance = &cobra.Command{
 var switchInstance = &cobra.Command{
 	Use:        "switch <name_of_instance>",
 	SuggestFor: []string{"swi"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Switiching to", args[0]+"...")
+		actOn := getArg(args, "Name the instance you want to switch to")
+		fmt.Printf("Switching to %s...\n", actOn)
 		//TODO
 	},
 }
@@ -112,8 +123,10 @@ var instanceCmd = &cobra.Command{
 	Short:      "Manipulate instances of " + baseCommand,
 	Long:       "Manipulate instances of " + baseCommand + " using one of the available actions",
 	Run: func(cmd *cobra.Command, args []string) {
+		confirmInteractive()
 		fmt.Println("Chemotion. Actions on instance:")
-		switch selectOpt([]string{"create", "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}) {
+		acceptedOpts := []string{"create", "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
+		switch selectOpt(acceptedOpts, args) {
 		case "create":
 			createInstance.Run(&cobra.Command{}, []string{})
 		case "status":

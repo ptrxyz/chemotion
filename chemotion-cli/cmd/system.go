@@ -12,8 +12,8 @@ import (
 var infoSystem = &cobra.Command{
 	Use:        "info",
 	SuggestFor: []string{"inf"},
+	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-
 		ncpus := runtime.NumCPU()
 		mem := strings.Fields(execShell("free -h"))
 		rubyVersion := findVersion("ruby")
@@ -37,6 +37,7 @@ var infoSystem = &cobra.Command{
 var shellSystem = &cobra.Command{
 	Use:        "shell",
 	SuggestFor: []string{"she"},
+	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("We are now going to start shell")
 		//TODO
@@ -47,6 +48,7 @@ var shellSystem = &cobra.Command{
 var railsSystem = &cobra.Command{
 	Use:        "rails",
 	SuggestFor: []string{"rai"},
+	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("We are now going to start Rails shell")
 		//TODO
@@ -60,10 +62,11 @@ var systemCmd = &cobra.Command{
 	SuggestFor: []string{"s"},
 	Short:      "Perform system-oriented actions",
 	Long:       "Perform system-oriented actions using one of the available actions",
-	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Chemotion system resources:")
-		switch selectOpt([]string{"info", "shell", "rails"}) {
+		confirmInteractive()
+		fmt.Println("Chemotion. Available system resources.")
+		acceptedOpts := []string{"info", "shell", "rails"}
+		switch selectOpt(acceptedOpts, args) {
 		case "info":
 			infoSystem.Run(&cobra.Command{}, []string{})
 		case "shell":

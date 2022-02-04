@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -10,9 +11,10 @@ import (
 var addUser = &cobra.Command{
 	Use:        "add <name_of_user>",
 	SuggestFor: []string{"add"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("We are now going to add a new user with the name", args[0])
+		user := getArg(args, "Please enter username of the new user")
+		fmt.Println("We are now going to add a new user with the name", user)
 		//TODO
 	},
 }
@@ -21,21 +23,36 @@ var addUser = &cobra.Command{
 var showUser = &cobra.Command{
 	Use:        "show <name_of_user>",
 	SuggestFor: []string{"sho"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("This is what we know about the user", args[0])
+		user := getArg(args, "Please enter the username whose details are required")
+		fmt.Println("This is what we know about the user", user)
 		//TODO
 	},
 }
 
 // Change password for a user of Chemotion
 var passwdUser = &cobra.Command{
-	Use:        "passwd <name_of_user>",
+	Use:        "passwd <name_of_user> <new_passwd>",
 	SuggestFor: []string{"pas"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.RangeArgs(0, 2),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Changing password for the user", args[0]+"...")
-		//TODO
+		user := getArg(args, "Please enter the username whose password needs to be changed")
+		var passwd string
+		if len(args) == 2 {
+			passwd = args[1]
+		} else {
+			passwd1 := promptPass("Please enter new password for " + user)
+			passwd2 := promptPass("Please confirm the new password")
+			if passwd1 == passwd2 {
+				passwd = passwd1
+			} else {
+				fmt.Println("Passwords do not match. Exiting!")
+				os.Exit(1)
+			}
+		}
+		// TODO remove this clear text password !!!
+		fmt.Println("The new password for", user, "is", passwd)
 	},
 }
 
@@ -43,9 +60,10 @@ var passwdUser = &cobra.Command{
 var removeUser = &cobra.Command{
 	Use:        "remove <name_of_user>",
 	SuggestFor: []string{"rem"},
-	Args:       cobra.MinimumNArgs(1),
+	Args:       cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Removing user with the name", args[0]+"...")
+		user := getArg(args, "Please enter the username you want to remove")
+		fmt.Println("Removing username", user)
 		//TODO
 	},
 }
@@ -57,10 +75,11 @@ var userCmd = &cobra.Command{
 	SuggestFor: []string{"u"},
 	Short:      "Perform user-related actions in " + baseCommand,
 	Long:       "Perform user-related actions in " + baseCommand + " using one of the available actions",
-	Args:       cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Chemotion user actions:")
-		switch selectOpt([]string{"add", "show", "passwd", "remove"}) {
+		fmt.Println("Chemotion. Actions on users.")
+		confirmInteractive()
+		acceptedOpts := []string{"add", "show", "passwd", "remove"}
+		switch selectOpt(acceptedOpts, args) {
 		case "add":
 			addUser.Run(&cobra.Command{}, []string{})
 		case "show":

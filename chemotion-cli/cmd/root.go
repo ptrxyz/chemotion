@@ -41,11 +41,11 @@ import (
 // baseCommand defines the name of the CLI command to execute this program
 var baseCommand = "chemotion"
 var quiet = false
-var active_instance = "no installed instance found"
+var activeInstance = "default"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   baseCommand,
+	Use:   baseCommand + " {instance|user|system}",
 	Short: "CLI for Chemotion ELN",
 	Long: `Chemotion ELN is an Electronic Lab Notebook solution
 developed at Karlsruhe Institute of Technology (KIT).
@@ -55,9 +55,10 @@ https://www.chemotion.net.`,
 	// The following lines are the action associated with
 	// a bare application run i.e. without any arguments
 	Run: func(cmd *cobra.Command, args []string) {
-		is_quiet(baseCommand)
+		confirmInteractive()
 		fmt.Println("Welcome to Chemotion!")
-		switch selectOpt([]string{"instance", "user", "system"}) {
+		acceptedOpts := []string{"instance", "user", "system"}
+		switch selectOpt(acceptedOpts, args) {
 		case "instance":
 			instanceCmd.Run(&cobra.Command{}, []string{})
 		case "user":
@@ -87,5 +88,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//
-	rootCmd.Flags().BoolVarP(&quiet, "quiet", "q", false, "do not start an interactive prompt even if arguments are missing.")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "do not start an interactive prompt even if arguments are missing.")
 }
