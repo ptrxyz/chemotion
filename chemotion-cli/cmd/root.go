@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 Peter Krauß, peter.krauss@kit.edu
+Copyright © 2022 Peter Krauß, Shashank S. Harivyasi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,22 +37,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Global variables
 // baseCommand defines the name of the CLI command to execute this program
 var baseCommand = "chemotion"
+var quiet = false
+var activeInstance = "default"
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   baseCommand,
+	Use:   baseCommand + " {instance|user|system}",
 	Short: "CLI for Chemotion ELN",
 	Long: `Chemotion ELN is an Electronic Lab Notebook solution
 developed at Karlsruhe Institute of Technology (KIT).
 Developed for chemists, with the help of chemists,
 the software aims to ease research. For more see,
 https://www.chemotion.net.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
+	// The following lines are the action associated with
+	// a bare application run i.e. without any arguments
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Welcome to Chemotion! Learn how to use it by running\n\n%s --help\n", baseCommand)
+		confirmInteractive()
+		fmt.Println("Welcome to Chemotion!")
+		acceptedOpts := []string{"instance", "user", "system"}
+		switch selectOpt(acceptedOpts, args) {
+		case "instance":
+			instanceCmd.Run(&cobra.Command{}, []string{})
+		case "user":
+			userCmd.Run(&cobra.Command{}, []string{})
+		case "system":
+			systemCmd.Run(&cobra.Command{}, []string{})
+		}
 	},
 }
 
@@ -75,5 +88,5 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	//
-	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().BoolVarP(&quiet, "quiet", "q", false, "do not start an interactive prompt even if arguments are missing.")
 }
