@@ -1,0 +1,84 @@
+diff --git a/Gemfile b/Gemfile
+index 607f505c..dfa530d3 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -111,79 +111,6 @@ gem 'whenever', require: false
+ 
+ gem 'yaml_db'
+ 
+-group :development do
+-  gem 'better_errors' # allows to debug exception on backend from browser
+-
+-  gem 'capistrano', '3.9.1'
+-  gem 'capistrano-bundler'
+-  gem 'capistrano-npm'
+-  gem 'capistrano-nvm', require: false
+-  gem 'capistrano-rails'
+-  gem 'capistrano-rvm'
+-  gem 'capistrano-yarn'
+-
+-  gem 'fast_stack'    # For Ruby MRI 2.0
+-  gem 'flamegraph'
+-
+-  gem 'memory_profiler'
+-
+-#  gem 'rack-mini-profiler', git: 'https://github.com/MiniProfiler/rack-mini-profiler'
+-  gem 'rubocop', require: false
+-  gem 'rubocop-performance', require: false
+-  gem 'rubocop-rspec', require: false
+-
+-  gem 'slackistrano'
+-  gem 'stackprof' # For Ruby MRI 2.1+
+-
+-  gem 'web-console', '~> 2.0'
+-end
+-
+-group :development, :test do
+-  gem 'annotate'
+-  gem 'awesome_print'
+-
+-  gem 'binding_of_caller'
+-  gem 'bullet'
+-  gem 'byebug'
+-
+-  gem 'chronic'
+-
+-  gem 'listen'
+-
+-  # Install mailcatcher outside the bundle since it does not support rack 2.0
+-  # Use `gem install mailcatcher` instead
+-  # gem 'mailcatcher'
+-
+-  gem 'meta_request'
+-
+-  gem 'pry-byebug'
+-  gem 'pry-rails'
+-
+-  gem 'puma'
+-
+-  gem 'rspec-rails'
+-  gem 'ruby_jard'
+-  gem 'rubyXL', '3.3.26'
+-
+-  gem 'spring'
+-end
+-
+-group :test do
+-  gem 'capybara', '~> 3.29.0'
+-
+-  gem 'database_cleaner'
+-
+-  gem 'factory_bot_rails', '~>4.11'
+-  gem 'faker', '~> 1.6.6'
+-
+-  gem 'launchy', '~> 2.4.3'
+-
+-  gem 'rspec-repeat'
+-
+-  gem 'webdrivers', '~> 4.1.2'
+-  gem 'webmock'
+-end
+-
+ # gem 'nmr_sim', git: 'https://github.com/ComPlat/nmr_sim', ref: 'e2f91776aafd8eb1fa9d88c8ec2291b02201f222', group: [:plugins,:development, :test, :production]
+ 
+ # Chemotion plugins: list your ELN specific plugin gems in the Gemfile.plugin

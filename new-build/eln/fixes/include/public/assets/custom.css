@@ -1,0 +1,21 @@
+#welcomeMessage {
+    font-size: medium;
+    max-width: 800px;
+    margin: auto;
+}
+
+#welcomeMessage > * {
+    font-size: medium;
+}
+
+#welcomeMessage h1 {
+    font-size: xx-large;
+    font-weight: bold;
+    padding: 0px 0px 16px 0px;
+}
+
+#welcomeMessage h2 {
+    font-size: x-large;
+    font-weight: bold;
+    margin: 40px 0px 8px 0px;
+}

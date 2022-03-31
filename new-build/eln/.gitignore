@@ -1,0 +1,5 @@
+src/
+seed/
+raw/
+prepare/node_modules
+__stash/

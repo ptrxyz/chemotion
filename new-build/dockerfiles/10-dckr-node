@@ -1,0 +1,31 @@
+####################################################################################################
+# NODE
+####################################################################################################
+FROM base AS node
+ARG NODEDIR=./eln
+
+# NODE_VERSION and NODE_URL will be overwritten with .metadata file below
+ARG NODE_VERSION="v14.16.0"
+ARG NODE_URL="https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-x64.tar.gz"
+ARG NODE_PATH=/node_modules
+ARG NODE_OPTIONS=" --max-old-space-size=3072"
+
+# wget: to download node
+# git: for "npm install"
+RUN apt-get -y install wget git build-essential python3
+
+# metadata: contains info about NODE_VERSION to use
+# package.json, yarn.lock: package info
+# package_postinstall.sh: postinstall script referenced in package.json  
+COPY ["${NODEDIR}/src/app/.metadata", "${NODEDIR}/src/app/package.json", "${NODEDIR}/src/app/yarn.lock", "${NODEDIR}/src/app/package_postinstall.sh", "/src/"]
+
+RUN . /src/.metadata && \
+    wget -O /tmp/node.tar.gz ${NODE_URL} && \
+    mkdir /node && \
+    tar xvz --strip-components=1 -C /node -f /tmp/node.tar.gz >/dev/null && \
+    PATH=/node/bin:$PATH npm install -g yarn && \
+    find /node/bin/ | xargs -i ln -s {} /bin/
+
+RUN cd /src && \
+    yarn --modules-folder ${NODE_PATH} --cache-folder /yarn/cache add libsys && \
+    yarn --modules-folder ${NODE_PATH} --cache-folder /yarn/cache --production=true install

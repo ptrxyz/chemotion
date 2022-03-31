@@ -1,0 +1,14 @@
+{
+    "name": "embed",
+    "version": "1.0.0",
+    "description": "",
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "globby": "^13.1.0",
+        "node-fetch": "^3.2.0",
+        "semver": "^7.3.5",
+        "yaml": "^1.10.2"
+    },
+    "type": "module"
+}

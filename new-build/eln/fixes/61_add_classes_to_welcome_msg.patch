@@ -1,0 +1,51 @@
+diff --git a/app/packs/src/components/WelcomeMessage.js b/app/packs/src/components/WelcomeMessage.js
+index 449e85c9..45245686 100644
+--- a/app/packs/src/components/WelcomeMessage.js
++++ b/app/packs/src/components/WelcomeMessage.js
+@@ -1,15 +1,15 @@
+-import React, { Component } from 'react';
+-import { Jumbotron } from 'react-bootstrap';
+-import ReactMarkdown from 'react-markdown';
++import React, { Component } from 'react'
++import { Jumbotron } from 'react-bootstrap'
++import ReactMarkdown from 'react-markdown'
+ 
+ function Message(props) {
+-  const input = props.post;
++  const input = props.post
+   if (input != null && input !== undefined) {
+-    return (<Jumbotron>
++    return (<Jumbotron id="welcomeMessage" class="welcomeMessage">
+       <ReactMarkdown children={input} />
+-    </Jumbotron>);
++    </Jumbotron>)
+   }
+-  return null;
++  return null
+ }
+ 
+ class WelcomeMessage extends Component {
+@@ -20,17 +20,17 @@ class WelcomeMessage extends Component {
+     fetch('welcome-message.md')
+       .then((res) => {
+         if (res.ok) {
+-          return res.text();
++          return res.text()
+         }
+-        return null;
++        return null
+       }).then(post => this.setState(state => ({ ...state, post })))
+-      .catch((errorMessage) => { console.error(errorMessage); });
++      .catch((errorMessage) => { console.error(errorMessage) })
+   }
+   render() {
+-    const { post } = this.state;
++    const { post } = this.state
+     return (
+       <Message post={post} />
+-    );
++    )
+   }
+ }
+-export default WelcomeMessage;
++export default WelcomeMessage
