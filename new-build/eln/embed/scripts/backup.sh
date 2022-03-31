@@ -13,7 +13,7 @@ tar cvzH posix -f "/backup/backup-${stamp}.data.tar.gz" --directory=/chemotion/d
     exit 2
 }
 
-pg_dump --clean --if-exists | gzip -c > "/backup/backup-${stamp}.sql.gz" || {
+pg_dump --no-owner --clean --if-exists | gzip -c > "/backup/backup-${stamp}.sql.gz" || {
     log "Could not backup database!"
     exit 3
 }
