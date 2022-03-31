@@ -1,0 +1,14 @@
+#!/bin/bash
+# simple script to check a file's dependencies.
+# outputs nothing and returns 0 if everything is fine
+# otherwise, the filename and the output of ldd are
+# printed on the screen and error code 1 is returned.
+
+out=$(ldd $1 2>/dev/null)
+ret=$?
+
+echo $out | grep "not found" 2>&1 1>/dev/null
+error=$?
+
+[[ $error -eq 0 ]] && echo -e "File ${1}:\n${out}\n\n"
+[[ $error -eq 0 ]] && exit 1 || exit 0

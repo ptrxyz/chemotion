@@ -1,0 +1,21 @@
+####################################################################################################
+# MSCONVERT
+####################################################################################################
+FROM chambm/pwiz-skyline-i-agree-to-the-vendor-licenses as msconvert
+ARG CONVERTDIR=./spectra
+
+COPY --from=base /tini /tini
+
+ADD ${CONVERTDIR}/scripts/dist/flaskrun35 /bin/mscrun
+ADD ${CONVERTDIR}/scripts/mscrunner.py /bin/mscrunner.py
+
+RUN apt-get -y update && apt-get -y upgrade
+RUN mkdir -p /shared && rm -rf /data && \
+    ln -s /shared /data
+
+# ENV WINEDEBUG=all
+ENV MSC_PORT=8088
+EXPOSE 8088
+
+ENTRYPOINT ["/tini", "--"]
+CMD /bin/mscrun /bin/mscrunner.py 

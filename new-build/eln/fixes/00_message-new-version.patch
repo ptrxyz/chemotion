@@ -1,0 +1,15 @@
+FIXEDBY 0a7976843651f6202ee122e46c922661f155ef38
+diff --git a/app/api/chemotion/message_api.rb b/app/api/chemotion/message_api.rb
+index 9ad4a0db..37fd2e4a 100644
+--- a/app/api/chemotion/message_api.rb
++++ b/app/api/chemotion/message_api.rb
+@@ -21,7 +21,8 @@ module Chemotion
+         if Rails.env.production?
+           asset_application = Dir[File.join(Rails.public_path, 'packs', 'js', 'application-*.js')].first
+           cur = present(messages, with: Entities::MessageEntity, root: 'messages')
+-          cur[:version] = asset_application
++          path = Webpacker.manifest.send(:data)&.fetch('application.js', nil)
++          cur[:version] =  File.basename(path) if path
+         else
+           cur = present(messages, with: Entities::MessageEntity, root: 'messages')
+         end

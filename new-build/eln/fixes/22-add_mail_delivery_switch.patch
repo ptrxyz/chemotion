@@ -1,0 +1,13 @@
+diff --git a/config/environments/production.rb b/config/environments/production.rb
+index 1a977d7e..2ba7e793 100644
+--- a/config/environments/production.rb
++++ b/config/environments/production.rb
+@@ -120,5 +120,7 @@ Rails.application.configure do
+     :enable_starttls_auto => ENV['SMTP_TLS'] && ENV['SMTP_TLS'].match(/true/),
+     :openssl_verify_mode  => ENV['SMTP_SSL_MODE']
+   }
+-
++  if (ENV["SMTP_ADDRESS"] || '').empty? || ENV["CONFIG_DISABLE_MAIL_DELIVERY"].present?
++    config.action_mailer.perform_deliveries = false
++  end
+ end
