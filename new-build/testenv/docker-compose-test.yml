@@ -16,7 +16,7 @@ services:
     hostname: msconvert
     volumes:
       - spectra:/shared:rw
-  
+
   spectra:
     image: chemotion-build:spectra
     restart: unless-stopped
