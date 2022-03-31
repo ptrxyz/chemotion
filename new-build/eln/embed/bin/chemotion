@@ -67,7 +67,7 @@ case $1 in
         exit $?
         ;;
     railsc)
-        cd /chemottion/app
+        cd /chemotion/app
         rails c
         exit $?
         ;;
