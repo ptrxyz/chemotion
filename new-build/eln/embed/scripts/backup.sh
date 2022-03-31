@@ -24,8 +24,8 @@ if [[ ! -e "/backup/backup.data.tar.gz" && ! -e "/backup/backup.sql.gz" ]] || \
     log "Creating symlink to latest backup."
     rm -f /backup/backup.data.tar.gz
     rm -f /backup/backup.sql.gz
-    ln -s "/backup/backup-${stamp}.data.tar.gz" "/backup/backup.data.tar.gz"
-    ln -s "/backup/backup-${stamp}.sql.gz" "/backup/backup.sql.gz"
+    ln -s "backup-${stamp}.data.tar.gz" "/backup/backup.data.tar.gz"
+    ln -s "backup-${stamp}.sql.gz" "/backup/backup.sql.gz"
 fi
 
 log "Backup finished successfully. Timestamp: ${stamp}"
