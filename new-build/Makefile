@@ -39,9 +39,12 @@ tag:
 	make -C testenv composefile
 
 upload: tag
-	$(DOCKERCMD) push ptrxyz/chemotion:eln-latest
-	$(DOCKERCMD) push ptrxyz/chemotion:spectra-latest
-	$(DOCKERCMD) push ptrxyz/chemotion:msconvert-latest
+	# $(DOCKERCMD) push ptrxyz/chemotion:eln-latest
+	# $(DOCKERCMD) push ptrxyz/chemotion:spectra-latest
+	# $(DOCKERCMD) push ptrxyz/chemotion:msconvert-latest
+	$(DOCKERCMD) push ptrxyz/chemotion:eln-$(CHEMOTION_BUILD_RELEASE)
+	$(DOCKERCMD) push ptrxyz/chemotion:spectra-$(CHEMOTION_BUILD_RELEASE)
+	$(DOCKERCMD) push ptrxyz/chemotion:msconvert-$(CHEMOTION_BUILD_RELEASE)
 	
 
 upload-dev:
