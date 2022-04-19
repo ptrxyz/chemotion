@@ -228,23 +228,33 @@ async function taskApplyPatches(config) {
         const fileContents = fs
             .readFileSync(fileName, { encoding: 'utf-8' })
             .split('\n')
-        const fixedBy = fileContents[0].match(
-            /^FIXEDBY (?<hash>[0-9a-zA-Z]{3,})$/
-        )?.groups.hash
-        if (fixedBy) {
-            const { stdout, code } = await exec(`git rev-list HEAD`, {
-                shell: '/bin/bash',
-                encoding: 'utf-8',
-                cwd: config.srcDir,
-            })
-            if (stdout.includes(fixedBy)) {
-                // patch is unnecessary in this release
-                console.log(`Patch [${path.basename(fileName)}] is obsolete.`)
-                continue
+
+        let fixedBy = []
+        if (fileContents[0].startsWith('FIXEDBY ')) {
+            fixedBy = fileContents[0].split(' ').slice(1)
+        }
+
+        let applyFix = true
+        for (const fix of fixedBy) {
+            const { stdout } = await bash(
+                `git merge-base ${fix} --is-ancestor HEAD && echo "discard" || echo "apply"`, // needs git 1.8.0
+                {
+                    cwd: config.srcDir,
+                }
+            )
+            if (stdout.includes('discard')) {
+                applyFix = false
+                break
             }
         }
-        await exec(`git apply ${fileName}`, { cwd: config.srcDir })
-        console.log(`Patch [${path.basename(fileName)}] applied.`)
+
+        if (applyFix) {
+            await bash(`git apply ${fileName}`, { cwd: config.srcDir })
+            console.log(`Patch [${path.basename(fileName)}] applied.`)
+        } else {
+            // patch is unnecessary in this release
+            console.log(`Patch [${path.basename(fileName)}] is obsolete.`)
+        }
     }
 }
 
@@ -442,12 +452,16 @@ async function taskHandleUploadsAndImages(config) {
         )}"`
     )
     await bash(
-        `ln -s /chemotion/data/public/images "${path.join(config.srcDir, 'public', 'images')}"`
+        `ln -s /chemotion/data/public/images "${path.join(
+            config.srcDir,
+            'public',
+            'images'
+        )}"`
     )
     await bash(
         `ln -s /chemotion/data/uploads "${path.join(config.srcDir, 'uploads')}"`
     )
-    console.log("Moved [public/images] and [uploads] to data.")
+    console.log('Moved [public/images] and [uploads] to data.')
 }
 
 // main function.
