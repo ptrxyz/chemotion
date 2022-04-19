@@ -1,7 +1,7 @@
 SHELL := ./.envshell
 .DEFAULT_GOAL := build
 
-include env
+include .env
 export
 
 ALL_STAGES=gather eln spectra ruby node msconvert base
