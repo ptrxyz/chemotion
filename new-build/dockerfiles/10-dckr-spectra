@@ -10,7 +10,8 @@ ENV LC_ALL=en_US.UTF-8
 
 RUN apt-get install -y --no-install-recommends \
     curl ca-certificates git \
-    gcc g++ libxrender1 libxext-dev pkg-config
+    gcc g++ libxrender1 libxext-dev pkg-config \
+    libfreetype6-dev # This is needed for matplotlib somehow ...
 
 # COPY Anaconda3-2020.11-Linux-x86_64.sh /root/conda.sh
 # COPY Anaconda2-2019.10-Linux-x86_64.sh /root/conda.sh
@@ -25,7 +26,9 @@ RUN bash /root/conda.sh -p /anaconda3 -b && \
     echo "PATH=/anaconda3/condabin/:$PATH" >> ~/.profile && \
     rm /root/conda.sh && \
     /anaconda3/condabin/conda update -y -n base -c defaults conda && \
-    /anaconda3/condabin/conda env create -f /root/environment.yml
+    /anaconda3/condabin/conda env create -f /root/environment.yml && \
+    /anaconda3/condabin/conda install -c anaconda -n chem-spectra setuptools==58.0.4
+    
 
 # Make RUN commands use the new environment:
 SHELL ["/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra", "/bin/bash", "-c"]
