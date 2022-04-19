@@ -50,6 +50,15 @@ RUN dpkg -i /tmp/pandoc.deb && rm /tmp/pandoc.deb && \
     rake webpacker:compile && \
     rm /chemotion/app/config/klasses.json )
 
+RUN cd /chemotion/app && RAILS_ENV=production SECRET_KEY_BASE=build && \
+    cp $(bundle show ketcherails)/app/assets/javascripts/ketcherails/ui/ui.js.erb /tmp/ui.js.bak && \
+    sed -i 's/Ketcherails::TemplateCategory.with_approved_templates.pluck(:id)/[]/g' $(bundle show ketcherails)/app/assets/javascripts/ketcherails/ui/ui.js.erb && \
+    RAILS_ENV=production SECRET_KEY_BASE=build rake assets:precompile && \
+    mv /tmp/ui.js.bak $(bundle show ketcherails)/app/assets/javascripts/ketcherails/ui/ui.js.erb
+
+    # alternative: use the patch ...
+    # sed -i -e '650,654d' $(bundle show ketcherails)/app/assets/javascripts/ketcherails/ui/ui.js.erb && \
+    
 # add the scripts
 ADD ${ELNDIR}/embed /embed
 
