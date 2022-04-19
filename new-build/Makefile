@@ -28,6 +28,7 @@ clean:
 	$(DOCKERCMD) image rm -f chemotion-build:spectra	|| true
 	$(DOCKERCMD) image rm -f chemotion-build:eln    	|| true
 	$(DOCKERCMD) image rm -f chemotion-build:gather 	|| true
+	make -C eln clean
 
 tag:
 	$(DOCKERCMD) tag chemotion-build:eln ptrxyz/chemotion:eln-$(CHEMOTION_BUILD_RELEASE)
