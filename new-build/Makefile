@@ -10,7 +10,7 @@ COMPOSE_PROJECT=chemotion-build
 DOCKERCMD=COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) DOCKER_BUILDKIT=1 docker
 COMPOSECMD=$(DOCKERCMD)-compose -f docker-compose-test.yml
 
-prepare: 
+prepare:
 	(cat dockerfiles/??-dckr-* dockerfiles/99-gather > .dockerfile)
 	make -C eln prepare
 	make -C spectra prepare
@@ -56,18 +56,20 @@ upload-dev:
 	$(DOCKERCMD) push ptrxyz/chemotion-build:msconvert
 
 $(ALL_STAGES): prepare
-	$(DOCKERCMD) buildx build -f .dockerfile \
-		--build-arg TINI_VERSION=$${TINI_VERSION} \
-		--build-arg ELNDIR=./eln 			\
-		--build-arg NODEDIR=./eln 			\
-		--build-arg RUBYDIR=./eln 			\
-		--build-arg CONVERTDIR=./spectra 	\
-		--build-arg SPECTRADIR=./spectra	\
-		--target $@							\
-		-t chemotion-build:$@				\
+	$(DOCKERCMD) buildx build -f .dockerfile 		\
+		--build-arg TINI_VERSION=$${TINI_VERSION} 	\
+		--build-arg ELNDIR=./eln 					\
+		--build-arg NODEDIR=./eln 					\
+		--build-arg RUBYDIR=./eln 					\
+		--build-arg CONVERTDIR=./spectra 			\
+		--build-arg SPECTRADIR=./spectra			\
+		--target $@									\
+		-t chemotion-build:$@						\
 		.
 	@[[ "$@" == "gather" ]] && $(DOCKERCMD) image rm -f chemotion-build:gather || true
 
 build-nocache: clean-cache $(ALL_STAGES)
 clean-build: clean build-nocache
 build: $(ALL_STAGES)
+
+# vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab
