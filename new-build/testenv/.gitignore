@@ -1,2 +1,4 @@
 shared
 shared*
+docker-compose-*p*.yml
+docker-compose-.yml

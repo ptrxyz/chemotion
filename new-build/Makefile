@@ -69,6 +69,12 @@ $(ALL_STAGES): prepare
 		.
 	@[[ "$@" == "gather" ]] && $(DOCKERCMD) image rm -f chemotion-build:gather || true
 
+composefile:
+	mkdir -p release/$(CHEMOTION_BUILD_RELEASE)
+	make -C testenv composefile
+	cp testenv/docker-compose-$(CHEMOTION_BUILD_RELEASE).yml release/$(CHEMOTION_BUILD_RELEASE)/docker-compose.yml
+	rm release/latest; ln -s $(CHEMOTION_BUILD_RELEASE) release/latest
+
 build-nocache: clean-cache $(ALL_STAGES)
 clean-build: clean build-nocache
 build: $(ALL_STAGES)
