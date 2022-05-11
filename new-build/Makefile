@@ -75,6 +75,8 @@ composefile:
 	cp testenv/docker-compose-$(CHEMOTION_BUILD_RELEASE).yml release/$(CHEMOTION_BUILD_RELEASE)/docker-compose.yml
 	rm release/latest; ln -s $(CHEMOTION_BUILD_RELEASE) release/latest
 
+release: clean-build composefile
+soft-release: clean build composefile
 build-nocache: clean-cache $(ALL_STAGES)
 clean-build: clean build-nocache
 build: $(ALL_STAGES)
