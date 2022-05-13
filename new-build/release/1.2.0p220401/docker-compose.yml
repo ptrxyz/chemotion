@@ -1,4 +1,4 @@
-version: '3.5'
+version: '3'
 services:
     db:
         image: postgres:13
@@ -13,7 +13,7 @@ services:
             - chemotion
 
     msconvert:
-        image: ptrxyz/chemotion:msconvert-1.1.2p220401
+        image: ptrxyz/chemotion:msconvert-1.2.0p220401
         restart: unless-stopped
         hostname: msconvert
         volumes:
@@ -22,7 +22,7 @@ services:
             - chemotion
 
     spectra:
-        image: ptrxyz/chemotion:spectra-1.1.2p220401
+        image: ptrxyz/chemotion:spectra-1.2.0p220401
         restart: unless-stopped
         hostname: spectra
         volumes:
@@ -33,7 +33,7 @@ services:
             - chemotion
 
     worker:
-        image: ptrxyz/chemotion:eln-1.1.2p220401
+        image: ptrxyz/chemotion:eln-1.2.0p220401
         restart: unless-stopped
         environment:
             - CONFIG_ROLE=worker
@@ -48,7 +48,7 @@ services:
             - chemotion
 
     eln:
-        image: ptrxyz/chemotion:eln-1.1.2p220401
+        image: ptrxyz/chemotion:eln-1.2.0p220401
         restart: unless-stopped
         environment:
             - CONFIG_ROLE=eln
@@ -56,7 +56,6 @@ services:
             - db
             - spectra
         volumes:
-            - ./shared/logs:/chemotion/app/log
             - ./shared/pullin:/shared
             - ./shared/backup:/backup
             - chemotion_data:/chemotion/data/
@@ -74,7 +73,6 @@ volumes:
     chemotion_db:
         name: chemotion_db
     spectra:
-        name: chemotion_spectra
 
 networks:
     chemotion:
