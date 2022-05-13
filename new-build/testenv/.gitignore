@@ -1,4 +1,5 @@
 shared
 shared*
-docker-compose-*p*.yml
-docker-compose-.yml
+docker-compose-*.yml
+!docker-compose-test.yml
+!docker-compose-production.yml
