@@ -1,1 +1,0 @@
-../available/eln-init.sh
