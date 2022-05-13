@@ -1,2 +1,5 @@
 shared
 shared*
+docker-compose-*.yml
+!docker-compose-test.yml
+!docker-compose-production.yml
