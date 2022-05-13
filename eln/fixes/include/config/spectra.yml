@@ -1,3 +1,0 @@
-production:
-    :url: 'spectra'
-    :port: '3007'
