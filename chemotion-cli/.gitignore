@@ -1,7 +1,7 @@
 # chosen and default names for the executable
 chemotion
-# log file
-chemotion-cli.log
-# configuration files, include all but the private one
+# all log files
+*.log
+# don't include the private configuration file and instances folder
 chemotion-cli.yml
-!configs/*
+instances/

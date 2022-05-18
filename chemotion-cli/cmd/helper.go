@@ -1,14 +1,21 @@
 package cmd
 
 import (
-	"fmt"
+	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/spf13/afero"
 )
 
+const (
+	filePerm   = os.FileMode(0644)
+	folderPerm = os.FileMode(0755)
+)
+
 var (
-	shell string = "bash"
+	shell         string = "bash"
+	notInstallErr string = "Not installed!"
 )
 
 // check if file exists
@@ -19,8 +26,8 @@ func existingFile(filePath string) (exists bool) {
 
 // check if the CLI is running interactively; if not, then exit.
 func confirmInteractive() (silent bool) {
-	if config.Quiet {
-		zboth.Fatal().Msg(baseCommand + " is in quiet mode. Give all arguments to specify the desired action; use '--help' for more. ABORT!")
+	if currentState.Quiet {
+		zboth.Fatal().Msg(projectName + " is in quiet mode. Give all arguments to specify the desired action; use '--help' for more. ABORT!")
 		silent = false
 	} else {
 		silent = true
@@ -28,29 +35,35 @@ func confirmInteractive() (silent bool) {
 	return
 }
 
-// execute command in bash shell
-func execShell(command string) (result string) {
-	out, err := exec.Command(shell, "-c", command).Output()
-	if err == nil {
-		zlog.Debug().Str("container", containerName).Str("instance", config.Instance).Msg("Executed shell command: ")
-		return string(out)
-	} else {
-		zboth.Fatal().Err(err).Msg("Check log. Failed to execute command: " + command)
-		return ""
+// check if a string is an array of strings
+func stringInArray(str string, strings []string) int {
+	for index, element := range strings {
+		if element == str {
+			return index
+		}
 	}
+	return -1
+}
+
+// execute command in bash shell
+func execShell(command string) (result string, err error) {
+	res, err := exec.Command(shell, "-c", command).Output()
+	result = strings.TrimSpace(string(res))
+	if err == nil {
+		zlog.Debug().Str("instance", currentState.name).Msg("Executed shell command: " + command)
+	}
+	return
 }
 
 // find version of a software using --version in bash shell
-func findVersion(software string) (result string) {
+func findVersion(software string) (version string) {
 	command := software + " --version"
-	out, err := exec.Command(shell, "-c", command).Output()
+	version, err := execShell(command)
 	if err == nil {
-		zlog.Debug().Str("container", containerName).Str("instance", config.Instance).Msg("Executed shell command: ")
-		return fmt.Sprint(out)
-	} else if err.Error() == "127" {
-		return "Not installed!"
+	} else if err.Error() == "exit status 127" { // 127 is generally command not found
+		version = notInstallErr
 	} else {
-		zboth.Fatal().Err(err).Msg("Check log. Failed to execute command: " + command)
-		return ""
+		zboth.Warn().Err(err).Msg("Check log. Failed to execute command: " + command)
 	}
+	return
 }

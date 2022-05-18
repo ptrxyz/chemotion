@@ -1,3 +1,0 @@
-instance: default # the default instance on which chemotion operates unless changed.
-quiet: false      # should chemotion start in quiet i.e. scripting mode.
-debug: false      # should debug level messages be logged in the log file.

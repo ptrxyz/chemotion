@@ -10,12 +10,16 @@ import (
 
 // Show system related information to the user
 var infoSystem = &cobra.Command{
-	Use:        "info",
-	SuggestFor: []string{"inf"},
-	Args:       cobra.NoArgs,
+	Use:  "info",
+	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		ncpus := runtime.NumCPU()
-		mem := strings.Fields(execShell("free -h"))
+		if mem, err := execShell("free -h"); err == nil {
+			mem := strings.Fields(mem)
+			fmt.Println("- Memory:\n  -", mem[7], "(total),", mem[9], "(free)")
+		} else {
+			zboth.Warn().Err(err).Msg("Couldn't determine memory usage.")
+		}
 		rubyVersion := findVersion("ruby")
 		passengerVersion := findVersion("passenger")
 		nodeVersion := findVersion("node")
@@ -23,13 +27,12 @@ var infoSystem = &cobra.Command{
 
 		fmt.Println("This is what we know about the system")
 		fmt.Println("- CPU Cores:", ncpus)
-		fmt.Println("- Memory:\n  -", mem[7], "(total),", mem[9], "(free)")
+
 		fmt.Println("Used software versions:")
 		fmt.Println("- Ruby:", rubyVersion)
 		fmt.Println("- Passenger:", passengerVersion)
 		fmt.Println("- Node:", nodeVersion)
 		fmt.Println("- npm:", npmVersion)
-
 	},
 }
 

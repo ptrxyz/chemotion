@@ -2,23 +2,18 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/manifoldco/promptui"
 )
 
 // Prompt to select a value from a given set of values.
-// Also displays the currently selected instance if not same as defaultInstance.
+// Also displays the currently selected instance if not same as defaultInstanceName.
 func selectOpt(acceptedOpts []string) (result string) {
-	labelPrefix := fmt.Sprintf("[%s on %s] ", config.Instance, containerName)
-	if strings.HasPrefix(labelPrefix, fmt.Sprintf("[%s on", defaultInstance)) {
-		labelPrefix = strings.Replace(labelPrefix, fmt.Sprintf("[%s on", defaultInstance), "[on", 1)
-	}
-	if strings.HasSuffix(labelPrefix, "on ] ") {
-		labelPrefix = strings.Replace(labelPrefix, "on ] ", "] ", 1)
-	}
-	if labelPrefix == "[] " {
+	var labelPrefix string
+	if currentState.name == defaultInstanceName {
 		labelPrefix = ""
+	} else {
+		labelPrefix = fmt.Sprintf("[%s] ", currentState.name)
 	}
 	selection := promptui.Select{
 		Label: labelPrefix + "Select one of the following",
