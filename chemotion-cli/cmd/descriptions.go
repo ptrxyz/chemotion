@@ -1,13 +1,5 @@
 package cmd
 
-type state struct {
-	Debug    bool
-	Quiet    bool
-	Kind     string
-	name     string
-	isInside bool
-}
-
 type commandValues struct {
 	use     string
 	short   string

@@ -8,20 +8,28 @@ import (
 	"github.com/spf13/viper"
 )
 
-// to create a default Production instance
+// Creates a default Production instance, with set defaults.
 func firstRun() {
-	zboth.Info().Msgf("Welcome to your first run of %s.", projectName)
-	currentState.Kind = "Production"
-	success := instanceCreate(currentState)
+	confirmVirtualizer(minimumVirtualizer)
+	zboth.Info().Msgf("Welcome to your first run of %s. We need to download and install it first.\nThis operation may download containers (~%d GB) and can take some time.", nameCLI, containersSize)
+	if !currentState.Quiet {
+		if !selectYesNo("Do you want to continue", false) {
+			zboth.Info().Msgf("Operation cancelled. %s will exit gracefully.", nameCLI)
+			os.Exit(0)
+		}
+	} else {
+		zboth.Warn().Msgf("You chose do first run of chemotion in quiet mode. Will go ahead and install it!")
+	}
+	success := instanceCreate(defaultInstanceName, "Production", composeURL)
 	if success {
 		zboth.Info().Msg("Successfully created container for the first run.")
 		if err := viper.WriteConfigAs(defaultConfigFileName); err == nil {
-			zboth.Info().Msgf("Written config file: %s", defaultConfigFileName)
+			zboth.Info().Msgf("Written config file: %s.", defaultConfigFileName)
 		} else {
 			zboth.Fatal().Err(err).Msg("Failed to write config file. Check log. ABORT!")
 		}
-		zboth.Info().Msgf("All done! Now you can do `%s on` and `%s off` to start/stop %s.", chemotionCmd.Use, chemotionCmd.Use, projectName)
-		zlog.Info().Msgf("Exiting %s gracefully", projectName)
+		zboth.Info().Msgf("All done! Now you can do `%s on` and `%s off` to start/stop %s.", chemotionCmd.Use, chemotionCmd.Use, nameCLI)
+		zlog.Debug().Msgf("Exiting %s gracefully", nameCLI)
 		os.Exit(0)
 	}
 }
@@ -50,21 +58,21 @@ func initViper() {
 	// Try and read the configuration file, then unmarshal it
 	if err := viper.ReadInConfig(); err == nil {
 		if err = viper.UnmarshalKey("chosen", &currentState.name); err != nil {
-			zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the key `chosen` in the file %s.", viper.ConfigFileUsed())
+			zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the mandatory key `chosen` in the file %s.", viper.ConfigFileUsed())
 		}
-		if !viper.IsSet(currentState.name) {
-			zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the values for `%s` instance in the file %s.", currentState.name, viper.ConfigFileUsed())
-		}
-		if errUnmarshal := viper.UnmarshalKey(currentState.name, &currentState); err == nil {
-			zlog.Info().Str("instance", currentState.name).Msg("Read " + found + " configuration file: " + viper.ConfigFileUsed())
+		if errUnmarshal := viper.UnmarshalKey("instances."+currentState.name, &currentState); err == nil {
+			zboth.Info().Msgf("Read %s configuration file: %s.", found, viper.ConfigFileUsed())
 			if currentState.Debug {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel) // escalate the debug level if said so by the config file
 			} // don't do else because flags have the final say!
 		} else {
 			zboth.Fatal().Err(errUnmarshal).Msg("Failed to map values from configuration file. ABORT!")
 		}
+		if !viper.IsSet("instances." + currentState.name) {
+			zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the values for `%s` instance in the file %s.", currentState.name, viper.ConfigFileUsed())
+		}
 	} else {
-		zboth.Fatal().Err(err).Msg("Failed to read " + found + " configuration file. ABORT!")
+		zboth.Fatal().Err(err).Msgf("Failed to read %s configuration file. ABORT!", found)
 	}
 	zlog.Debug().Msg("End: initViper()")
 }

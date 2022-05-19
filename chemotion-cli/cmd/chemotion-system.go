@@ -13,26 +13,21 @@ var infoSystem = &cobra.Command{
 	Use:  "info",
 	Args: cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		ncpus := runtime.NumCPU()
+		fmt.Println("This is what we know about the system")
+		// CPU
+		fmt.Println("- CPU Cores:", runtime.NumCPU())
+		// Memory
 		if mem, err := execShell("free -h"); err == nil {
-			mem := strings.Fields(mem)
+			mem := strings.Fields(string(mem))
 			fmt.Println("- Memory:\n  -", mem[7], "(total),", mem[9], "(free)")
 		} else {
-			zboth.Warn().Err(err).Msg("Couldn't determine memory usage.")
+			fmt.Println("Couldn't determine memory usage.")
 		}
-		rubyVersion := findVersion("ruby")
-		passengerVersion := findVersion("passenger")
-		nodeVersion := findVersion("node")
-		npmVersion := findVersion("npm")
-
-		fmt.Println("This is what we know about the system")
-		fmt.Println("- CPU Cores:", ncpus)
-
 		fmt.Println("Used software versions:")
-		fmt.Println("- Ruby:", rubyVersion)
-		fmt.Println("- Passenger:", passengerVersion)
-		fmt.Println("- Node:", nodeVersion)
-		fmt.Println("- npm:", npmVersion)
+		printVersionOf := []string{"ruby", "passenger", "node", "npm"}
+		for _, software := range printVersionOf {
+			fmt.Printf("- %s: %s\n", strings.ToTitle(software), findVersion(software))
+		}
 	},
 }
 

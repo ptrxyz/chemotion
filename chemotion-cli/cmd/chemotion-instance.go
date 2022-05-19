@@ -1,33 +1,42 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
-	"github.com/cavaliergopher/grab/v3"
+	"github.com/spf13/cobra"
 )
 
-func instanceCreate(current state) (success bool) {
-	zboth.Info().Msgf("Creating a new default (production) instance of %s called %s.", projectName, currentState.name)
-	// prerequisites: docker
-	confirmDocker()
-	fs.MkdirAll("instances/"+currentState.name, folderPerm) // make folder in case it doesn't exist
-	os.Chdir("instances/" + currentState.name)
-	zlog.Debug().Str("instance", currentState.name).Msgf("Changed working directory to: instances/%s", currentState.name)
-	var composeFilename string
-	if resp, err := grab.Get("x", composeURL); err == nil {
-		composeFilename = resp.Filename
-		fmt.Println("problem with file " + composeFilename)
-		composeFilename = "docker-compose.yml"
-		zlog.Info().Str("instance", currentState.name).Msgf("Downloaded docker-compose file saved as: %s", composeFilename)
-	} else {
-		zboth.Fatal().Err(err).Msg("Failed to download docker-compose file. Check log. ABORT!")
-	}
-	commandStr := fmt.Sprintf("compose -f %s create", composeFilename)
-	zlog.Info().Str("instance", currentState.name).Msgf("Starting docker with command: %s", commandStr)
-	if success = callDocker(commandStr); !success {
-		zboth.Fatal().Err(fmt.Errorf("docker compose create failed")).Msgf("Failed to setup %. Check log. ABORT!", projectName)
-	}
-	os.Chdir("../..")
-	return success
+var instanceCmd = &cobra.Command{
+	Use:        "instance {create|status|upgrade|switch|start|pause|stop|restart|delete} <name_of_instance>",
+	Aliases:    []string{"i"},
+	SuggestFor: []string{"i"},
+	Short:      "Manipulate instances of " + nameCLI,
+	Long:       "Manipulate instances of " + nameCLI + " using one of the available actions",
+	Hidden:     currentState.isInside,
+	Run: func(cmd *cobra.Command, args []string) {
+		confirmInteractive()
+		acceptedOpts := []string{"create"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
+		switch selectOpt(acceptedOpts) {
+		case "create":
+			createInstance.Run(&cobra.Command{}, []string{})
+			// case "status":
+			// 	statusInstance.Run(&cobra.Command{}, []string{})
+			// case "upgrade":
+			// 	upgradeInstance.Run(&cobra.Command{}, []string{})
+			// case "switch":
+			// 	switchInstance.Run(&cobra.Command{}, []string{})
+			// case "start":
+			// 	startInstance.Run(&cobra.Command{}, []string{})
+			// case "pause":
+			// 	pauseInstance.Run(&cobra.Command{}, []string{})
+			// case "stop":
+			// 	stopInstance.Run(&cobra.Command{}, []string{})
+			// case "restart":
+			// 	restartInstance.Run(&cobra.Command{}, []string{})
+			// case "delete":
+			// 	deleteInstance.Run(&cobra.Command{}, []string{})
+		}
+	},
+}
+
+func init() {
+	chemotionCmd.AddCommand(instanceCmd)
 }
