@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/chigopher/pathlib"
 	"github.com/spf13/cobra"
 )
 
@@ -15,13 +16,13 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	minimumVirtualizer := "17.12" // TODO: set via the compose
 	confirmVirtualizer(minimumVirtualizer)
 	name = fmt.Sprintf("%s-%s", name, getNewUniqueID())
-	var composeFilename string // TODO: check on the version of the compose file
+	var composeFilepath pathlib.Path // TODO: check on the version of the compose file
 	var isUrl bool = false
 	if existingFile(use) {
-		composeFilename = use
+		composeFilepath = *pathlib.NewPath(use)
 	} else if _, err := url.ParseRequestURI(use); err == nil {
 		isUrl = true
-		composeFilename = downloadFile(use, workDir.String())
+		composeFilepath = downloadFile(use, workDir.String()) // downloads to the working directory
 	} else {
 		zboth.Fatal().Err(err).Msgf("Failed to parse the URL/file: %s.", use)
 	}
@@ -31,18 +32,18 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 		zboth.Fatal().Err(err).Msgf("Unable to create folder to store instances of %s.", nameCLI)
 	}
 	if isUrl { // move file if required
-		if err := workDir.Join(composeFilename).Rename(workDir.Join(instancesFolder, name, composeFilename)); err != nil {
+		if err := composeFilepath.Rename(workDir.Join(instancesFolder, name, composeFilepath.Name())); err != nil {
 			zboth.Fatal().Err(err).Msgf("Unable to move file to its respective folder. This is necessary for future use.")
 		}
 	} else { // copy the file into the folder for future use
-		zlog.Info().Msgf("Copying specified file to %s folder for future use.", instancesFolder)
-		if err := copyTextFile(workDir.Join(use), workDir.Join(instancesFolder, name, composeFilename)); err != nil {
+		zlog.Info().Msgf("Copying specified file to `%s` folder for future use.", instancesFolder)
+		if err := copyTextFile(&composeFilepath, workDir.Join(instancesFolder, name, composeFilepath.Name())); err != nil {
 			zboth.Fatal().Err(err).Msgf("Unable to copy file to its respective folder. This is necessary for future use.")
 		}
 	}
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
-	commandStr := fmt.Sprintf("compose -f %s create", composeFilename)
+	commandStr := fmt.Sprintf("compose -f %s create", composeFilepath.Name())
 	zboth.Info().Msgf("Starting %s with command: %s", virtualizer, commandStr)
 	if success = callVirtualizer(commandStr); !success {
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)

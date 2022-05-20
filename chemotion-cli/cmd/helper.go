@@ -29,8 +29,8 @@ func confirmInteractive() {
 }
 
 // check if a string is an array of strings, if yes, return the 1st index, else -1.
-func stringInArray(str string, strings []string) int {
-	for index, element := range strings {
+func stringInArray(str string, strings *[]string) int {
+	for index, element := range *strings {
 		if element == str {
 			return index
 		}
@@ -87,11 +87,11 @@ func getNewUniqueID() string {
 	return strings.Split(id.String(), "-")[0]
 }
 
-// download a file
-func downloadFile(fileURL string, downloadLocation string) (filename string) {
+// download a file, filepath is respective to current working directory
+func downloadFile(fileURL string, downloadLocation string) (filepath pathlib.Path) {
 	if resp, err := grab.Get(downloadLocation, fileURL); err == nil {
 		zboth.Info().Msgf("Downloaded file saved as: %s", resp.Filename)
-		filename = resp.Filename
+		filepath = *pathlib.NewPath(downloadLocation).Join(resp.Filename)
 	} else {
 		zboth.Fatal().Err(err).Msgf("Failed to download file from: %s. Check log. ABORT!", fileURL)
 	}
@@ -100,6 +100,7 @@ func downloadFile(fileURL string, downloadLocation string) (filename string) {
 
 // copy a text file
 func copyTextFile(source *pathlib.Path, target *pathlib.Path) (err error) {
+	fmt.Println(source.String(), target.String())
 	if reader, errRead := source.ReadFile(); err == nil {
 		if errWrite := target.WriteFile(reader); err != nil {
 			err = errWrite

@@ -63,7 +63,7 @@ var (
 	zlog  zerolog.Logger
 	zboth zerolog.Logger
 	// pointer to the filesystem
-	workDir *pathlib.Path = pathlib.NewPath(".")
+	workDir pathlib.Path = *pathlib.NewPath(".")
 	// minimum version for virtualizer (docker)
 	minimumVirtualizer = "17.12" // so as to support docker compose files version 3.5
 )

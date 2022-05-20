@@ -5,12 +5,10 @@ import (
 )
 
 var instanceCmd = &cobra.Command{
-	Use:        "instance {create|status|upgrade|switch|start|pause|stop|restart|delete} <name_of_instance>",
-	Aliases:    []string{"i"},
-	SuggestFor: []string{"i"},
-	Short:      "Manipulate instances of " + nameCLI,
-	Long:       "Manipulate instances of " + nameCLI + " using one of the available actions",
-	Hidden:     currentState.isInside,
+	Use:    "instance {create|status|upgrade|switch|start|pause|stop|restart|delete} <name_of_instance>",
+	Short:  "Manipulate instances of " + nameCLI,
+	Long:   "Manipulate instances of " + nameCLI + " using one of the available actions",
+	Hidden: currentState.isInside,
 	Run: func(cmd *cobra.Command, args []string) {
 		confirmInteractive()
 		acceptedOpts := []string{"create"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}

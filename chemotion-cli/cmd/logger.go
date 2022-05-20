@@ -12,13 +12,13 @@ func initLog() {
 	// alas, it works only with command line flags, otherwise
 	// we have to wait for the values to be read in from the config file
 	// this low-level reading has to be done because logging begins before reading the config file.
-	if stringInArray("--debug", os.Args) > 0 {
+	if stringInArray("--debug", &os.Args) > 0 {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
 	}
 	currentState.Quiet = false
-	if stringInArray("-q", os.Args) > 0 || stringInArray("--quiet", os.Args) > 0 {
+	if stringInArray("-q", &os.Args) > 0 || stringInArray("--quiet", &os.Args) > 0 {
 		currentState.Quiet = true
 	}
 	// start logging
