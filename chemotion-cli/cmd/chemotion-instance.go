@@ -5,16 +5,15 @@ import (
 )
 
 var instanceCmd = &cobra.Command{
-	Use:    "instance {create|status|upgrade|switch|start|pause|stop|restart|delete} <name_of_instance>",
-	Short:  "Manipulate instances of " + nameCLI,
-	Long:   "Manipulate instances of " + nameCLI + " using one of the available actions",
-	Hidden: currentState.isInside,
+	Use:   "instance {create|status|upgrade|switch|start|pause|stop|restart|delete} <name_of_instance>",
+	Short: "Manipulate instances of " + nameCLI,
+	Long:  "Manipulate instances of " + nameCLI + " using one of the available actions",
 	Run: func(cmd *cobra.Command, args []string) {
 		confirmInteractive()
-		acceptedOpts := []string{"create"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
+		acceptedOpts := []string{"new"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
 		switch selectOpt(acceptedOpts) {
-		case "create":
-			createInstance.Run(&cobra.Command{}, []string{})
+		case "new":
+			newInstanceCmd.Run(&cobra.Command{}, []string{})
 			// case "status":
 			// 	statusInstance.Run(&cobra.Command{}, []string{})
 			// case "upgrade":
@@ -36,5 +35,5 @@ var instanceCmd = &cobra.Command{
 }
 
 func init() {
-	chemotionCmd.AddCommand(instanceCmd)
+	instanceCmd.AddCommand(newInstanceCmd)
 }

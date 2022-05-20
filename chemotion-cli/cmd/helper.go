@@ -26,6 +26,10 @@ func confirmInteractive() {
 		fmt.Println(nameCLI + " is in quiet mode. Give all arguments to specify the desired action; use '--help' for more. ABORT!")
 		zboth.Fatal().Err(fmt.Errorf("incomplete in quiet mode")).Msgf("%s is in quiet mode. Give all arguments to specify the desired action; use '--help' for more. ABORT!", nameCLI)
 	}
+	if currentState.isInside {
+		fmt.Printf("%s CLI is not meant to executed from within a container.\n", nameCLI)
+		zboth.Fatal().Err(fmt.Errorf("inside container in interactive mode")).Msgf("%s CLI must run quietly when inside a container.", nameCLI)
+	}
 }
 
 // check if a string is an array of strings, if yes, return the 1st index, else -1.
@@ -50,7 +54,7 @@ func execShell(command string) (result []byte, err error) {
 
 func findVersion(software string) (version string) {
 	ver, err := execShell(software + versionSuffix)
-	version = strings.Split(strings.TrimPrefix(strings.TrimPrefix(string(ver), "v"), "Docker version "), ",")[0] // TODO: Regexify!
+	version = strings.TrimSpace(strings.Split(strings.TrimPrefix(strings.TrimPrefix(string(ver), "v"), "Docker version "), ",")[0]) // TODO: Regexify!
 	if err != nil {
 		zlog.Debug().Err(err).Msgf("Version determination of %s failed.", software)
 		if virtualizer == "docker" && err.Error() == "exit status 1" {

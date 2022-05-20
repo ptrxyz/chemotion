@@ -12,7 +12,7 @@ import (
 func selectOpt(acceptedOpts []string) (result string) {
 	zlog.Debug().Msgf("Selection prompt with options %s:", acceptedOpts)
 	selection := promptui.Select{
-		Label: fmt.Sprintf("[%s] Select one of the following", currentState.name),
+		Label: fmt.Sprintf("%s%s%s%s Select one of the following", string("\033[31m"), string("\033[1m"), currentState.name, string("\033[0m")),
 		Items: acceptedOpts,
 	}
 	_, result, err := selection.Run()

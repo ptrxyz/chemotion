@@ -14,12 +14,15 @@ func initLog() {
 	// this low-level reading has to be done because logging begins before reading the config file.
 	if stringInArray("--debug", &os.Args) > 0 {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		currentState.Debug = true
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		currentState.Debug = false
 	}
-	currentState.Quiet = false
 	if stringInArray("-q", &os.Args) > 0 || stringInArray("--quiet", &os.Args) > 0 {
 		currentState.Quiet = true
+	} else {
+		currentState.Quiet = false
 	}
 	// start logging
 	if logFile, err := workDir.Join(logFileName).OpenFile(os.O_APPEND | os.O_CREATE | os.O_WRONLY); err == nil {

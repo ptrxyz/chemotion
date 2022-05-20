@@ -41,17 +41,17 @@ import (
 )
 
 const (
-	versionCLI            = 0.1
+	versionCLI            = "0.1"
+	versionYAML           = "1.0"
 	nameCLI               = "Chemotion"
-	defaultConfigFileName = "chemotion-cli.yml"
+	defaultConfigFilepath = "./chemotion-cli.yml"
 	logFileName           = "chemotion-cli.log"
-	defaultInstanceName   = "initial"
-	stateFPath            = "./version"
+	instanceDefault       = "initial"
+	stateFile             = "./version"
 	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/1.1.2p220401/new-build/release/1.1.2p220401/docker-compose.yml"
 	shell                 = "bash"
 	virtualizer           = "docker"
 	instancesFolder       = "instances" // the folder in which chemotion expects to find all the instances
-	containersSize        = 12          // size, in GB, of all images that would download in first run
 	//composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/latest-release/docker-compose.yml"
 )
 
@@ -59,16 +59,17 @@ var (
 	// configuration
 	currentState state
 	configFile   string
+	firstRun     bool
 	// logging
 	zlog  zerolog.Logger
 	zboth zerolog.Logger
-	// pointer to the filesystem
+	// path of the working directory
 	workDir pathlib.Path = *pathlib.NewPath(".")
 	// minimum version for virtualizer (docker)
 	minimumVirtualizer = "17.12" // so as to support docker compose files version 3.5
 )
 
-// struct to store information about the currently selected instance
+// struct to store information about the currently selected instance, which has implications for the current state of the program
 type state struct {
 	Debug    bool
 	Quiet    bool
@@ -77,36 +78,56 @@ type state struct {
 	isInside bool
 }
 
-// chemotionCmd represents the base command when called without any subcommands
-var chemotionCmd = &cobra.Command{
-	Use:       chemotionValues.use,
-	Short:     chemotionValues.short,
-	Long:      chemotionValues.long,
-	ValidArgs: chemotionValues.options,
+// cmd represents the base command when called without any subcommands
+var cmd = &cobra.Command{
+	Use:     "chemotion",
+	Short:   "CLI for Chemotion ELN",
+	Long:    "Chemotion ELN is an Electronic Lab Notebook solution.\nDeveloped for researchers, the software aims to work for you.\nSee, https://www.chemotion.net.",
+	Version: versionCLI,
 	// The following lines are the action associated with a bare application run i.e. without any arguments
 	Run: func(cmd *cobra.Command, args []string) {
-		zlog.Debug().Msgf("Used command: %s", cmd.CommandPath())
+		zlog.Debug().Msgf("Used command: %s", cmd.CalledAs())
 		confirmInteractive()
-		zlog.Debug().Msgf("Selection Menu: Chemotion")
-		if currentState.isInside {
-			fmt.Printf("Welcome to %s! You are inside an instance called %s.\n", nameCLI, currentState.name)
+		if firstRun {
+			zboth.Info().Msgf("Welcome to your first run of %s.", nameCLI)
+			if selectYesNo("Have you installed the prerequisites, particularly "+virtualizer, false) {
+				confirmVirtualizer(minimumVirtualizer)
+			} else {
+				zboth.Info().Msgf("Please install %s (at least version %s) before proceeding. Thanks!", virtualizer, minimumVirtualizer)
+			}
 		} else {
-			fmt.Printf("Welcome to %s! You are on a host machine. Currently chosen instance, to manage, is `%s`.\n", nameCLI, currentState.name)
+			fmt.Printf("Welcome to %s! You are on a host machine. The instance you are currently managing is %s%s%s%s.\n", nameCLI, string("\033[31m"), string("\033[1m"), currentState.name, string("\033[0m"))
+			zlog.Debug().Msgf("Selection Menu: Chemotion")
+			acceptedOpts := []string{"on", "off ", "restart", "instance", "user", "system", "exit"}
+			if firstRun {
+				acceptedOpts = []string{"install", "system", "exit"}
+			}
+			selected := selectOpt(acceptedOpts)
+			zlog.Debug().Msgf("Selected option: %s", selected)
+			switch selected {
+			case "install":
+				installCmd.Run(&cobra.Command{}, []string{})
+			case "system":
+				systemCmd.Run(&cobra.Command{}, []string{})
+			case "instance":
+				instanceCmd.Run(&cobra.Command{}, []string{})
+			case "on":
+				// onCmd.Run(&cobra.Command{}, []string{})
+			case "off":
+				// offCmd.Run(&cobra.Command{}, []string{})
+			case "restart":
+				// offCmd.Run(&cobra.Command{}, []string{})
+				// onCmd.Run(&cobra.Command{}, []string{})
+			case "exit":
+				zlog.Debug().Msg("Chose to exit.")
+			}
 		}
-		selected := selectOpt(chemotionValues.options)
-		switch selected {
-		case "system":
-			systemCmd.Run(&cobra.Command{}, []string{})
-		case "instance":
-			instanceCmd.Run(&cobra.Command{}, []string{})
-		}
-		zlog.Debug().Msgf("Selected option: %s", selected)
 	},
 }
 
 // This is called by main.main(). It only needs to happen once.
 func Execute() {
-	if err := chemotionCmd.Execute(); err == nil {
+	if err := cmd.Execute(); err == nil {
 		zlog.Debug().Msgf("%s exited gracefully.", nameCLI)
 	} else {
 		zboth.Fatal().Err(fmt.Errorf("unexplained")).Msgf("%s exited abruptly, check log file if necessary. ABORT!", nameCLI)
@@ -114,34 +135,45 @@ func Execute() {
 }
 
 func init() {
-	// flag 0: isInside, determined automatically whenever CLI runs
-	currentState.isInside = existingFile(stateFPath)
+	// flag 0: isInside and firstRun, determined automatically whenever CLI runs
+	currentState.isInside = existingFile(stateFile)
+	firstRun = !existingFile(configFile)
 	// begin by setting up logging
 	initLog() // in logger.go
-	// initialize viper
-	cobra.OnInitialize(initViper) // in configure.go, also takes care of first run, since its need is determined by existence of the configuration file
 	// initialize flags
-	zlog.Debug().Msg("Start: init()")
+	zlog.Debug().Msg("Start: init(): initialize flags")
 	// flag 1: instance, i.e. name of the instance to operate upon
 	// terminal overrides config-file, default is `default`
-	chemotionCmd.PersistentFlags().StringVarP(&currentState.name, "name", "n", defaultInstanceName, "start "+nameCLI+" with a pre-selected instance")
+	if !firstRun {
+		cmd.PersistentFlags().StringVarP(&currentState.name, "select-instance", "i", "", "start "+nameCLI+" with a pre-selected instance")
+	}
 	// flag 2: config, the configuration file
 	// config as a flag cannot be read from the configuration file because that creates a circular dependency, default name is hard-coded
-	chemotionCmd.PersistentFlags().StringVarP(&configFile, "config", "f", defaultConfigFileName, "path to the configuration file.")
+	cmd.PersistentFlags().StringVarP(&configFile, "config", "f", defaultConfigFilepath, "path to the configuration file.")
 	// flag 3: quiet, i.e. should the CLI run in interactive mode
 	// terminal overrides config-file, default is false
-	chemotionCmd.PersistentFlags().BoolVarP(&currentState.Quiet, "quiet", "q", false, "use "+nameCLI+" in scripted mode i.e. without an interactive prompt")
+	cmd.PersistentFlags().BoolVarP(&currentState.Quiet, "quiet", "q", false, "use "+nameCLI+" in scripted mode i.e. without an interactive prompt")
 	// flag 4: debug, i.e. should debug messages be logged
 	// terminal overrides config-file, default is false
-	chemotionCmd.PersistentFlags().BoolVar(&currentState.Debug, "debug", false, "enable logging of debug messages")
+	cmd.PersistentFlags().BoolVar(&currentState.Debug, "debug", false, "enable logging of debug messages")
+	zlog.Debug().Msg("End: init(): initialize flags")
+	zlog.Debug().Msg("Start: init(): bind flags")
 	// viper bindings, one for each value in the struct called currentState
-	viper.BindPFlag("chosen", chemotionCmd.PersistentFlags().Lookup("name"))
-	viper.BindPFlag("instances."+currentState.name+".quiet", chemotionCmd.PersistentFlags().Lookup("quiet"))
-	viper.BindPFlag("instances."+currentState.name+".debug", chemotionCmd.PersistentFlags().Lookup("debug"))
-	if !viper.IsSet("instances." + currentState.name + ".Kind") {
-		currentState.Kind = "Production"
-		viper.Set("instances."+currentState.name+".Kind", &currentState.Kind)
+	viper.BindPFlag("selected", cmd.PersistentFlags().Lookup("select-instance"))
+	viper.BindPFlag("instances."+currentState.name+".quiet", cmd.PersistentFlags().Lookup("quiet"))
+	viper.BindPFlag("instances."+currentState.name+".debug", cmd.PersistentFlags().Lookup("debug"))
+	viper.Set("version", versionYAML)
+	zlog.Debug().Msg("End: init(): bind flags")
+	zlog.Debug().Msg("Start: init(): add commands")
+	// add commands to `chemotion`
+	if firstRun {
+		cmd.AddCommand(installCmd)
+		cmd.AddCommand(systemCmd)
+	} else {
+		cmd.AddCommand(instanceCmd)
+		cmd.AddCommand(systemCmd)
 	}
-	viper.Set("version", versionCLI)
-	zlog.Debug().Msg("End: init()")
+	zlog.Debug().Msg("End: init(): add commands")
+	// initialize viper (runs last, i.e. when cmd.Execute runs)
+	cobra.OnInitialize(initViper) // in configure.go, also takes care of first run, since its need is determined by existence of the configuration file
 }

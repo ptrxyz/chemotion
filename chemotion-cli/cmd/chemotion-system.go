@@ -8,31 +8,39 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Show system related information to the user
-var infoSystem = &cobra.Command{
-	Use:  "info",
-	Args: cobra.NoArgs,
+// helper function that is also used by infoInstanceCmd
+func systemInfo() {
+	// CPU
+	fmt.Println("- CPU Cores:", runtime.NumCPU())
+	// Memory
+	if mem, err := execShell("free -h"); err == nil {
+		mem := strings.Fields(string(mem))
+		fmt.Println("- Memory:\n  -", mem[7], "(total),", mem[9], "(free)")
+	} else {
+		fmt.Println("Couldn't determine memory usage.")
+	}
+	fmt.Println("Used software versions:")
+	printVersionOf := []string{"ruby", "passenger", "node", "npm"}
+	for _, software := range printVersionOf {
+		fmt.Printf("- %s: %s\n", strings.ToTitle(software), findVersion(software))
+	}
+}
+
+// Show host machine information to the user
+// See also, chemotion instance info
+var infoSystemCmd = &cobra.Command{
+	Use:                   "info",
+	Args:                  cobra.MaximumNArgs(0),
+	Short:                 "get information about the system",
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("This is what we know about the system")
-		// CPU
-		fmt.Println("- CPU Cores:", runtime.NumCPU())
-		// Memory
-		if mem, err := execShell("free -h"); err == nil {
-			mem := strings.Fields(string(mem))
-			fmt.Println("- Memory:\n  -", mem[7], "(total),", mem[9], "(free)")
-		} else {
-			fmt.Println("Couldn't determine memory usage.")
-		}
-		fmt.Println("Used software versions:")
-		printVersionOf := []string{"ruby", "passenger", "node", "npm"}
-		for _, software := range printVersionOf {
-			fmt.Printf("- %s: %s\n", strings.ToTitle(software), findVersion(software))
-		}
+		fmt.Println("This is what we know about the host machine:")
+		systemInfo()
 	},
 }
 
 // Start shell for user
-var shellSystem = &cobra.Command{
+var shellSystemCmd = &cobra.Command{
 	Use:        "shell",
 	SuggestFor: []string{"she"},
 	Args:       cobra.NoArgs,
@@ -43,7 +51,7 @@ var shellSystem = &cobra.Command{
 }
 
 // Start a rails shell for user
-var railsSystem = &cobra.Command{
+var railsSystemCmd = &cobra.Command{
 	Use:        "rails",
 	SuggestFor: []string{"rai"},
 	Args:       cobra.NoArgs,
@@ -55,7 +63,7 @@ var railsSystem = &cobra.Command{
 
 // Backbone for system-related commands
 var systemCmd = &cobra.Command{
-	Use:        "system {info|shell|rails}",
+	Use:        "system",
 	Aliases:    []string{"s"},
 	SuggestFor: []string{"s"},
 	Short:      "Perform system-oriented actions",
@@ -63,21 +71,21 @@ var systemCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		confirmInteractive()
 		fmt.Println("Chemotion. Available system resources.")
-		// acceptedOpts := []string{"info", "shell", "rails"}
-		switch "info" {
+		acceptedOpts := []string{"info", "shell", "rails"}
+		selected := selectOpt(acceptedOpts)
+		switch selected {
 		case "info":
-			infoSystem.Run(&cobra.Command{}, []string{})
+			infoSystemCmd.Run(&cobra.Command{}, []string{})
 		case "shell":
-			shellSystem.Run(&cobra.Command{}, []string{})
+			shellSystemCmd.Run(&cobra.Command{}, []string{})
 		case "rails":
-			railsSystem.Run(&cobra.Command{}, []string{})
+			railsSystemCmd.Run(&cobra.Command{}, []string{})
 		}
 	},
 }
 
 func init() {
-	chemotionCmd.AddCommand(systemCmd)
-	systemCmd.AddCommand(infoSystem)
-	systemCmd.AddCommand(shellSystem)
-	systemCmd.AddCommand(railsSystem)
+	systemCmd.AddCommand(infoSystemCmd)
+	systemCmd.AddCommand(shellSystemCmd)
+	systemCmd.AddCommand(railsSystemCmd)
 }

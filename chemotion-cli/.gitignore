@@ -1,4 +1,4 @@
-# chosen and default names for the executable
+# default name for the executable
 chemotion
 # all log files
 *.log
