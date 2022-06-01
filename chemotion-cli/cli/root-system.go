@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// helper function that is also used by infoInstanceCmd
+// helper function that is also used by infoInstanceRootCmd
 func systemInfo() {
 	// CPU
 	fmt.Println("- CPU Cores:", runtime.NumCPU())
@@ -28,64 +28,75 @@ func systemInfo() {
 
 // Show host machine information to the user
 // See also, chemotion instance info
-var infoSystemCmd = &cobra.Command{
+var infoSystemRootCmd = &cobra.Command{
 	Use:                   "info",
 	Args:                  cobra.MaximumNArgs(0),
 	Short:                 "get information about the system",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
+		logCall(cmd.Use, cmd.CalledAs())
+		confirmInstalled()
 		fmt.Println("This is what we know about the host machine:")
 		systemInfo()
 	},
 }
 
 // Start shell for user
-var shellSystemCmd = &cobra.Command{
+var shellSystemRootCmd = &cobra.Command{
 	Use:        "shell",
 	SuggestFor: []string{"she"},
 	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		logCall(cmd.Use, cmd.CalledAs())
+		confirmInstalled()
 		fmt.Println("We are now going to start shell")
 		//TODO
 	},
 }
 
 // Start a rails shell for user
-var railsSystemCmd = &cobra.Command{
+var railsSystemRootCmd = &cobra.Command{
 	Use:        "rails",
 	SuggestFor: []string{"rai"},
 	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		logCall(cmd.Use, cmd.CalledAs())
+		confirmInstalled()
 		fmt.Println("We are now going to start Rails shell")
 		//TODO
 	},
 }
 
 // Backbone for system-related commands
-var systemCmd = &cobra.Command{
+var systemRootCmd = &cobra.Command{
 	Use:        "system",
 	Aliases:    []string{"s"},
 	SuggestFor: []string{"s"},
 	Short:      "Perform system-oriented actions",
 	Long:       "Perform system-oriented actions using one of the available actions",
 	Run: func(cmd *cobra.Command, args []string) {
+		logCall(cmd.Use, cmd.CalledAs())
+		confirmInstalled()
 		confirmInteractive()
 		fmt.Println("Chemotion. Available system resources.")
-		acceptedOpts := []string{"info", "shell", "rails"}
+		acceptedOpts := []string{"info", "shell", "rails", "exit"}
 		selected := selectOpt(acceptedOpts)
 		switch selected {
 		case "info":
-			infoSystemCmd.Run(&cobra.Command{}, []string{})
+			infoSystemRootCmd.Run(&cobra.Command{}, []string{})
 		case "shell":
-			shellSystemCmd.Run(&cobra.Command{}, []string{})
+			shellSystemRootCmd.Run(&cobra.Command{}, []string{})
 		case "rails":
-			railsSystemCmd.Run(&cobra.Command{}, []string{})
+			railsSystemRootCmd.Run(&cobra.Command{}, []string{})
+		case "exit":
+			zlog.Debug().Msg("Chose to exit.")
 		}
 	},
 }
 
 func init() {
-	systemCmd.AddCommand(infoSystemCmd)
-	systemCmd.AddCommand(shellSystemCmd)
-	systemCmd.AddCommand(railsSystemCmd)
+	rootCmd.AddCommand(systemRootCmd)
+	systemRootCmd.AddCommand(infoSystemRootCmd)
+	systemRootCmd.AddCommand(shellSystemRootCmd)
+	systemRootCmd.AddCommand(railsSystemRootCmd)
 }

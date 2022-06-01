@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"bytes"
@@ -11,12 +11,12 @@ import (
 
 // confirm that virtualizer is the required minimum version
 func confirmVirtualizer(minimum string) {
-	version := findVersion(virtualizer)
-	zlog.Debug().Msgf("%s is installed :)", virtualizer)
-	if version == "docker on WSL not running!" {
-		zboth.Fatal().Err(fmt.Errorf(version)).Msgf("Docker is not running in your WSL environment. Hint: Check settings in Docker Desktop for WSL integration.")
+	if version := findVersion(virtualizer); version == "docker on WSL not running!" {
+		zboth.Fatal().Err(fmt.Errorf(version)).Msgf("Docker is not running in your WSL environment. Hint: Turn on WSL integration setting in Docker Desktop.")
 	} else if version == "Unknown / not installed or found!" {
 		zboth.Fatal().Err(fmt.Errorf(version)).Msgf("%s is necessary to run %s", virtualizer, nameCLI)
+	} else {
+		zlog.Debug().Msgf("%s is installed :)", virtualizer)
 	}
 	if err := compareSoftwareVersion(minimum, virtualizer); err != nil {
 		zboth.Fatal().Err(err).Msgf(err.Error())

@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var _chemotion_instance_new_name_ string
@@ -45,6 +44,10 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 			zboth.Fatal().Err(err).Msgf("Unable to copy file to its respective folder. This is necessary for future use.")
 		}
 	}
+	allServices := getValueInViper(&composeConf, "services")
+	for _, k := range allServices {
+		setValueInViper(&composeConf, k+".name", name, "prefix")
+	}
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
 	commandStr := fmt.Sprintf("compose -f %s create", composeFilepath.Name())
@@ -53,18 +56,23 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
 	os.Chdir("../..")
-	zboth.Info().Msg("Successfully created container for the first run.")
-	// TODO: change how the chemotion-cli.yml file is written
+	zboth.Info().Msg("Successfully created container the container.")
 	if firstRun {
-		viper.Set("selected", given_name)
-		viper.Set("instances", given_name)
+		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
+		conf.Set("version", versionYAML)
+		conf.Set(selector_key, given_name)
 	}
-	viper.Set("instances."+given_name+".name", name)
-	viper.Set("instances."+given_name+".kind", kind)
-	viper.Set("instances."+given_name+".quiet", false)
-	viper.Set("instances."+given_name+".debug", false)
-	if err := viper.WriteConfigAs(defaultConfigFilepath); err == nil {
-		zboth.Info().Msgf("Written config file: %s.", defaultConfigFilepath)
+	conf.Set("instances."+given_name+".name", name)
+	conf.Set("instances."+given_name+".kind", kind)
+	conf.Set("instances."+given_name+".quiet", false)
+	if kind == "Development" {
+		conf.Set("instances."+given_name+".debug", true)
+	} else {
+		conf.Set("instances."+given_name+".debug", false)
+	}
+
+	if err := conf.WriteConfig(); err == nil {
+		zboth.Info().Msgf("Written config file: %s.", conf.ConfigFileUsed())
 	} else {
 		zboth.Fatal().Err(err).Msg("Failed to write config file. Check log. ABORT!")
 	}
@@ -72,17 +80,18 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 }
 
 // command to install a new container of Chemotion
-var newInstanceCmd = &cobra.Command{
+var newInstanceRootCmd = &cobra.Command{
 	Use:   "new",
-	Short: "Install instance(s) of " + nameCLI,
+	Short: "Create a new instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
-		zlog.Debug().Msg("In newInstanceCmd.")
+		logCall(cmd.CommandPath(), cmd.CalledAs())
+		confirmInstalled()
 		create := true
 		kind := "Production"
 		if _chemotion_instance_new_development_ {
 			kind = "Development"
 		}
-		if !currentState.Quiet {
+		if !currentState.quiet {
 			confirmInteractive()
 			if selectYesNo("Installation process may download containers (of multiple GBs) and can take some time. Continue", false) {
 				if !_chemotion_instance_new_development_ { // i.e. the flag was not set
@@ -96,18 +105,19 @@ var newInstanceCmd = &cobra.Command{
 				create = false
 				zboth.Info().Msgf("Installation cancelled.")
 			}
-			if create {
-				zboth.Info().Msgf("We are now going to create an instance called %s.", _chemotion_instance_new_name_)
-				if success := instanceCreate(_chemotion_instance_new_name_, kind, _chemotion_instance_new_use_); success {
-					zboth.Info().Msg("Successfully created the new instance")
-				}
+		}
+		if create {
+			zboth.Info().Msgf("We are now going to create an instance called %s.", _chemotion_instance_new_name_)
+			if success := instanceCreate(_chemotion_instance_new_name_, kind, _chemotion_instance_new_use_); success {
+				zboth.Info().Msg("Successfully created the new instance")
 			}
 		}
 	},
 }
 
 func init() {
-	newInstanceCmd.Flags().StringVar(&_chemotion_instance_new_name_, "name", instanceDefault, "name for the new instance")
-	newInstanceCmd.Flags().StringVar(&_chemotion_instance_new_use_, "use", composeURL, "URL or filepath to use for creating the instance")
-	newInstanceCmd.Flags().BoolVar(&_chemotion_instance_new_development_, "development", false, "create a development instance")
+	instanceRootCmd.AddCommand(newInstanceRootCmd)
+	newInstanceRootCmd.Flags().StringVar(&_chemotion_instance_new_name_, "name", instanceDefault, "name for the new instance")
+	newInstanceRootCmd.Flags().StringVar(&_chemotion_instance_new_use_, "use", composeURL, "URL or filepath to use for creating the instance")
+	newInstanceRootCmd.Flags().BoolVar(&_chemotion_instance_new_development_, "development", false, "create a development instance")
 }

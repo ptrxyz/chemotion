@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"os"
@@ -14,20 +14,20 @@ func initLog() {
 	// this low-level reading has to be done because logging begins before reading the config file.
 	if stringInArray("--debug", &os.Args) > 0 {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-		currentState.Debug = true
+		currentState.debug = true
 	} else {
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
-		currentState.Debug = false
+		currentState.debug = false
 	}
 	if stringInArray("-q", &os.Args) > 0 || stringInArray("--quiet", &os.Args) > 0 {
-		currentState.Quiet = true
+		currentState.quiet = true
 	} else {
-		currentState.Quiet = false
+		currentState.quiet = false
 	}
 	// start logging
-	if logFile, err := workDir.Join(logFileName).OpenFile(os.O_APPEND | os.O_CREATE | os.O_WRONLY); err == nil {
+	if logFile, err := workDir.Join(logFilename).OpenFile(os.O_APPEND | os.O_CREATE | os.O_WRONLY); err == nil {
 		zlog = zerolog.New(logFile).With().Timestamp().Logger()
-		if currentState.Quiet {
+		if currentState.quiet {
 			zboth = zlog // in this case, both the loggers point to the same file and there should be no console output
 		} else {
 			console := zerolog.ConsoleWriter{Out: os.Stdout}
@@ -36,7 +36,7 @@ func initLog() {
 			multi := zerolog.MultiLevelWriter(logFile, console)
 			zboth = zerolog.New(multi).With().Timestamp().Logger()
 		}
-		zlog.Debug().Msg("Successfully initialized logging.")
+		zlog.Debug().Msgf("%s started. Successfully initialized logging.", nameCLI)
 		logRunningOn()
 	} else {
 		minimalConsoleWriter := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
@@ -49,8 +49,22 @@ func initLog() {
 // debug level logging of where we are running at the moment
 func logRunningOn() {
 	if currentState.isInside {
-		zlog.Debug().Msgf("Running inside container `%s`.", currentState.name)
+		if currentState.name == "" {
+			zlog.Debug().Msgf("Running inside an unknown container.") // TODO: read .version file or get from environment
+		} else {
+			zlog.Debug().Msgf("Running inside `%s`.", currentState.name)
+		}
 	} else {
-		zlog.Debug().Msgf("Running `%s` on a host machine.", currentState.name)
+		if currentState.name == "" {
+			zlog.Debug().Msgf("Running on host machine. No instance selected yet.")
+		} else {
+			zlog.Debug().Msgf("Running on host machine. Selected instance: %s", currentState.name)
+		}
 	}
+}
+
+// debug level logging of how and where the command was called
+func logCall(use, call string) {
+	logRunningOn()
+	zlog.Debug().Msgf("Where: %s; Used command: %s", use, call)
 }

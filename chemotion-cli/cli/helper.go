@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"fmt"
@@ -9,26 +9,33 @@ import (
 	"github.com/chigopher/pathlib"
 	"github.com/google/uuid"
 	vercompare "github.com/hashicorp/go-version"
+	"github.com/spf13/viper"
 )
 
 var versionSuffix string = " --version"
 
 // check if file exists, and is a file (keep it simple, runs before logging starts!
 func existingFile(filePath string) (exists bool) {
-	p := pathlib.NewPath(filePath)
-	exists, _ = p.IsFile()
+	exists, _ = pathlib.NewPath(filePath).IsFile()
 	return
 }
 
-// check if the CLI is running interactively; if not, then exit. Wrapper around currentstate.Quiet.
+// check if the CLI is running interactively; if not, then exit. Wrapper around currentState.quiet.
 func confirmInteractive() {
-	if currentState.Quiet {
-		fmt.Println(nameCLI + " is in quiet mode. Give all arguments to specify the desired action; use '--help' for more. ABORT!")
-		zboth.Fatal().Err(fmt.Errorf("incomplete in quiet mode")).Msgf("%s is in quiet mode. Give all arguments to specify the desired action; use '--help' for more. ABORT!", nameCLI)
+	if currentState.quiet {
+		zboth.Fatal().Err(fmt.Errorf("incomplete in quiet mode")).Msgf("%s is in quiet mode. Give all arguments to specify the desired action; use '--help' flag for more. ABORT!", nameCLI)
 	}
 	if currentState.isInside {
-		fmt.Printf("%s CLI is not meant to executed from within a container.\n", nameCLI)
-		zboth.Fatal().Err(fmt.Errorf("inside container in interactive mode")).Msgf("%s CLI must run quietly when inside a container.", nameCLI)
+		zboth.Fatal().Err(fmt.Errorf("inside container in interactive mode")).Msgf("%s CLI is not meant to executed interactively from within a container. Use the `-q` flag. ABORT!", nameCLI)
+	}
+}
+
+func confirmInstalled() {
+	if firstRun {
+		// Println output so that user is not discouraged by a FATAL error on-screen... especially when beginning with the tool.
+		msg := fmt.Sprintf("Please install %s by running `%s` before using it.", nameCLI, "chemotion install")
+		fmt.Println(msg)
+		zlog.Fatal().Err(fmt.Errorf("chemotion not installed")).Msgf(msg)
 	}
 }
 
@@ -52,6 +59,7 @@ func execShell(command string) (result []byte, err error) {
 	return
 }
 
+// find version of a given software (using its command)
 func findVersion(software string) (version string) {
 	ver, err := execShell(software + versionSuffix)
 	version = strings.TrimSpace(strings.Split(strings.TrimPrefix(strings.TrimPrefix(string(ver), "v"), "Docker version "), ",")[0]) // TODO: Regexify!
@@ -59,8 +67,10 @@ func findVersion(software string) (version string) {
 		zlog.Debug().Err(err).Msgf("Version determination of %s failed.", software)
 		if virtualizer == "docker" && err.Error() == "exit status 1" {
 			version = "docker on WSL not running!"
+		} else if err.Error() == "exit status 127" {
+			version = "Unknown / not installed or found!" // 127 is software not found
 		} else {
-			version = "Unknown / not installed or found!"
+			version = err.Error()
 		}
 	}
 	return
@@ -113,4 +123,12 @@ func copyTextFile(source *pathlib.Path, target *pathlib.Path) (err error) {
 		err = errRead
 	}
 	return
+}
+
+// to manage config files as loaded into Viper
+func getValueInViper(configuration *viper.Viper, key string) (value []string) {
+	configuration.GetStringSlice("services")
+	return value
+}
+func setValueInViper(configuration *viper.Viper, key string, value string, action string) {
 }

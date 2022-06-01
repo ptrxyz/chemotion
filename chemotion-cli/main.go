@@ -30,8 +30,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 package main
 
-import "chemotion-cli/cmd"
+import "chemotion-cli/cli"
 
 func main() {
-	cmd.Execute()
+	cli.Execute()
 }
