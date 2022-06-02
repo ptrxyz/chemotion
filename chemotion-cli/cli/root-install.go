@@ -24,17 +24,19 @@ var installRootCmd = &cobra.Command{
 		if currentState.quiet {
 			zboth.Info().Msgf("You chose do first run of %s in quiet mode. Will go ahead and install it!", nameCLI)
 		} else {
-			if selectYesNo("Installation process may download containers (of multiple GBs) and can take some time. Continue", false) {
-				if _chemotion_install_name_ == instanceDefault {
-					_chemotion_install_name_ = getString("Please enter the name of the first instance you want to create")
-				}
-			} else {
+			if !selectYesNo(fmt.Sprintf("Have you installed the pre-requisites for %s, namely %s (and WSL on Windows)", nameCLI, virtualizer), false) {
 				create = false
 				zboth.Info().Msgf("Installation cancelled.")
 			}
+			if create && !selectYesNo("Installation process may download containers (of multiple GBs) and can take some time. Continue", false) {
+				create = false
+				zboth.Info().Msgf("Installation cancelled.")
+			}
+			if create && _chemotion_install_name_ == instanceDefault { // i.e user has not changed it by passing an argument
+				_chemotion_install_name_ = getString("Please enter the name of the first instance you want to create")
+			}
 		}
 		if create {
-			zboth.Info().Msgf("We are now going to create an instance called %s.", _chemotion_install_name_)
 			if success := instanceCreate(_chemotion_install_name_, "Production", _chemotion_install_use_); success {
 				zboth.Info().Msgf("All done! Now you can do `%s on` and `%s off` to start/stop %s.", rootCmd.Name(), rootCmd.Name(), nameCLI)
 			}

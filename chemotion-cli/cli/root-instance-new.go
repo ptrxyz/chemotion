@@ -70,7 +70,6 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	} else {
 		conf.Set("instances."+given_name+".debug", false)
 	}
-
 	if err := conf.WriteConfig(); err == nil {
 		zboth.Info().Msgf("Written config file: %s.", conf.ConfigFileUsed())
 	} else {
@@ -107,7 +106,6 @@ var newInstanceRootCmd = &cobra.Command{
 			}
 		}
 		if create {
-			zboth.Info().Msgf("We are now going to create an instance called %s.", _chemotion_instance_new_name_)
 			if success := instanceCreate(_chemotion_instance_new_name_, kind, _chemotion_instance_new_use_); success {
 				zboth.Info().Msg("Successfully created the new instance")
 			}

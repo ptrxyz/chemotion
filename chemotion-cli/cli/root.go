@@ -92,7 +92,7 @@ var rootCmd = &cobra.Command{
 		confirmInstalled()
 		confirmInteractive()
 		fmt.Printf("Welcome to %s! You are on a host machine. The instance you are currently managing is %s%s%s%s.\n", nameCLI, string("\033[31m"), string("\033[1m"), currentState.name, string("\033[0m"))
-		acceptedOpts := []string{"on", "off ", "restart", "instance", "user", "system", "exit"}
+		acceptedOpts := []string{"on", "off ", "restart", "instance", "system", "exit"}
 		selected := selectOpt(acceptedOpts)
 		switch selected {
 		case "system":
@@ -100,12 +100,9 @@ var rootCmd = &cobra.Command{
 		case "instance":
 			instanceRootCmd.Run(&cobra.Command{}, []string{})
 		case "on":
-			// onRootCmd.Run(&cobra.Command{}, []string{})
+			onRootCmd.Run(&cobra.Command{}, []string{})
 		case "off":
-			// offRootCmd.Run(&cobra.Command{}, []string{})
-		case "restart":
-			// offRootCmd.Run(&cobra.Command{}, []string{})
-			// onRootCmd.Run(&cobra.Command{}, []string{})
+			offRootCmd.Run(&cobra.Command{}, []string{})
 		case "exit":
 			zlog.Debug().Msg("Chose to exit.")
 		}
