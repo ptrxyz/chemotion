@@ -143,10 +143,10 @@ func init() {
 		zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "select-instance")
 	}
 	if currentState.name != "" { // i.e. create these entries on "instance" only once an instance has been selected
-		if err := conf.BindPFlag("instances."+currentState.name+".quiet", rootCmd.PersistentFlags().Lookup("quiet")); err != nil {
+		if err := conf.BindPFlag(joinKey("instances", currentState.name, "quiet"), rootCmd.PersistentFlags().Lookup("quiet")); err != nil {
 			zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "quiet")
 		}
-		if err := conf.BindPFlag("instances."+currentState.name+".debug", rootCmd.PersistentFlags().Lookup("debug")); err != nil {
+		if err := conf.BindPFlag(joinKey("instances", currentState.name, "debug"), rootCmd.PersistentFlags().Lookup("debug")); err != nil {
 			zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "debug")
 		}
 	}

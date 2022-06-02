@@ -11,14 +11,14 @@ import (
 
 // confirm that virtualizer is the required minimum version
 func confirmVirtualizer(minimum string) {
-	if version := findVersion(strings.ToLower(virtualizer)); version == "docker on WSL not running!" {
+	if version := findVersion(toLower(virtualizer)); version == "docker on WSL not running!" {
 		zboth.Fatal().Err(fmt.Errorf(version)).Msgf("Docker is not running in your WSL environment. Hint: Turn on WSL integration setting in Docker Desktop.")
 	} else if version == "Unknown / not installed or found!" {
 		zboth.Fatal().Err(fmt.Errorf(version)).Msgf("%s is necessary to run %s", virtualizer, nameCLI)
 	} else {
 		zlog.Debug().Msgf("%s is installed", virtualizer)
 	}
-	if err := compareSoftwareVersion(minimum, strings.ToLower(virtualizer)); err != nil {
+	if err := compareSoftwareVersion(minimum, toLower(virtualizer)); err != nil {
 		zboth.Fatal().Err(err).Msgf(err.Error())
 	}
 	zlog.Debug().Msgf("%s version requirement met", virtualizer)
@@ -26,9 +26,9 @@ func confirmVirtualizer(minimum string) {
 
 // call to virtualizer
 func callVirtualizer(args string) (success bool) {
-	zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell. Will return once execution is completed.", nameCLI, strings.ToLower(virtualizer), args)
+	zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell. Will return once execution is completed.", nameCLI, toLower(virtualizer), args)
 	commandArgs := strings.Split(args, " ")
-	commandExec := exec.Command(strings.ToLower(virtualizer), commandArgs...)
+	commandExec := exec.Command(toLower(virtualizer), commandArgs...)
 	// see https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html#:~:text=Capture%20output%20but%20also%20show%20progress%20%233
 	var stdoutBuf, stderrBuf bytes.Buffer
 	commandExec.Stdout = io.MultiWriter(os.Stdout, &stdoutBuf)
@@ -37,8 +37,8 @@ func callVirtualizer(args string) (success bool) {
 		success = true
 	} else {
 		success = false
-		zboth.Warn().Err(err).Msgf("%s command failed! Check log. ABORT!", strings.ToLower(virtualizer))
+		zboth.Warn().Err(err).Msgf("%s command failed! Check log. ABORT!", toLower(virtualizer))
 	}
-	// TODO: make this more elegent by using a virtual terminal, see https://github.com/creack/pty
+	// TODO-v2: make this more elegent by using a virtual terminal, see https://github.com/creack/pty
 	return
 }

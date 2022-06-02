@@ -30,10 +30,10 @@ func initConf() {
 			if errUnmarshal := conf.UnmarshalKey(selector_key, &currentState.name); errUnmarshal != nil {
 				zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the mandatory key %s in the file: %s.", selector_key, configFile)
 			}
-			if !conf.IsSet("instances." + currentState.name) {
+			if !conf.IsSet(joinKey("instances", currentState.name)) {
 				zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the description for instance `%s` in the file: %s.", currentState.name, configFile)
 			}
-			if errUnmarshal := conf.UnmarshalKey("instances."+currentState.name, &currentState); err == nil {
+			if errUnmarshal := conf.UnmarshalKey(joinKey("instances", currentState.name), &currentState); err == nil {
 				zboth.Info().Msgf("Read configuration file: %s.", configFile)
 				if currentState.debug {
 					zerolog.SetGlobalLevel(zerolog.DebugLevel) // escalate the debug level if said so by the config file

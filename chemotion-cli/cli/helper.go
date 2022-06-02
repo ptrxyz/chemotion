@@ -132,3 +132,12 @@ func getValueInViper(configuration *viper.Viper, key string) (value []string) {
 }
 func setValueInViper(configuration *viper.Viper, key string, value string, action string) {
 }
+
+// join keys so as to access them in a viper configuration
+func joinKey(s ...string) (result string) {
+	result = strings.Join(s, ".")
+	return
+}
+
+// to lower of strings
+var toLower = strings.ToLower

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/cobra"
@@ -15,8 +14,10 @@ var _chemotion_instance_new_use_ string
 var _chemotion_instance_new_development_ bool
 
 func instanceCreate(name string, kind string, use string) (success bool) {
-	// TODO: check if instance of this name already exists
-	minimumVirtualizer := "17.12" // TODO: set via the compose
+	if conf.GetString((joinKey("instances", name))) == "" {
+		zboth.Warn().Msgf("An instance with name %s already exists", name)
+		return false
+	}
 	confirmVirtualizer(minimumVirtualizer)
 	given_name := name
 	name = fmt.Sprintf("%s-%s", name, getNewUniqueID())
@@ -52,7 +53,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
 	commandStr := fmt.Sprintf("compose -f %s create", composeFilepath.Name())
-	zboth.Info().Msgf("Starting %s with command: %s", strings.ToLower(virtualizer), commandStr)
+	zboth.Info().Msgf("Starting %s with command: %s", toLower(virtualizer), commandStr)
 	if success = callVirtualizer(commandStr); !success {
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
@@ -63,14 +64,10 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 		conf.Set("version", versionYAML)
 		conf.Set(selector_key, given_name)
 	}
-	conf.Set("instances."+given_name+".name", name)
-	conf.Set("instances."+given_name+".kind", kind)
-	conf.Set("instances."+given_name+".quiet", false)
-	if kind == "Development" {
-		conf.Set("instances."+given_name+".debug", true)
-	} else {
-		conf.Set("instances."+given_name+".debug", false)
-	}
+	conf.Set(joinKey("instances", given_name, "name"), name)
+	conf.Set(joinKey("instances", given_name, "kind"), kind)
+	conf.Set(joinKey("instances", given_name, "quiet"), false)
+	conf.Set(joinKey("instances", given_name, "debug"), kind == "Development")
 	if err := conf.WriteConfig(); err == nil {
 		zboth.Info().Msgf("Written config file: %s.", conf.ConfigFileUsed())
 	} else {
