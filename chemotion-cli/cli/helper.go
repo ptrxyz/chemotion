@@ -126,11 +126,12 @@ func copyTextFile(source *pathlib.Path, target *pathlib.Path) (err error) {
 }
 
 // to manage config files as loaded into Viper
-func getValueInViper(configuration *viper.Viper, key string) (value []string) {
-	configuration.GetStringSlice("services")
-	return value
-}
-func setValueInViper(configuration *viper.Viper, key string, value string, action string) {
+func getKeysValues(configuration *viper.Viper, key string) (keys, values []string) {
+	for k, v := range configuration.GetStringMapString(key) {
+		keys = append(keys, k)
+		values = append(values, v)
+	}
+	return
 }
 
 // join keys so as to access them in a viper configuration

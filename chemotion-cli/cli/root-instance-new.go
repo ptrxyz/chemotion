@@ -14,9 +14,12 @@ var _chemotion_instance_new_use_ string
 var _chemotion_instance_new_development_ bool
 
 func instanceCreate(name string, kind string, use string) (success bool) {
-	if conf.GetString((joinKey("instances", name))) == "" {
-		zboth.Warn().Msgf("An instance with name %s already exists", name)
-		return false
+	if !firstRun {
+		existingInstances, _ := getKeysValues(&conf, "instances")
+		if stringInArray(name, &existingInstances) > -1 {
+			zboth.Fatal().Err(fmt.Errorf("instance %s already exists", name)).Msgf("An instance with name %s already exists.", name)
+			return false
+		}
 	}
 	confirmVirtualizer(minimumVirtualizer)
 	given_name := name
@@ -46,10 +49,12 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 			zboth.Fatal().Err(err).Msgf("Unable to copy file to its respective folder. This is necessary for future use.")
 		}
 	}
-	allServices := getValueInViper(&composeConf, "services")
-	for _, k := range allServices {
-		setValueInViper(&composeConf, k+".name", name, "prefix")
+	composeFilepath = *workDir.Join(instancesFolder, name, composeFilepath.Name())
+	compose.SetConfigFile(composeFilepath.String())
+	if err := compose.ReadInConfig(); err != nil {
+		zboth.Fatal().Err(err).Msgf("Invalid formatting for a compose file.")
 	}
+	// allServices, _ := getKeysValues(&compose, "services")
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
 	commandStr := fmt.Sprintf("compose -f %s create", composeFilepath.Name())

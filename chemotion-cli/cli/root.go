@@ -63,7 +63,7 @@ var (
 	configFile   string
 	firstRun     bool        = true // switches to false when configFile is found/given
 	conf         viper.Viper = *viper.New()
-	composeConf  viper.Viper = *viper.New()
+	compose      viper.Viper = *viper.New()
 	// logging
 	zlog  zerolog.Logger
 	zboth zerolog.Logger
