@@ -8,6 +8,7 @@ import (
 
 func startInstance() {
 	// TODO: check if it is already running
+	confirmInstalled()
 	os.Chdir(workDir.Join(instancesFolder, conf.GetString("instances."+currentState.name+".name")).String())
 	confirmVirtualizer(minimumVirtualizer)
 	callVirtualizer("compose up -d")
@@ -16,6 +17,7 @@ func startInstance() {
 
 func stopInstance() {
 	// TODO: check if it is already running
+	confirmInstalled()
 	os.Chdir(workDir.Join(instancesFolder, conf.GetString("instances."+currentState.name+".name")).String())
 	confirmVirtualizer(minimumVirtualizer)
 	callVirtualizer("compose down")
@@ -26,8 +28,7 @@ var onRootCmd = &cobra.Command{
 	Use:   "on",
 	Short: "start chemotion",
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.CommandPath(), cmd.CalledAs())
-		confirmInstalled()
+		logWhere()
 		startInstance()
 	},
 }
@@ -36,8 +37,7 @@ var offRootCmd = &cobra.Command{
 	Use:   "off",
 	Short: "stop chemotion",
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.CommandPath(), cmd.CalledAs())
-		confirmInstalled()
+		logWhere()
 		stopInstance()
 	},
 }

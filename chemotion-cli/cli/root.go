@@ -51,7 +51,7 @@ const (
 	stateFile             = "./version"
 	shell                 = "bash"
 	instancesFolder       = "instances" // the folder in which chemotion expects to find all the instances
-	virtualizer           = "docker"
+	virtualizer           = "Docker"
 	minimumVirtualizer    = "17.12" // so as to support docker compose files version 3.5
 	composeFilename       = "docker-compose.yml"
 	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/release-112/release/1.1.2p220401/docker-compose.yml"
@@ -73,9 +73,8 @@ var (
 
 // struct to store information about the currently selected instance, which has implications for the current state of this tool
 type state struct {
-	debug bool
-	quiet bool
-	// kind     string
+	debug    bool
+	quiet    bool
 	name     string
 	isInside bool
 }
@@ -88,23 +87,23 @@ var rootCmd = &cobra.Command{
 	Version: versionCLI,
 	// The following lines are the action associated with a bare application run i.e. without any arguments
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		confirmInteractive()
 		fmt.Printf("Welcome to %s! You are on a host machine. The instance you are currently managing is %s%s%s%s.\n", nameCLI, string("\033[31m"), string("\033[1m"), currentState.name, string("\033[0m"))
-		acceptedOpts := []string{"on", "off ", "restart", "instance", "system", "exit"}
+		acceptedOpts := []string{"on", "off", "instance", "system", "exit"}
 		selected := selectOpt(acceptedOpts)
 		switch selected {
-		case "system":
-			systemRootCmd.Run(&cobra.Command{}, []string{})
-		case "instance":
-			instanceRootCmd.Run(&cobra.Command{}, []string{})
 		case "on":
 			onRootCmd.Run(&cobra.Command{}, []string{})
 		case "off":
 			offRootCmd.Run(&cobra.Command{}, []string{})
+		case "instance":
+			instanceRootCmd.Run(&cobra.Command{}, []string{})
+		case "system":
+			systemRootCmd.Run(&cobra.Command{}, []string{})
 		case "exit":
-			zlog.Debug().Msg("Chose to exit.")
+			zlog.Debug().Msg("Chose to exit")
 		}
 	},
 }
@@ -112,7 +111,7 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once.
 func Execute() {
 	if err := rootCmd.Execute(); err == nil {
-		zlog.Debug().Msgf("%s exited gracefully.", nameCLI)
+		zlog.Debug().Msgf("%s exited gracefully", nameCLI)
 	} else {
 		zboth.Fatal().Err(fmt.Errorf("unexplained")).Msgf("%s exited abruptly, check log file if necessary. ABORT!", nameCLI)
 	}
@@ -139,7 +138,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&currentState.debug, "debug", false, "enable logging of debug messages")
 	zlog.Debug().Msg("End: init(): initialize flags")
 	// viper bindings, one for each value in the struct called currentState
-	zlog.Debug().Msg("End: init(): bind flags")
+	zlog.Debug().Msg("Start: init(): bind flags")
 	if err := conf.BindPFlag(selector_key, rootCmd.PersistentFlags().Lookup("select-instance")); err != nil {
 		zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "select-instance")
 	}

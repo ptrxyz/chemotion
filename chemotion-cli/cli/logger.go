@@ -2,6 +2,7 @@ package cli
 
 import (
 	"os"
+	"strings"
 
 	"github.com/rs/zerolog"
 )
@@ -36,8 +37,8 @@ func initLog() {
 			multi := zerolog.MultiLevelWriter(logFile, console)
 			zboth = zerolog.New(multi).With().Timestamp().Logger()
 		}
-		zlog.Debug().Msgf("%s started. Successfully initialized logging.", nameCLI)
-		logRunningOn()
+		zlog.Debug().Msgf("%s started. Successfully initialized logging", nameCLI)
+		logPlatform()
 	} else {
 		minimalConsoleWriter := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 		minimalConsoleWriter.Fatal().Err(err).Msg("Can't write log file. ABORT!") // minimal console writer
@@ -45,26 +46,24 @@ func initLog() {
 }
 
 // helpers: logging
-
-// debug level logging of where we are running at the moment
-func logRunningOn() {
+func logPlatform() {
 	if currentState.isInside {
 		if currentState.name == "" {
-			zlog.Debug().Msgf("Running inside an unknown container.") // TODO: read .version file or get from environment
+			zlog.Debug().Msgf("Running inside an unknown container") // TODO: read .version file or get from environment
 		} else {
-			zlog.Debug().Msgf("Running inside `%s`.", currentState.name)
+			zlog.Debug().Msgf("Running inside `%s`", currentState.name)
 		}
 	} else {
 		if currentState.name == "" {
-			zlog.Debug().Msgf("Running on host machine. No instance selected yet.")
+			zlog.Debug().Msgf("Running on host machine; no instance selected yet")
 		} else {
-			zlog.Debug().Msgf("Running on host machine. Selected instance: %s", currentState.name)
+			zlog.Debug().Msgf("Running on host machine; selected instance: %s", currentState.name)
 		}
 	}
 }
 
-// debug level logging of how and where the command was called
-func logCall(use, call string) {
-	logRunningOn()
-	zlog.Debug().Msgf("Where: %s; Used command: %s", use, call)
+// debug level logging of where we are running at the moment
+func logWhere() {
+	logPlatform()
+	zlog.Debug().Msgf("Called as: %s", strings.Join(os.Args, " "))
 }

@@ -34,7 +34,7 @@ var infoSystemRootCmd = &cobra.Command{
 	Short:                 "get information about the system",
 	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		fmt.Println("This is what we know about the host machine:")
 		systemInfo()
@@ -47,7 +47,7 @@ var shellSystemRootCmd = &cobra.Command{
 	SuggestFor: []string{"she"},
 	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		fmt.Println("We are now going to start shell")
 		//TODO
@@ -60,7 +60,7 @@ var railsSystemRootCmd = &cobra.Command{
 	SuggestFor: []string{"rai"},
 	Args:       cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		fmt.Println("We are now going to start Rails shell")
 		//TODO
@@ -75,7 +75,7 @@ var systemRootCmd = &cobra.Command{
 	Short:      "Perform system-oriented actions",
 	Long:       "Perform system-oriented actions using one of the available actions",
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		confirmInteractive()
 		fmt.Println("Chemotion. Available system resources.")
@@ -89,7 +89,7 @@ var systemRootCmd = &cobra.Command{
 		case "rails":
 			railsSystemRootCmd.Run(&cobra.Command{}, []string{})
 		case "exit":
-			zlog.Debug().Msg("Chose to exit.")
+			zlog.Debug().Msg("Chose to exit")
 		}
 	},
 }

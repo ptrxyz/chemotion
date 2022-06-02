@@ -16,7 +16,7 @@ var installRootCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Initialize the configuration file and install the first instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		if !firstRun {
 			zboth.Fatal().Err(fmt.Errorf("config file found")).Msgf("This option `%s` is only available for initial installation. Use `%s %s %s` if you wish to create more instances of %s.", cmd.Name(), rootCmd.Name(), instanceRootCmd.Name(), newInstanceRootCmd.Name(), nameCLI)
 		}

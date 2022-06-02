@@ -73,6 +73,7 @@ func getString(message string) (result string) {
 		},
 	}
 	if res, err := prompt.Run(); err == nil {
+		zlog.Debug().Msgf("Given answer: %s", res)
 		result = res
 	} else if err.Error() == "^C" {
 		zboth.Fatal().Err(fmt.Errorf("string prompt cancelled")).Msg("Input cancelled. Can't proceed without. Abort!")

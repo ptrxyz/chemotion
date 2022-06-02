@@ -64,9 +64,9 @@ func findVersion(software string) (version string) {
 	ver, err := execShell(software + versionSuffix)
 	version = strings.TrimSpace(strings.Split(strings.TrimPrefix(strings.TrimPrefix(string(ver), "v"), "Docker version "), ",")[0]) // TODO: Regexify!
 	if err != nil {
-		zlog.Debug().Err(err).Msgf("Version determination of %s failed.", software)
-		if virtualizer == "docker" && err.Error() == "exit status 1" {
-			version = "docker on WSL not running!"
+		zlog.Debug().Err(err).Msgf("Version determination of %s failed", software)
+		if virtualizer == "Docker" && err.Error() == "exit status 1" {
+			version = "Docker on WSL not running!"
 		} else if err.Error() == "exit status 127" {
 			version = "Unknown / not installed or found!" // 127 is software not found
 		} else {

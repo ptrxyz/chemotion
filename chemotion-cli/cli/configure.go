@@ -21,7 +21,7 @@ func initConf() {
 	}
 	conf.SetConfigFile(configFile)
 	configFile = conf.ConfigFileUsed()
-	zlog.Debug().Msg("Attempting to read configuration file.")
+	zlog.Debug().Msg("Attempting to read configuration file")
 	// if the flag is not changed, check for the posibility of first run
 	if existingFile(configFile) {
 		firstRun = false

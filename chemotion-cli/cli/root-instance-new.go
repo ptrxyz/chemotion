@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/cobra"
@@ -51,7 +52,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
 	commandStr := fmt.Sprintf("compose -f %s create", composeFilepath.Name())
-	zboth.Info().Msgf("Starting %s with command: %s", virtualizer, commandStr)
+	zboth.Info().Msgf("Starting %s with command: %s", strings.ToLower(virtualizer), commandStr)
 	if success = callVirtualizer(commandStr); !success {
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
@@ -83,7 +84,7 @@ var newInstanceRootCmd = &cobra.Command{
 	Use:   "new",
 	Short: "Create a new instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.CommandPath(), cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		create := true
 		kind := "Production"

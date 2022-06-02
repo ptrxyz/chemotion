@@ -9,7 +9,7 @@ var instanceRootCmd = &cobra.Command{
 	Short: "Manipulate instances of " + nameCLI,
 	Long:  "Manipulate instances of " + nameCLI + " using one of the available actions",
 	Run: func(cmd *cobra.Command, args []string) {
-		logCall(cmd.Use, cmd.CalledAs())
+		logWhere()
 		confirmInstalled()
 		confirmInteractive()
 		acceptedOpts := []string{"new", "exit"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
@@ -33,7 +33,7 @@ var instanceRootCmd = &cobra.Command{
 			// case "delete":
 			// 	deleteInstance.Run(&cobra.Command{}, []string{})
 		case "exit":
-			zlog.Debug().Msg("Chose to exit.")
+			zlog.Debug().Msg("Chose to exit")
 		}
 	},
 }
