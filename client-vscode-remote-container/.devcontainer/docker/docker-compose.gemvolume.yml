@@ -1,5 +1,0 @@
-version: '3'
-services:
-    chemotion:
-        volumes:
-            - ../gems/:/home/vscode/gems:cached
