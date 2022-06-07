@@ -83,11 +83,11 @@ var systemRootCmd = &cobra.Command{
 		selected := selectOpt(acceptedOpts)
 		switch selected {
 		case "info":
-			infoSystemRootCmd.Run(&cobra.Command{}, []string{})
+			infoSystemRootCmd.Run(cmd, args)
 		case "shell":
-			shellSystemRootCmd.Run(&cobra.Command{}, []string{})
+			shellSystemRootCmd.Run(cmd, args)
 		case "rails":
-			railsSystemRootCmd.Run(&cobra.Command{}, []string{})
+			railsSystemRootCmd.Run(cmd, args)
 		case "exit":
 			zlog.Debug().Msg("Chose to exit")
 		}

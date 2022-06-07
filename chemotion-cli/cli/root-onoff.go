@@ -10,7 +10,7 @@ func startInstance() {
 	// TODO: check if it is already running
 	confirmInstalled()
 	os.Chdir(workDir.Join(instancesFolder, conf.GetString(joinKey("instances", currentState.name, "name"))).String())
-	confirmVirtualizer(minimumVirtualizer)
+	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
 	callVirtualizer("compose up -d")
 	os.Chdir("../..")
 }
@@ -19,7 +19,7 @@ func stopInstance() {
 	// TODO: check if it is already running
 	confirmInstalled()
 	os.Chdir(workDir.Join(instancesFolder, conf.GetString(joinKey("instances", currentState.name, "name"))).String())
-	confirmVirtualizer(minimumVirtualizer)
+	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
 	callVirtualizer("compose down")
 	os.Chdir("../..")
 }

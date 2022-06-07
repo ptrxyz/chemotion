@@ -14,11 +14,33 @@ var _chemotion_instance_new_use_ string
 var _chemotion_instance_new_development_ bool
 
 func instanceCreate(name string, kind string, use string) (success bool) {
-	if !firstRun {
-		existingInstances, _ := getKeysValues(&conf, "instances")
+	var port uint16
+	if firstRun {
+		port = 4000
+	} else {
+		existingInstances := allInstances()
 		if stringInArray(name, &existingInstances) > -1 {
 			zboth.Fatal().Err(fmt.Errorf("instance %s already exists", name)).Msgf("An instance with name %s already exists.", name)
 			return false
+		}
+		existingPorts := allPorts()
+		if kind == "Production" {
+			for i := uint16(4100); i <= maxInstancesOfKind+4100; i++ {
+				if uint16InArray(i, &existingPorts) == -1 {
+					port = i
+					break
+				}
+			}
+		} else if kind == "Development" {
+			for i := uint16(4200); i <= maxInstancesOfKind+4200; i++ {
+				if uint16InArray(i, &existingPorts) == -1 {
+					port = i
+					break
+				}
+			}
+		}
+		if port == 4164 || port == 4264 {
+			zboth.Fatal().Err(fmt.Errorf("max instances")).Msgf("A maximum of %d instances of %s are allowed. Please contact us if you hit this limit.", maxInstancesOfKind, nameCLI)
 		}
 	}
 	confirmVirtualizer(minimumVirtualizer)
@@ -59,6 +81,8 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 		n := compose.GetString(joinKey("volumes", volume, "name"))
 		compose.Set(joinKey("volumes", volume, "name"), name+"_"+n)
 	}
+	// set the port
+	compose.Set(joinKey("services", "eln", "ports"), []string{fmt.Sprintf("%d:4000", port)})
 	zboth.Info().Msgf("Creating a new instance of %s called %s.", nameCLI, name)
 	// make folder
 	if err := workDir.Join(instancesFolder, name).MkdirAll(); err != nil {
@@ -75,7 +99,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
 	os.Chdir("../..")
-	zboth.Info().Msg("Successfully created container the container.")
+	zboth.Info().Msgf("Successfully created container the container. New %s port available at %d.", nameCLI, port)
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
 		conf.Set("version", versionYAML)
@@ -85,6 +109,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	conf.Set(joinKey("instances", given_name, "kind"), kind)
 	conf.Set(joinKey("instances", given_name, "quiet"), false)
 	conf.Set(joinKey("instances", given_name, "debug"), kind == "Development")
+	conf.Set(joinKey("instances", given_name, "port"), port)
 	if err := conf.WriteConfig(); err == nil {
 		zboth.Info().Msgf("Written config file: %s.", conf.ConfigFileUsed())
 	} else {

@@ -54,6 +54,7 @@ const (
 	virtualizer           = "Docker"
 	minimumVirtualizer    = "17.12" // so as to support docker compose files version 3.5
 	composeFilename       = "docker-compose.yml"
+	maxInstancesOfKind    = 64
 	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/release-112/release/1.1.2p220401/docker-compose.yml"
 )
 
@@ -95,13 +96,13 @@ var rootCmd = &cobra.Command{
 		selected := selectOpt(acceptedOpts)
 		switch selected {
 		case "on":
-			onRootCmd.Run(&cobra.Command{}, []string{})
+			onRootCmd.Run(cmd, args)
 		case "off":
-			offRootCmd.Run(&cobra.Command{}, []string{})
+			offRootCmd.Run(cmd, args)
 		case "instance":
-			instanceRootCmd.Run(&cobra.Command{}, []string{})
+			instanceRootCmd.Run(cmd, args)
 		case "system":
-			systemRootCmd.Run(&cobra.Command{}, []string{})
+			systemRootCmd.Run(cmd, args)
 		case "exit":
 			zlog.Debug().Msg("Chose to exit")
 		}

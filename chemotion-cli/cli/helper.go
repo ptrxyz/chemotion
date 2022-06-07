@@ -9,6 +9,7 @@ import (
 	"github.com/chigopher/pathlib"
 	"github.com/google/uuid"
 	vercompare "github.com/hashicorp/go-version"
+	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 )
 
@@ -43,6 +44,16 @@ func confirmInstalled() {
 func stringInArray(str string, strings *[]string) int {
 	for index, element := range *strings {
 		if element == str {
+			return index
+		}
+	}
+	return -1
+}
+
+// check if a int is an array of int, if yes, return the 1st index, else -1.
+func uint16InArray(num uint16, array *[]uint16) int {
+	for index, element := range *array {
+		if element == num {
 			return index
 		}
 	}
@@ -142,3 +153,55 @@ func joinKey(s ...string) (result string) {
 
 // to lower case, same as strings.ToLower
 var toLower = strings.ToLower
+
+// to select an instance, gives a list to select from when less than 5, else a text input
+func selectInstance(action string) (instance string) {
+	existingInstances := allInstances()
+	if len(existingInstances) < 5 {
+		fmt.Printf("Please pick the instance to %s:\n", action)
+		instance = selectOpt(existingInstances)
+	} else {
+		zlog.Debug().Msgf("String prompt to select instance")
+		prompt := promptui.Prompt{
+			Label: "Please name the instance to " + action,
+			Validate: func(input string) (err error) {
+				if input == "^C" {
+					err = fmt.Errorf("^C")
+				} else if len(input) == 0 {
+					err = fmt.Errorf("can not accept empty value")
+				} else {
+					if stringInArray(input, &existingInstances) > -1 {
+						err = nil
+					} else {
+						err = fmt.Errorf("no instance called %s", input)
+					}
+				}
+				return
+			},
+		}
+		if inst, err := prompt.Run(); err == nil {
+			zlog.Debug().Msgf("Given answer: %s", inst)
+			instance = inst
+		} else if err.Error() == "^C" {
+			zboth.Fatal().Err(fmt.Errorf("string prompt cancelled")).Msg("Input cancelled. Can't proceed without. Abort!")
+		} else {
+			zboth.Fatal().Err(err).Msgf("Prompt failed for unknown reason. Check log. Abort!")
+		}
+	}
+	return
+}
+
+// to get all existing instances as determined by the configuration file
+func allInstances() (instances []string) {
+	instances, _ = getKeysValues(&conf, "instances")
+	return
+}
+
+// to get all existing used ports
+func allPorts() (ports []uint16) {
+	existingInstances := allInstances()
+	for _, instance := range existingInstances {
+		ports = append(ports, uint16(conf.GetUint32(joinKey("instances", instance, "port"))))
+	}
+	return
+}
