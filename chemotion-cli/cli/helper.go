@@ -113,17 +113,17 @@ func downloadFile(fileURL string, downloadLocation string) (filepath pathlib.Pat
 }
 
 // copy a text file
-func copyTextFile(source *pathlib.Path, target *pathlib.Path) (err error) {
-	fmt.Println(source.String(), target.String())
-	if reader, errRead := source.ReadFile(); err == nil {
-		if errWrite := target.WriteFile(reader); err != nil {
-			err = errWrite
-		}
-	} else {
-		err = errRead
-	}
-	return
-}
+// func copyTextFile(source *pathlib.Path, target *pathlib.Path) (err error) {
+// 	fmt.Println(source.String(), target.String())
+// 	if reader, errRead := source.ReadFile(); err == nil {
+// 		if errWrite := target.WriteFile(reader); err != nil {
+// 			err = errWrite
+// 		}
+// 	} else {
+// 		err = errRead
+// 	}
+// 	return
+// }
 
 // to manage config files as loaded into Viper
 func getKeysValues(configuration *viper.Viper, key string) (keys, values []string) {
@@ -140,5 +140,5 @@ func joinKey(s ...string) (result string) {
 	return
 }
 
-// to lower of strings
+// to lower case, same as strings.ToLower
 var toLower = strings.ToLower

@@ -34,30 +34,42 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	} else {
 		zboth.Fatal().Err(err).Msgf("Failed to parse the URL/file: %s.", use)
 	}
+	compose.SetConfigFile(composeFilepath.String())
+	if err := compose.ReadInConfig(); err == nil {
+		if isUrl {
+			composeFilepath.Remove()
+		}
+	} else {
+		if isUrl {
+			composeFilepath.Remove()
+		}
+		zboth.Fatal().Err(err).Msgf("Invalid formatting for a compose file.")
+	}
+	// set labels in the docker-compose file
+	sections := []string{"services", "volumes", "networks"}
+	for _, section := range sections {
+		subheadings, _ := getKeysValues(&compose, section) // subheadings are the names of the services, volumes and networks
+		for _, k := range subheadings {
+			compose.Set(joinKey(section, k, "labels"), map[string]string{"net.chemotion.cli.project": name})
+		}
+	}
+	// set unique name for volumes
+	volumes, _ := getKeysValues(&compose, "volumes")
+	for _, volume := range volumes {
+		n := compose.GetString(joinKey("volumes", volume, "name"))
+		compose.Set(joinKey("volumes", volume, "name"), name+"_"+n)
+	}
 	zboth.Info().Msgf("Creating a new instance of %s called %s.", nameCLI, name)
 	// make folder
 	if err := workDir.Join(instancesFolder, name).MkdirAll(); err != nil {
 		zboth.Fatal().Err(err).Msgf("Unable to create folder to store instances of %s.", nameCLI)
 	}
-	if isUrl { // move file if required
-		if err := composeFilepath.Rename(workDir.Join(instancesFolder, name, composeFilepath.Name())); err != nil {
-			zboth.Fatal().Err(err).Msgf("Unable to move file to its respective folder. This is necessary for future use.")
-		}
-	} else { // copy the file into the folder for future use
-		zlog.Info().Msgf("Copying specified file to `%s` folder for future use.", instancesFolder)
-		if err := copyTextFile(&composeFilepath, workDir.Join(instancesFolder, name, composeFilepath.Name())); err != nil {
-			zboth.Fatal().Err(err).Msgf("Unable to copy file to its respective folder. This is necessary for future use.")
-		}
-	}
-	composeFilepath = *workDir.Join(instancesFolder, name, composeFilepath.Name())
-	compose.SetConfigFile(composeFilepath.String())
-	if err := compose.ReadInConfig(); err != nil {
-		zboth.Fatal().Err(err).Msgf("Invalid formatting for a compose file.")
-	}
-	// allServices, _ := getKeysValues(&compose, "services")
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
-	commandStr := fmt.Sprintf("compose -f %s create", composeFilepath.Name())
+	if err := compose.WriteConfigAs(composeFilename); err != nil {
+		zboth.Fatal().Err(err).Msgf("Failed to write the compose file to its repective folder. This is necessary for future use.")
+	}
+	commandStr := fmt.Sprintf("compose -f %s create", composeFilename)
 	zboth.Info().Msgf("Starting %s with command: %s", toLower(virtualizer), commandStr)
 	if success = callVirtualizer(commandStr); !success {
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
