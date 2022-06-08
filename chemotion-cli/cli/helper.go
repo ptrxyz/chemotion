@@ -205,3 +205,9 @@ func allPorts() (ports []uint16) {
 	}
 	return
 }
+
+//
+func internalName(given_name string) (name string) {
+	name = conf.GetString(joinKey("instances", given_name, "name"))
+	return
+}

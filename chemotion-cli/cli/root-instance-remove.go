@@ -2,22 +2,45 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
 var _chemotion_instance_remove_name_ string
+var _chemotion_instance_remove_force_ bool
 
-func removeInstance(name string) {
-	if name == currentState.name {
-		allInstances, _ := getKeysValues(&conf, "instances")
-		if len(allInstances) > 1 {
-			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the currently selected instance. Switch selected instance before proceeding.")
-		} else {
+func instanceRemove(given_name string) {
+	if !_chemotion_instance_remove_force_ {
+		if instanceStatus(given_name) == "Up" {
+			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete an instance that is currently running. Please use `chemotion -i %s stop` to stop the instance.")
+		}
+		if given_name == currentState.name {
+			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the currently selected instance. Use `chemotion switch` to switch selection to another instance before proceeding.")
+		}
+		if len(allInstances()) == 1 {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the only instance. Use `chemotion advanced uninstall` remove %s entirely", nameCLI)
 		}
 	}
-	// TODO: actually remove the instance
+	name := internalName(given_name)
+	os.Chdir(workDir.Join(instancesFolder, name).String())
+	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
+	if _chemotion_instance_remove_force_ {
+		callVirtualizer("compose kill")
+	}
+	success := callVirtualizer("compose down --volumes")
+	zboth.Info().Msgf("Successfully removed instance called %s.", given_name)
+	os.Chdir("../..")
+	if success {
+		configMap := conf.GetStringMap("instances")
+		delete(configMap, given_name)
+		conf.Set("instances", configMap)
+		if err := conf.WriteConfig(); err == nil {
+			zboth.Info().Msgf("Modified configuration file %s to remove entry for %s.", conf.ConfigFileUsed(), given_name)
+		} else {
+			zboth.Fatal().Err(err).Msgf("Failed to update the configuration file.")
+		}
+	}
 }
 
 var removeInstanceRootCmd = &cobra.Command{
@@ -30,11 +53,12 @@ var removeInstanceRootCmd = &cobra.Command{
 			confirmInteractive()
 			_chemotion_instance_remove_name_ = selectInstance("remove")
 		}
-		removeInstance(_chemotion_instance_remove_name_)
+		instanceRemove(_chemotion_instance_remove_name_)
 	},
 }
 
 func init() {
 	instanceRootCmd.AddCommand(removeInstanceRootCmd)
 	removeInstanceRootCmd.Flags().StringVar(&_chemotion_instance_remove_name_, "name", "", "name of the instance to remove")
+	removeInstanceRootCmd.Flags().BoolVar(&_chemotion_instance_remove_force_, "force", false, "force remove an instance (risky)")
 }

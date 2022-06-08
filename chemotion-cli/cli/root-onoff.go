@@ -6,22 +6,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func startInstance() {
-	// TODO: check if it is already running
-	confirmInstalled()
-	os.Chdir(workDir.Join(instancesFolder, conf.GetString(joinKey("instances", currentState.name, "name"))).String())
-	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
-	callVirtualizer("compose up -d")
-	os.Chdir("../..")
+func instanceStart(given_name string) {
+	name := internalName(given_name)
+	if instanceStatus(given_name) == "Up" {
+		zboth.Warn().Msgf("The instance called %s is already running.", given_name)
+	} else {
+		os.Chdir(workDir.Join(instancesFolder, name).String())
+		confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
+		callVirtualizer("compose up -d")
+		zboth.Info().Msgf("Successfully started instance called %s.", given_name)
+		os.Chdir("../..")
+	}
 }
 
-func stopInstance() {
-	// TODO: check if it is already running
-	confirmInstalled()
-	os.Chdir(workDir.Join(instancesFolder, conf.GetString(joinKey("instances", currentState.name, "name"))).String())
-	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
-	callVirtualizer("compose down")
-	os.Chdir("../..")
+func instanceStop(given_name string) {
+	name := internalName(given_name)
+	if instanceStatus(given_name) == "Up" {
+		os.Chdir(workDir.Join(instancesFolder, name).String())
+		confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
+		callVirtualizer("compose stop")
+		zboth.Info().Msgf("Successfully stopped instance called %s.", given_name)
+		os.Chdir("../..")
+	} else {
+		zboth.Warn().Msgf("It seems that the instance %s is not running. Please check its status.", given_name)
+	}
 }
 
 var onRootCmd = &cobra.Command{
@@ -29,7 +37,8 @@ var onRootCmd = &cobra.Command{
 	Short: "start chemotion",
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
-		startInstance()
+		confirmInstalled()
+		instanceStart(currentState.name)
 	},
 }
 
@@ -38,7 +47,8 @@ var offRootCmd = &cobra.Command{
 	Short: "stop chemotion",
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
-		stopInstance()
+		confirmInstalled()
+		instanceStop(currentState.name)
 	},
 }
 

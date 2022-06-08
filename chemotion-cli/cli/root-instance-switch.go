@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func instanceSwitch() {
-	conf.Set(selector_key, currentState.name)
+func instanceSwitch(given_name string) {
+	conf.Set(selector_key, given_name)
 	if err := conf.WriteConfig(); err == nil {
 		zboth.Info().Msgf("Modified configuration file %s.", conf.ConfigFileUsed())
 	} else {
@@ -21,17 +21,17 @@ var switchInstanceRootCmd = &cobra.Command{
 		confirmInstalled()
 		if currentState.quiet {
 			if cmd.Flags().Lookup("select-instance").Changed { // this implies a non-interactive run
-				instanceSwitch()
+				instanceSwitch(currentState.name)
 			}
 		} else {
 			confirmInteractive()
 			if cmd.Flags().Lookup("select-instance").Changed {
 				if selectYesNo("Confirm switching selected instance to "+currentState.name, false) {
-					instanceSwitch()
+					instanceSwitch(currentState.name)
 				}
 			} else {
 				currentState.name = selectInstance("switch to")
-				instanceSwitch()
+				instanceSwitch(currentState.name)
 			}
 		}
 	},
