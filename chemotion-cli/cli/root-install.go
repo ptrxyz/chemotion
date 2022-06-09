@@ -14,6 +14,7 @@ var (
 // command to install a new container of Chemotion
 var installRootCmd = &cobra.Command{
 	Use:   "install",
+	Args:  cobra.NoArgs,
 	Short: "Initialize the configuration file and install the first instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()

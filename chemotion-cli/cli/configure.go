@@ -15,8 +15,8 @@ func initConf() {
 	// if changed and specified file is not found then exit
 	// otherwise set the value of configFile on viper
 	// then use the path as determined by viper and set as the value of configFile
-	if rootCmd.Flag("config").Changed && !existingFile(configFile) {
-		// here configFile should be same as rootCmd.Flag("config").Value.String()
+	if rootCmd.Flag("config-file").Changed && !existingFile(configFile) {
+		// here configFile should be same as rootCmd.Flag("config-file").Value.String()
 		zboth.Fatal().Err(fmt.Errorf("specified config file not found")).Msgf("Please ensure that the file you specify using --config/-f flag does exist.")
 	}
 	conf.SetConfigFile(configFile)

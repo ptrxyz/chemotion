@@ -15,13 +15,19 @@ func instanceStatus(given_name string) (status string) {
 		out := strings.Split(string(res), "\n")
 		statuses := []string{}
 		for _, line := range out { // determine what are the status messages for all associated containers
-			status := strings.Split(line, " ")[0]
-			if stringInArray(status, &statuses) == -1 && len(status) != 0 {
-				statuses = append(statuses, status)
+			l := strings.Split(line, " ")
+			if len(l) > 0 {
+				status := l[0]
+				if stringInArray(status, &statuses) == -1 && len(status) != 0 {
+					statuses = append(statuses, status)
+				}
 			}
 		}
-		status = statuses[0]
-		if len(statuses) > 1 {
+		if len(statuses) == 0 {
+			status = "Not found"
+		} else if len(statuses) > 0 {
+			status = statuses[0]
+		} else if len(statuses) > 1 {
 			status = strings.Join(statuses, " and ")
 		}
 	} else {
@@ -33,6 +39,7 @@ func instanceStatus(given_name string) (status string) {
 
 var statusInstanceRootCmd = &cobra.Command{
 	Use:   "status",
+	Args:  cobra.NoArgs,
 	Short: "Get status of an instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()

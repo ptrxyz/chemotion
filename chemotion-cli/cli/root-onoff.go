@@ -14,7 +14,7 @@ func instanceStart(given_name string) {
 		os.Chdir(workDir.Join(instancesFolder, name).String())
 		confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
 		callVirtualizer("compose up -d")
-		zboth.Info().Msgf("Successfully started instance called %s.", given_name)
+		zboth.Info().Msgf("Successfully started instance called %s. Please give it a minute to initialize.", given_name)
 		os.Chdir("../..")
 	}
 }
@@ -34,7 +34,8 @@ func instanceStop(given_name string) {
 
 var onRootCmd = &cobra.Command{
 	Use:   "on",
-	Short: "start chemotion",
+	Args:  cobra.NoArgs,
+	Short: "Start (the selected instance of) chemotion",
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
 		confirmInstalled()
@@ -44,7 +45,8 @@ var onRootCmd = &cobra.Command{
 
 var offRootCmd = &cobra.Command{
 	Use:   "off",
-	Short: "stop chemotion",
+	Args:  cobra.NoArgs,
+	Short: "Stop (the selected instance of) chemotion",
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
 		confirmInstalled()

@@ -39,7 +39,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 				}
 			}
 		}
-		if port == 4164 || port == 4264 {
+		if port == 4100+maxInstancesOfKind || port == 4200+maxInstancesOfKind {
 			zboth.Fatal().Err(fmt.Errorf("max instances")).Msgf("A maximum of %d instances of %s are allowed. Please contact us if you hit this limit.", maxInstancesOfKind, nameCLI)
 		}
 	}
@@ -91,11 +91,13 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	os.Chdir("instances/" + name)
 	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
 	if err := compose.WriteConfigAs(composeFilename); err != nil {
+		os.Chdir("../..")
 		zboth.Fatal().Err(err).Msgf("Failed to write the compose file to its repective folder. This is necessary for future use.")
 	}
-	commandStr := fmt.Sprintf("compose -f %s create", composeFilename)
+	commandStr := fmt.Sprintf("compose -f %s up --no-start", composeFilename)
 	zboth.Info().Msgf("Starting %s with command: %s", toLower(virtualizer), commandStr)
 	if success = callVirtualizer(commandStr); !success {
+		os.Chdir("../..")
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
 	os.Chdir("../..")
@@ -121,6 +123,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 // command to install a new container of Chemotion
 var newInstanceRootCmd = &cobra.Command{
 	Use:   "new",
+	Args:  cobra.NoArgs,
 	Short: "Create a new instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()

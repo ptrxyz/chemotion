@@ -82,7 +82,7 @@ type state struct {
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     "chemotion",
+	Use:     "chemotion {on|off|instance|advanced}",
 	Short:   "CLI for Chemotion ELN",
 	Long:    "Chemotion ELN is an Electronic Lab Notebook solution.\nDeveloped for researchers, the software aims to work for you.\nSee, https://www.chemotion.net.",
 	Version: versionCLI,
@@ -92,7 +92,7 @@ var rootCmd = &cobra.Command{
 		confirmInstalled()
 		confirmInteractive()
 		fmt.Printf("Welcome to %s! You are on a host machine. The instance you are currently managing is %s%s%s%s.\n", nameCLI, string("\033[31m"), string("\033[1m"), currentState.name, string("\033[0m"))
-		acceptedOpts := []string{"on", "off", "instance", "system", "exit"}
+		acceptedOpts := []string{"on", "off", "instance", "advanced", "exit"}
 		selected := selectOpt(acceptedOpts)
 		switch selected {
 		case "on":
@@ -101,8 +101,8 @@ var rootCmd = &cobra.Command{
 			offRootCmd.Run(cmd, args)
 		case "instance":
 			instanceRootCmd.Run(cmd, args)
-		case "system":
-			systemRootCmd.Run(cmd, args)
+		case "advanced":
+			advancedRootCmd.Run(cmd, args)
 		case "exit":
 			zlog.Debug().Msg("Chose to exit")
 		}
@@ -127,21 +127,21 @@ func init() {
 	zlog.Debug().Msg("Start: init(): initialize flags")
 	// flag 1: instance, i.e. name of the instance to operate upon
 	// terminal overrides config-file, default is `default`
-	rootCmd.PersistentFlags().StringVarP(&currentState.name, "select-instance", "i", "", fmt.Sprintf("select an existing instance of %s when starting", nameCLI))
+	rootCmd.PersistentFlags().StringVarP(&currentState.name, "selected-instance", "i", "", fmt.Sprintf("select an existing instance of %s when starting", nameCLI))
 	// flag 2: config, the configuration file
 	// config as a flag cannot be read from the configuration file because that creates a circular dependency, default name is hard-coded
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", defaultConfigFilepath, "path to the configuration file")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config-file", "f", defaultConfigFilepath, "path to the configuration file")
 	// flag 3: quiet, i.e. should the CLI run in interactive mode
 	// terminal overrides config-file, default is false
 	rootCmd.PersistentFlags().BoolVarP(&currentState.quiet, "quiet", "q", false, fmt.Sprintf("use %s in scripted mode i.e. without an interactive prompt", nameCLI))
 	// flag 4: debug, i.e. should debug messages be logged
 	// terminal overrides config-file, default is false
-	rootCmd.PersistentFlags().BoolVar(&currentState.debug, "debug", false, "enable logging of debug messages")
+	rootCmd.PersistentFlags().BoolVarP(&currentState.debug, "debug", "d", false, "enable logging of debug messages")
 	zlog.Debug().Msg("End: init(): initialize flags")
 	// viper bindings, one for each value in the struct called currentState
 	zlog.Debug().Msg("Start: init(): bind flags")
-	if err := conf.BindPFlag(selector_key, rootCmd.PersistentFlags().Lookup("select-instance")); err != nil {
-		zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "select-instance")
+	if err := conf.BindPFlag(selector_key, rootCmd.PersistentFlags().Lookup("selected-instance")); err != nil {
+		zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "selected-instance")
 	}
 	if currentState.name != "" { // i.e. create these entries on "instance" only once an instance has been selected
 		if err := conf.BindPFlag(joinKey("instances", currentState.name, "quiet"), rootCmd.PersistentFlags().Lookup("quiet")); err != nil {

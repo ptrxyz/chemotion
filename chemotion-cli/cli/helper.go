@@ -211,3 +211,44 @@ func internalName(given_name string) (name string) {
 	name = conf.GetString(joinKey("instances", given_name, "name"))
 	return
 }
+
+// TODO
+
+// Start shell for user
+// var shellSystemRootCmd = &cobra.Command{
+// 	Use:        "shell",
+// 	SuggestFor: []string{"she"},
+// 	Args:       cobra.NoArgs,
+// 	Run: func(cmd *cobra.Command, args []string) {
+// 		logWhere()
+// 		confirmInstalled()
+// 		fmt.Println("We are now going to start shell")
+// 		//TODO
+// 	},
+// }
+
+// Start a rails shell for user
+// var railsSystemRootCmd = &cobra.Command{
+// 	Use:        "rails",
+// 	SuggestFor: []string{"rai"},
+// 	Args:       cobra.NoArgs,
+// 	Run: func(cmd *cobra.Command, args []string) {
+// 		logWhere()
+// 		confirmInstalled()
+// 		fmt.Println("We are now going to start Rails shell")
+// 		//TODO
+// 	},
+// }
+
+// example starter
+
+// var uninstallAdvancedRootCmd = &cobra.Command{
+// 	Use:   "uninstall",
+// 	Args:  cobra.NoArgs,
+// 	Short: fmt.Sprintf("Uninstall %s completely.", nameCLI),
+// 	Run: func(cmd *cobra.Command, args []string) {
+// 		logWhere()
+// 		confirmInstalled()
+// 		confirmInteractive()
+// 	},
+// }

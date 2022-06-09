@@ -31,6 +31,9 @@ func instanceRemove(given_name string) {
 	success := callVirtualizer("compose down --volumes")
 	zboth.Info().Msgf("Successfully removed instance called %s.", given_name)
 	os.Chdir("../..")
+	if err := workDir.Join(instancesFolder, name).RemoveAll(); err != nil { // doesn't work because of permission issues!
+		zboth.Warn().Err(err).Msgf("Failed to delete associated folder %s in %s.", name, instancesFolder)
+	}
 	if success {
 		configMap := conf.GetStringMap("instances")
 		delete(configMap, given_name)
@@ -45,6 +48,7 @@ func instanceRemove(given_name string) {
 
 var removeInstanceRootCmd = &cobra.Command{
 	Use:   "remove",
+	Args:  cobra.NoArgs,
 	Short: "Remove an existing instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
@@ -60,5 +64,5 @@ var removeInstanceRootCmd = &cobra.Command{
 func init() {
 	instanceRootCmd.AddCommand(removeInstanceRootCmd)
 	removeInstanceRootCmd.Flags().StringVar(&_chemotion_instance_remove_name_, "name", "", "name of the instance to remove")
-	removeInstanceRootCmd.Flags().BoolVar(&_chemotion_instance_remove_force_, "force", false, "force remove an instance (risky)")
+	removeInstanceRootCmd.Flags().BoolVar(&_chemotion_instance_remove_force_, "force", false, "force remove an instance (very risky)")
 }

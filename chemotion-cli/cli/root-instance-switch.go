@@ -20,12 +20,12 @@ var switchInstanceRootCmd = &cobra.Command{
 		logWhere()
 		confirmInstalled()
 		if currentState.quiet {
-			if cmd.Flags().Lookup("select-instance").Changed { // this implies a non-interactive run
+			if cmd.Flags().Lookup("selected-instance").Changed { // this implies a non-interactive run
 				instanceSwitch(currentState.name)
 			}
 		} else {
 			confirmInteractive()
-			if cmd.Flags().Lookup("select-instance").Changed {
+			if cmd.Flags().Lookup("selected-instance").Changed {
 				if selectYesNo("Confirm switching selected instance to "+currentState.name, false) {
 					instanceSwitch(currentState.name)
 				}
