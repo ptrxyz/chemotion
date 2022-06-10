@@ -36,13 +36,19 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 					zboth.Fatal().Err(fmt.Errorf("uninstalled failed")).Msgf("Uninstall failed while trying to remove %s", inst)
 					break
 				}
-				workDir.Join(instancesFolder).RemoveAll()
-				workDir.Join(conf.ConfigFileUsed()).Remove()
+			}
+			if err := workDir.Join(instancesFolder).RemoveAll(); err != nil {
+				zlog.Warn().Err(err).Msgf("Failed to delete the `%s` folder.", instancesFolder)
+			}
+			if err := workDir.Join(conf.ConfigFileUsed()).Remove(); err != nil {
+				zlog.Warn().Err(err).Msgf("Failed to delete the configuration file: %s.", conf.ConfigFileUsed())
 			}
 			if removelog {
-				workDir.Join(logFilename).Remove()
+				if err := workDir.Join(logFilename).Remove(); err != nil {
+					zlog.Warn().Err(err).Msgf("Failed to delete the log file: %s.", logFilename)
+				}
 			}
-			zboth.Info().Msgf("%s successfully removed.", nameCLI)
+			zboth.Info().Msgf("%s was successfully uninstalled.", nameCLI)
 		} else {
 			zboth.Info().Msgf("Nothing was done.")
 		}

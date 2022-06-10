@@ -39,22 +39,22 @@ func instanceRemove(given_name string) (success bool) {
 	// delete folder
 	if success {
 		pwd, _ := os.Getwd()
-		zboth.Info().Msgf("Using a very small linux distribution to remove folder associated with %s.", given_name)
+		zboth.Info().Msgf("Removing folder associated with %s. (arcane procedure!)", given_name)
 		success = callVirtualizer("run --rm -v " + pwd + ":/x --name chemotion-helper-safe-to-remove busybox rm -rf x/shared")
-		if success {
-			workDir.Join(instancesFolder, name).RemoveAll()
-		} else {
-			zboth.Warn().Err(fmt.Errorf("using busybox container failed")).Msgf("Failed to delete associated folder %s in %s.", name, instancesFolder)
-		}
 	}
 	os.Chdir("../..")
+	if success {
+		if err := workDir.Join(instancesFolder, name).RemoveAll(); err != nil {
+			zboth.Warn().Err(err).Msgf("Failed to delete associated folder `%s` in `%s`.", name, instancesFolder)
+		}
+	}
 	// delete entry in config
 	if success {
 		configMap := conf.GetStringMap("instances")
 		delete(configMap, given_name)
 		conf.Set("instances", configMap)
 		if err := conf.WriteConfig(); err == nil {
-			zboth.Info().Msgf("Modified configuration file %s to remove entry for %s.", conf.ConfigFileUsed(), given_name)
+			zboth.Info().Msgf("Modified configuration file `%s` to remove entry for `%s`.", conf.ConfigFileUsed(), given_name)
 		} else {
 			zboth.Fatal().Err(err).Msgf("Failed to update the configuration file.")
 		}
