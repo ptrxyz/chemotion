@@ -20,7 +20,6 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 		logWhere()
 		confirmInstalled()
 		confirmInteractive()
-		removelog := selectYesNo("Do you want to remove the log file as well", false)
 		if selectYesNo("Are you sure you want to uninstall "+nameCLI, false) {
 			chosen := conf.GetString(selector_key)
 			instances := append(allInstances(), chosen)
@@ -43,12 +42,12 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 			if err := workDir.Join(conf.ConfigFileUsed()).Remove(); err != nil {
 				zlog.Warn().Err(err).Msgf("Failed to delete the configuration file: %s.", conf.ConfigFileUsed())
 			}
-			if removelog {
+			zboth.Info().Msgf("%s was successfully uninstalled.", nameCLI)
+			if selectYesNo("Do you want to remove the log file as well", false) {
 				if err := workDir.Join(logFilename).Remove(); err != nil {
 					zlog.Warn().Err(err).Msgf("Failed to delete the log file: %s.", logFilename)
 				}
 			}
-			zboth.Info().Msgf("%s was successfully uninstalled.", nameCLI)
 		} else {
 			zboth.Info().Msgf("Nothing was done.")
 		}

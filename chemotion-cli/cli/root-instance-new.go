@@ -12,14 +12,14 @@ var _chemotion_instance_new_name_ string
 var _chemotion_instance_new_use_ string
 var _chemotion_instance_new_development_ bool
 
-func instanceCreate(name string, kind string, use string) (success bool) {
+func instanceCreate(given_name string, kind string, use string) (success bool) {
 	var port uint16
 	if firstRun {
 		port = 4000
 	} else {
 		existingInstances := allInstances()
-		if stringInArray(name, &existingInstances) > -1 {
-			zboth.Fatal().Err(fmt.Errorf("instance %s already exists", name)).Msgf("An instance with name %s already exists.", name)
+		if stringInArray(given_name, &existingInstances) > -1 {
+			zboth.Fatal().Err(fmt.Errorf("instance %s already exists", given_name)).Msgf("An instance with name %s already exists.", given_name)
 			return false
 		}
 		existingPorts := allPorts()
@@ -43,8 +43,7 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 		}
 	}
 	confirmVirtualizer(minimumVirtualizer)
-	given_name := name
-	name = fmt.Sprintf("%s-%s", name, getNewUniqueID())
+	name := fmt.Sprintf("%s-%s", given_name, getNewUniqueID())
 	var composeFilepath pathlib.Path // TODO: check on the version of the compose file
 	var isUrl bool = false
 	if existingFile(use) {
