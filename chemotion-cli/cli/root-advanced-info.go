@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"math"
 	"runtime"
 	"strings"
 	"syscall"
@@ -14,15 +15,27 @@ func systemInfo() (info string) {
 	// CPU
 	info += fmt.Sprintln("- CPU Cores:", runtime.NumCPU())
 	// Disk space
-	var stat syscall.Statfs_t
-	syscall.Statfs(workDir.String(), &stat)
-	fmt.Println(stat) // TODO - format this
-	// Memory
-	if mem, err := execShell("free -h"); err == nil {
-		mem := strings.Fields(string(mem))
-		info += fmt.Sprintln("- Memory:\n  -", mem[7], "(total),", mem[9], "(free)")
+	if runtime.GOOS == "linux" || runtime.GOOS == "darwin" {
+		var disk syscall.Statfs_t
+		if err := syscall.Statfs(workDir.String(), &disk); err == nil {
+			info += fmt.Sprintf("- Disk space:\n  - %7.1fGi (total) %7.1fGi (free)\n", float64(disk.Blocks*uint64(disk.Bsize))/math.Pow(2, 30), float64(disk.Bavail*uint64(disk.Bsize))/math.Pow(2, 30))
+		} else {
+			zboth.Warn().Err(err).Msgf("Failed to retrieve information about disk space.")
+		}
 	} else {
-		info += fmt.Sprintln("Couldn't determine memory usage.")
+		zboth.Warn().Err(fmt.Errorf("running on %s", runtime.GOOS)).Msgf("Cannot retrieve disk space information for this operating system.")
+		// TODO-maybe-v2 write implementation for windows
+	}
+	// Memory
+	if runtime.GOOS == "linux" {
+		var mem syscall.Sysinfo_t
+		if err := syscall.Sysinfo(&mem); err == nil {
+			info += fmt.Sprintf("- Memory:\n  - %7.1fGi (total) %7.1fGi (free)\n", float64(mem.Totalram)/math.Pow(2, 30), float64(mem.Freeram)/math.Pow(2, 30))
+		} else {
+			zboth.Warn().Err(err).Msgf("Failed to retrieve information about memory.")
+		}
+	} else {
+		zboth.Warn().Err(fmt.Errorf("running on %s", runtime.GOOS)).Msgf("Cannot retrieve memory information for this operating system.")
 	}
 	info += fmt.Sprintln("Used software versions:")
 	printVersionOf := []string{"docker", "ruby", "passenger", "node", "npm"}

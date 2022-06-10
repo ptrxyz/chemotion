@@ -10,7 +10,8 @@ import (
 var _chemotion_instance_remove_name_ string
 var _chemotion_instance_remove_force_ bool
 
-func instanceRemove(given_name string) {
+func instanceRemove(given_name string) (success bool) {
+	name := internalName(given_name)
 	if !_chemotion_instance_remove_force_ {
 		if instanceStatus(given_name) == "Up" {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete an instance that is currently running. Please use `chemotion -i %s stop` to stop the instance.")
@@ -22,18 +23,32 @@ func instanceRemove(given_name string) {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the only instance. Use `chemotion advanced uninstall` remove %s entirely", nameCLI)
 		}
 	}
-	name := internalName(given_name)
 	os.Chdir(workDir.Join(instancesFolder, name).String())
 	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
 	if _chemotion_instance_remove_force_ {
-		callVirtualizer("compose kill")
+		success = callVirtualizer("compose kill")
+	} else {
+		success = true
 	}
-	success := callVirtualizer("compose down --volumes")
-	zboth.Info().Msgf("Successfully removed instance called %s.", given_name)
+	if success {
+		success = callVirtualizer("compose down --volumes")
+		if success {
+			zboth.Info().Msgf("Successfully removed instance called %s.", given_name)
+		}
+	}
+	// delete folder
+	if success {
+		pwd, _ := os.Getwd()
+		zboth.Info().Msgf("Using a very small linux distribution to remove folder associated with %s.", given_name)
+		success = callVirtualizer("run --rm -v " + pwd + ":/x --name chemotion-helper-safe-to-remove busybox rm -rf x/shared")
+		if success {
+			workDir.Join(instancesFolder, name).RemoveAll()
+		} else {
+			zboth.Warn().Err(fmt.Errorf("using busybox container failed")).Msgf("Failed to delete associated folder %s in %s.", name, instancesFolder)
+		}
+	}
 	os.Chdir("../..")
-	if err := workDir.Join(instancesFolder, name).RemoveAll(); err != nil { // doesn't work because of permission issues!
-		zboth.Warn().Err(err).Msgf("Failed to delete associated folder %s in %s.", name, instancesFolder)
-	}
+	// delete entry in config
 	if success {
 		configMap := conf.GetStringMap("instances")
 		delete(configMap, given_name)
@@ -44,6 +59,10 @@ func instanceRemove(given_name string) {
 			zboth.Fatal().Err(err).Msgf("Failed to update the configuration file.")
 		}
 	}
+	if !success {
+		zboth.Info().Msgf("Clean deletion of %s failed. Check log to see what went wrong.", given_name)
+	}
+	return
 }
 
 var removeInstanceRootCmd = &cobra.Command{

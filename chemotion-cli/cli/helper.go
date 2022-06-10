@@ -209,6 +209,9 @@ func allPorts() (ports []uint16) {
 //
 func internalName(given_name string) (name string) {
 	name = conf.GetString(joinKey("instances", given_name, "name"))
+	if name == "" {
+		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", given_name)
+	}
 	return
 }
 
@@ -223,7 +226,6 @@ func internalName(given_name string) (name string) {
 // 		logWhere()
 // 		confirmInstalled()
 // 		fmt.Println("We are now going to start shell")
-// 		//TODO
 // 	},
 // }
 
@@ -236,7 +238,6 @@ func internalName(given_name string) (name string) {
 // 		logWhere()
 // 		confirmInstalled()
 // 		fmt.Println("We are now going to start Rails shell")
-// 		//TODO
 // 	},
 // }
 
