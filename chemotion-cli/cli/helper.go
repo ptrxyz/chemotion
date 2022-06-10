@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -206,13 +207,22 @@ func allPorts() (ports []uint16) {
 	return
 }
 
-//
+// get internal name for an instance
 func internalName(given_name string) (name string) {
 	name = conf.GetString(joinKey("instances", given_name, "name"))
 	if name == "" {
 		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", given_name)
 	}
 	return
+}
+
+// change directory with logging
+func changeDir(location string) {
+	if err := os.Chdir(location); err == nil {
+		zboth.Debug().Msgf("Changed working directory to: %s", location)
+	} else {
+		zboth.Fatal().Msgf("Failed to changed working directory as required.")
+	}
 }
 
 // TODO

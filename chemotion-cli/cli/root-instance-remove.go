@@ -23,7 +23,7 @@ func instanceRemove(given_name string) (success bool) {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the only instance. Use `chemotion advanced uninstall` remove %s entirely", nameCLI)
 		}
 	}
-	os.Chdir(workDir.Join(instancesFolder, name).String())
+	changeDir(workDir.Join(instancesFolder, name).String())
 	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
 	if _chemotion_instance_remove_force_ {
 		success = callVirtualizer("compose kill")
@@ -42,7 +42,7 @@ func instanceRemove(given_name string) (success bool) {
 		zboth.Info().Msgf("Removing folder associated with %s. (arcane procedure!)", given_name)
 		success = callVirtualizer("run --rm -v " + pwd + ":/x --name chemotion-helper-safe-to-remove busybox rm -rf x/shared")
 	}
-	os.Chdir("../..")
+	changeDir("../..")
 	if success {
 		if err := workDir.Join(instancesFolder, name).RemoveAll(); err != nil {
 			zboth.Warn().Err(err).Msgf("Failed to delete associated folder `%s` in `%s`.", name, instancesFolder)

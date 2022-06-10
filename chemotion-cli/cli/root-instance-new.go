@@ -3,7 +3,6 @@ package cli
 import (
 	"fmt"
 	"net/url"
-	"os"
 
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/cobra"
@@ -88,19 +87,18 @@ func instanceCreate(name string, kind string, use string) (success bool) {
 	if err := workDir.Join(instancesFolder, name).MkdirAll(); err != nil {
 		zboth.Fatal().Err(err).Msgf("Unable to create folder to store instances of %s.", nameCLI)
 	}
-	os.Chdir("instances/" + name)
-	zlog.Debug().Msgf("Changed working directory to: instances/%s", name)
+	changeDir(workDir.Join(instancesFolder, name).String())
 	if err := compose.WriteConfigAs(composeFilename); err != nil {
-		os.Chdir("../..")
+		changeDir("../..")
 		zboth.Fatal().Err(err).Msgf("Failed to write the compose file to its repective folder. This is necessary for future use.")
 	}
 	commandStr := fmt.Sprintf("compose -f %s up --no-start", composeFilename)
 	zboth.Info().Msgf("Starting %s with command: %s", toLower(virtualizer), commandStr)
 	if success = callVirtualizer(commandStr); !success {
-		os.Chdir("../..")
+		changeDir("../..")
 		zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
-	os.Chdir("../..")
+	changeDir("../..")
 	zboth.Info().Msgf("Successfully created container the container. New %s port available at %d.", nameCLI, port)
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
