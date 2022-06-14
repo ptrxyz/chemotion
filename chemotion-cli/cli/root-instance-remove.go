@@ -31,7 +31,7 @@ func instanceRemove(givenName string) (success bool) {
 		success = true
 	}
 	if success {
-		success = callVirtualizer("compose down --volumes")
+		success = callVirtualizer("compose down --remove-orphans --volumes")
 		if success {
 			zboth.Info().Msgf("Successfully removed instance called %s.", givenName)
 		}
