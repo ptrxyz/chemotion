@@ -30,7 +30,7 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 					continue
 				}
 				zboth.Info().Msgf("Removing instance called %s.", inst)
-				_chemotion_instance_remove_force_ = true
+				_root_instance_remove_force_ = true
 				if !instanceRemove(inst) {
 					zboth.Fatal().Err(fmt.Errorf("uninstalled failed")).Msgf("Uninstall failed while trying to remove %s", inst)
 					break

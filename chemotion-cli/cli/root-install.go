@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	_chemotion_install_name_ string
-	_chemotion_install_use_  string
+	_root_install_name_ string
+	_root_install_use_  string
 )
 
 // command to install a new container of Chemotion
@@ -33,12 +33,12 @@ var installRootCmd = &cobra.Command{
 				create = false
 				zboth.Info().Msgf("Installation cancelled.")
 			}
-			if create && _chemotion_install_name_ == instanceDefault { // i.e user has not changed it by passing an argument
-				_chemotion_install_name_ = getString("Please enter the name of the first instance you want to create")
+			if create && _root_install_name_ == instanceDefault { // i.e user has not changed it by passing an argument
+				_root_install_name_ = getString("Please enter the name of the first instance you want to create")
 			}
 		}
 		if create {
-			if success := instanceCreate(_chemotion_install_name_, "Production", _chemotion_install_use_); success {
+			if success := instanceCreate(_root_install_name_, "Production", _root_install_use_); success {
 				zboth.Info().Msgf("All done! Now you can do `%s on` and `%s off` to start/stop %s.", rootCmd.Name(), rootCmd.Name(), nameCLI)
 			}
 		}
@@ -47,6 +47,6 @@ var installRootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(installRootCmd)
-	installRootCmd.Flags().StringVar(&_chemotion_install_name_, "name", instanceDefault, "Name of the first instance to create")
-	installRootCmd.Flags().StringVar(&_chemotion_install_use_, "use", composeURL, "URL or filepath to use for creating the instance")
+	installRootCmd.Flags().StringVar(&_root_install_name_, "name", instanceDefault, "Name of the first instance to create")
+	installRootCmd.Flags().StringVar(&_root_install_use_, "use", composeURL, "URL or filepath to use for creating the instance")
 }

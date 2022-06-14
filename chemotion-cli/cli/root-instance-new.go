@@ -8,18 +8,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _chemotion_instance_new_name_ string
-var _chemotion_instance_new_use_ string
-var _chemotion_instance_new_development_ bool
+var _root_instance_new_name_ string
+var _root_instance_new_use_ string
+var _root_instance_new_development_ bool
 
-func instanceCreate(given_name string, kind string, use string) (success bool) {
+func instanceCreate(givenName string, kind string, use string) (success bool) {
 	var port uint16
 	if firstRun {
 		port = 4000
 	} else {
 		existingInstances := allInstances()
-		if stringInArray(given_name, &existingInstances) > -1 {
-			zboth.Fatal().Err(fmt.Errorf("instance %s already exists", given_name)).Msgf("An instance with name %s already exists.", given_name)
+		if stringInArray(givenName, &existingInstances) > -1 {
+			zboth.Fatal().Err(fmt.Errorf("instance %s already exists", givenName)).Msgf("An instance with name %s already exists.", givenName)
 			return false
 		}
 		existingPorts := allPorts()
@@ -43,7 +43,7 @@ func instanceCreate(given_name string, kind string, use string) (success bool) {
 		}
 	}
 	confirmVirtualizer(minimumVirtualizer)
-	name := fmt.Sprintf("%s-%s", given_name, getNewUniqueID())
+	name := fmt.Sprintf("%s-%s", givenName, getNewUniqueID())
 	var composeFilepath pathlib.Path // TODO: check on the version of the compose file
 	var isUrl bool = false
 	if existingFile(use) {
@@ -102,13 +102,13 @@ func instanceCreate(given_name string, kind string, use string) (success bool) {
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
 		conf.Set("version", versionYAML)
-		conf.Set(selector_key, given_name)
+		conf.Set(selector_key, givenName)
 	}
-	conf.Set(joinKey("instances", given_name, "name"), name)
-	conf.Set(joinKey("instances", given_name, "kind"), kind)
-	conf.Set(joinKey("instances", given_name, "quiet"), false)
-	conf.Set(joinKey("instances", given_name, "debug"), kind == "Development")
-	conf.Set(joinKey("instances", given_name, "port"), port)
+	conf.Set(joinKey("instances", givenName, "name"), name)
+	conf.Set(joinKey("instances", givenName, "kind"), kind)
+	conf.Set(joinKey("instances", givenName, "quiet"), false)
+	conf.Set(joinKey("instances", givenName, "debug"), kind == "Development")
+	conf.Set(joinKey("instances", givenName, "port"), port)
 	if err := conf.WriteConfig(); err == nil {
 		zboth.Info().Msgf("Written config file: %s.", conf.ConfigFileUsed())
 	} else {
@@ -127,18 +127,18 @@ var newInstanceRootCmd = &cobra.Command{
 		confirmInstalled()
 		create := true
 		kind := "Production"
-		if _chemotion_instance_new_development_ {
+		if _root_instance_new_development_ {
 			kind = "Development"
 		}
 		if !currentState.quiet {
 			confirmInteractive()
 			if selectYesNo("Installation process may download containers (of multiple GBs) and can take some time. Continue", false) {
-				if !_chemotion_instance_new_development_ { // i.e. the flag was not set
+				if !_root_instance_new_development_ { // i.e. the flag was not set
 					fmt.Println("What kind of instance do you want?")
 					kind = selectOpt([]string{"Production", "Development"})
 				}
-				if _chemotion_instance_new_name_ == instanceDefault {
-					_chemotion_instance_new_name_ = getString("Please enter name of the instance you want to create")
+				if _root_instance_new_name_ == instanceDefault {
+					_root_instance_new_name_ = getString("Please enter name of the instance you want to create")
 				}
 			} else {
 				create = false
@@ -146,7 +146,7 @@ var newInstanceRootCmd = &cobra.Command{
 			}
 		}
 		if create {
-			if success := instanceCreate(_chemotion_instance_new_name_, kind, _chemotion_instance_new_use_); success {
+			if success := instanceCreate(_root_instance_new_name_, kind, _root_instance_new_use_); success {
 				zboth.Info().Msg("Successfully created the new instance")
 			}
 		}
@@ -155,7 +155,7 @@ var newInstanceRootCmd = &cobra.Command{
 
 func init() {
 	instanceRootCmd.AddCommand(newInstanceRootCmd)
-	newInstanceRootCmd.Flags().StringVar(&_chemotion_instance_new_name_, "name", instanceDefault, "name for the new instance")
-	newInstanceRootCmd.Flags().StringVar(&_chemotion_instance_new_use_, "use", composeURL, "URL or filepath to use for creating the instance")
-	newInstanceRootCmd.Flags().BoolVar(&_chemotion_instance_new_development_, "development", false, "create a development instance")
+	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_name_, "name", instanceDefault, "name for the new instance")
+	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_use_, "use", composeURL, "URL or filepath to use for creating the instance")
+	newInstanceRootCmd.Flags().BoolVar(&_root_instance_new_development_, "development", false, "create a development instance")
 }

@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func instanceSwitch(given_name string) {
-	conf.Set(selector_key, given_name)
+func instanceSwitch(givenName string) {
+	conf.Set(selector_key, givenName)
 	if err := conf.WriteConfig(); err == nil {
 		zboth.Info().Msgf("Modified configuration file %s.", conf.ConfigFileUsed())
 	} else {

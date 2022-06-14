@@ -208,10 +208,21 @@ func allPorts() (ports []uint16) {
 }
 
 // get internal name for an instance
-func internalName(given_name string) (name string) {
-	name = conf.GetString(joinKey("instances", given_name, "name"))
+func internalName(givenName string) (name string) {
+	name = conf.GetString(joinKey("instances", givenName, "name"))
 	if name == "" {
-		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", given_name)
+		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", givenName)
+	}
+	return
+}
+
+// get column associated with `ps` output for a given instance of chemotion
+func getColumn(givenName, column string) (values []string) {
+	name := internalName(givenName)
+	if res, err := execShell(fmt.Sprintf("docker ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", name, column)); err == nil {
+		values = strings.Split(string(res), "\n")
+	} else {
+		values = []string{}
 	}
 	return
 }

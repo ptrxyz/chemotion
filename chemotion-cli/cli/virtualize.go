@@ -26,7 +26,7 @@ func confirmVirtualizer(minimum string) {
 
 // call to virtualizer
 func callVirtualizer(args string) (success bool) {
-	zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell. Will return once execution is completed.", nameCLI, toLower(virtualizer), args)
+	zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell.", nameCLI, toLower(virtualizer), args)
 	commandArgs := strings.Split(args, " ")
 	commandExec := exec.Command(toLower(virtualizer), commandArgs...)
 	// see https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html#:~:text=Capture%20output%20but%20also%20show%20progress%20%233

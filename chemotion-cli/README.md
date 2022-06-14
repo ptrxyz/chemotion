@@ -29,7 +29,8 @@ general: cli-executable  <command>  <resource>  <argument>  <flags>
 example:    chemotion     restart    instance   MyInstance  --force
 ```
 
-# Known limitations
+# Known limitations and bugs
 
 - The following flags cannot be specified in the configuration (`chemotion-cli.yml`) file:
   - `--config`: because that creates a circular dependency
+  - `chemotion off`: does not lead to exit of containers with exit code 0.

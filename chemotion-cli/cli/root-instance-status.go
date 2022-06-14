@@ -1,38 +1,31 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-var _chemotion_instance_status_all_ bool
+var _root_instance_status_all_ bool
 
-func instanceStatus(given_name string) (status string) {
-	name := internalName(given_name)
-	if res, err := execShell(fmt.Sprintf("docker ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.Status}}\"", name)); err == nil {
-		out := strings.Split(string(res), "\n")
-		statuses := []string{}
-		for _, line := range out { // determine what are the status messages for all associated containers
-			l := strings.Split(line, " ")
-			if len(l) > 0 {
-				status := l[0]
-				if stringInArray(status, &statuses) == -1 && len(status) != 0 {
-					statuses = append(statuses, status)
-				}
+func instanceStatus(givenName string) (status string) {
+	out := getColumn(givenName, "Status")
+	var statuses []string
+	for _, line := range out { // determine what are the status messages for all associated containers
+		l := strings.Split(line, " ") // use only the first word
+		if len(l) > 0 {
+			status := l[0] // use only the first word
+			if stringInArray(status, &statuses) == -1 && len(status) != 0 {
+				statuses = append(statuses, status)
 			}
 		}
-		if len(statuses) == 0 {
-			status = "Not found"
-		} else if len(statuses) > 0 {
-			status = statuses[0]
-		} else if len(statuses) > 1 {
-			status = strings.Join(statuses, " and ")
-		}
-	} else {
-		zboth.Fatal().Err(err).Msgf("Failed to get status of the instance called %s", currentState.name)
-		status = ""
+	}
+	if len(statuses) == 0 {
+		status = "Instance not found"
+	} else if len(statuses) == 1 {
+		status = statuses[0]
+	} else if len(statuses) > 1 {
+		status = strings.Join(statuses, " and ")
 	}
 	return
 }
@@ -44,7 +37,7 @@ var statusInstanceRootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
 		confirmInstalled()
-		if !_chemotion_instance_status_all_ {
+		if !_root_instance_status_all_ {
 			status := instanceStatus(currentState.name)
 			zboth.Info().Msgf("The status of %s is: %s.", currentState.name, status)
 		} else {
@@ -58,5 +51,5 @@ var statusInstanceRootCmd = &cobra.Command{
 
 func init() {
 	instanceRootCmd.AddCommand(statusInstanceRootCmd)
-	statusInstanceRootCmd.Flags().BoolVar(&_chemotion_instance_status_all_, "all", false, "show status of all instances")
+	statusInstanceRootCmd.Flags().BoolVar(&_root_instance_status_all_, "all", false, "show status of all instances")
 }

@@ -4,9 +4,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func instanceRestart(given_name string) {
-	instanceStop(given_name)
-	instanceStart(given_name)
+func instanceRestart(givenName string) {
+	instanceStop(givenName)
+	instanceStart(givenName)
 }
 
 var restartInstanceRootCmd = &cobra.Command{
