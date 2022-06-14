@@ -55,6 +55,9 @@ func instanceLog(givenName, service string) {
 			args += fmt.Sprintf("--until %s", _root_instance_log_v_until_)
 		}
 		if _root_instance_log_v_follow_ {
+			if _root_instance_log_all_ {
+				zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot `follow` all the services. Use only one of the `--all` and `--follow` flags.")
+			}
 			args += " --follow"
 			callVirtualizer(fmt.Sprintf("logs %s %s-%s-%d", args, name, service, _root_instance_log_rollNum_))
 		} else {
