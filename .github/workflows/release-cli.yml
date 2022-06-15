@@ -33,4 +33,7 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: false
           files: |
-            chemotion chemotion.arm.x chemotion.amd.x chemotion.exe
+            chemotion
+            chemotion.arm.x
+            chemotion.amd.x
+            chemotion.exe
