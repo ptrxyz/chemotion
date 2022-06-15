@@ -46,7 +46,11 @@ const config = {
 }
 
 const bash = async (cmd, options = {}) => {
-    const bashOptions = { shell: '/bin/bash', encoding: 'utf-8' }
+    const bashOptions = {
+        shell: '/bin/bash',
+        encoding: 'utf-8',
+        env: { GIT_TERMINAL_PROMPT: '0' },
+    }
     return await exec(cmd, { ...bashOptions, ...options })
 }
 
@@ -63,10 +67,34 @@ async function taskCheckoutRepo(config) {
     }
 
     fs.rmSync(config.srcDir, { recursive: true, force: true })
+    let repoURL =
+        process.env.CHEMOTION_REPO_URL ||
+        'https://github.com/ComPlat/chemotion_ELN'
+
+    let recreateRaw = false
+
     if (!fs.existsSync(config.rawDir)) {
+        // raw doesnt exist
+        recreateRaw = true
+    } else if (fs.existsSync(config.rawDir)) {
+        // raw exists but it's from a different origin
+        let { stdout, stderr } = await bash(
+            `git config --get remote.origin.url`,
+            {
+                cwd: config.rawDir,
+            }
+        )
+        if (stdout.trim() != repoURL) {
+            recreateRaw = true
+        }
+    }
+
+    if (recreateRaw) {
         console.log(`Cloning into [${config.srcDir}]...`)
+        // https://github.com/megorei/chemotion_ELN/commit/4e4f541de9ba7204b741b8cd7864e590b6129f70
+        console.log(` > Cloning from [${repoURL}].`)
         await bash(
-            `git clone -c advice.detachedHead=false https://github.com/ComPlat/chemotion_ELN ${config.rawDir} 2>/dev/null`
+            `git clone -c advice.detachedHead=false ${repoURL} ${config.rawDir} 2>/dev/null`
         )
     }
 
@@ -75,29 +103,32 @@ async function taskCheckoutRepo(config) {
     fs.rmSync(config.srcDir, { recursive: true, force: true })
     fs.rmSync(config.dataDir, { recursive: true, force: true })
     await dirCopy(config.rawDir, config.srcDir)
-    await bash(`git checkout ${tag2param(config.tag)}`, { cwd: config.srcDir })
+    await bash(`git fetch --depth 1 origin ${tag2param(config.tag)}`, {
+        cwd: config.srcDir,
+    })
+    await bash(`git checkout FETCH_HEAD`, { cwd: config.srcDir })
 
     // echo -e "CHEMOTION_REF=${ELNREF}\nCHEMOTION_TAG=${ELNTAG}\nBUILDSYSTEM_REF=${BLDREF}\nBUILDSYSTEM_TAG=${BLDTAG}"
     config.version.chemotion = {
         ref: (
-            await bash(`git rev-parse --short HEAD || echo "<no ref>"`, {
+            await bash(`git rev-parse --short HEAD || echo "unknown"`, {
                 cwd: config.srcDir,
             })
         ).stdout.trim(),
         tag: (
-            await bash(`git describe --abbrev=0 --tags || echo "<no tag>"`, {
+            await bash(`git describe --abbrev=0 --tags || echo "untagged"`, {
                 cwd: config.srcDir,
             })
         ).stdout.trim(),
     }
     config.version.crt = {
         ref: (
-            await bash(`git rev-parse --short HEAD || echo "<no rev>"`, {
+            await bash(`git rev-parse --short HEAD || echo "unknown"`, {
                 cwd: config.cwd,
             })
         ).stdout.trim(),
         tag: (
-            await bash(`git describe --abbrev=0 --tags || echo "<no tag>"`, {
+            await bash(`git describe --abbrev=0 --tags || echo "untagged"`, {
                 cwd: config.cwd,
             })
         ).stdout.trim(),
@@ -249,7 +280,7 @@ async function taskApplyPatches(config) {
         }
 
         if (applyFix) {
-            await bash(`git apply ${fileName}`, { cwd: config.srcDir })
+            await bash(`git apply ${fileName} || true`, { cwd: config.srcDir })
             console.log(`Patch [${path.basename(fileName)}] applied.`)
         } else {
             // patch is unnecessary in this release
