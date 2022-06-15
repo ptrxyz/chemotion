@@ -16,10 +16,10 @@ jobs:
           check-latest: true
       - name: Build Go for linux
         run: |
-          cd     chemotion-cli
-          go     mod    verify
-          go     build  -o chemotion
-          mv     chemotion ..
+          cd  chemotion-cli
+          go  mod          verify
+          go  build     -o chemotion
+          mv  chemotion ..
       - name: Release Binary
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
