@@ -4,11 +4,13 @@
 package cli
 
 // stub function
-func getDiskSpace() {
-	return ""
+func getDiskSpace() (line string) {
+	line = ""
+	return
 }
 
 // stub function
-func getMemory() {
-	return ""
+func getMemory(line string) {
+	line = ""
+	return
 }

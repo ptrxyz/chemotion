@@ -18,8 +18,12 @@ jobs:
         run: |
           cd  chemotion-cli
           go  mod          verify
-          go  build     -o chemotion
+          GOOS=linux   go  build -o chemotion
+          GOOS=mac     go  build -o chemotion.x
+          GOOS=windows go  build -o chemotion.exe
           mv  chemotion ..
+          mv  chemotion.x ..
+          mv  chemotion.exe ..
       - name: Release Binary
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
@@ -27,4 +31,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: false
           files: |
-            chemotion
+            chemotion chemotion.x chemotion.exe
