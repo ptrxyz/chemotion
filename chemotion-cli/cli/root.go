@@ -33,6 +33,7 @@ package cli
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/chigopher/pathlib"
 	"github.com/rs/zerolog"
@@ -49,7 +50,6 @@ const (
 	instanceDefault       = "initial"
 	selector_key          = "selected" // key that is expected in the configFile to figure out the selected instance
 	stateFile             = "./version"
-	shell                 = "bash"
 	instancesFolder       = "instances" // the folder in which chemotion expects to find all the instances
 	virtualizer           = "Docker"
 	minimumVirtualizer    = "17.12" // so as to support docker compose files version 3.5
@@ -71,6 +71,8 @@ var (
 	zboth zerolog.Logger
 	// path of the working directory
 	workDir pathlib.Path = *pathlib.NewPath(".") // it is expected that all files and folders are relative to this path, unless specified otherwise by the user
+	// shell
+	shell string
 )
 
 // struct to store information about the currently selected instance, which has implications for the current state of this tool
@@ -120,6 +122,11 @@ func Execute() {
 }
 
 func init() {
+	if runtime.GOOS == "windows" {
+		shell = "psh"
+	} else {
+		shell = "bash"
+	}
 	// flag 0: isInside, determined automatically whenever CLI runs
 	currentState.isInside = existingFile(stateFile)
 	// begin by setting up logging

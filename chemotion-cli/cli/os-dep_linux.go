@@ -21,7 +21,6 @@ func getDiskSpace() (line string) {
 	} else {
 		zboth.Warn().Err(fmt.Errorf("running on %s", runtime.GOOS)).Msgf("Cannot retrieve disk space information for this operating system.")
 		line = ""
-		// TODO-maybe-v2 write implementation for windows
 	}
 	return
 }
