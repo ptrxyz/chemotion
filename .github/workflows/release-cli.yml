@@ -18,9 +18,10 @@ jobs:
         run: |
           cd  chemotion-cli
           go  mod          verify
-          GOOS=linux   go  build -o chemotion
-          GOOS=mac     go  build -o chemotion.x
-          GOOS=windows go  build -o chemotion.exe
+          GOOS=linux   GOARCH=amd64 go  build -o chemotion
+          GOOS=darwin  GOARCH=arm64 go  build -o chemotion.arm.x
+          GOOS=darwin  GOARCH=amd64 go  build -o chemotion.amd.x
+          GOOS=windows GOARCH=amd64 go  build -o chemotion.exe
           mv  chemotion ..
           mv  chemotion.x ..
           mv  chemotion.exe ..

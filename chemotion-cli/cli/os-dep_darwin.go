@@ -3,6 +3,13 @@
 
 package cli
 
+import (
+	"fmt"
+	"math"
+	"runtime"
+	"syscall"
+)
+
 // stub function
 func getDiskSpace() (line string) {
 	if runtime.GOOS == "darwin" {

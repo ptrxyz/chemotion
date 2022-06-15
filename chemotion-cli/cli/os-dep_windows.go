@@ -10,7 +10,7 @@ func getDiskSpace() (line string) {
 }
 
 // stub function
-func getMemory(line string) {
+func getMemory() (line string) {
 	line = ""
 	return
 }
