@@ -1,8 +1,61 @@
 # Chemotion-CLI
 
-> The following is mostly whishful thinking. Yet feel free to dream with us.
+##
 
-CLI tool to manage chemotion installations.
+Chemotion CLI tool is there to help you manage installation(s) of Chemotion on a machine. The goal is to make installation, maintenance and upgradation of Chemotion as easy as possible.
+
+## Installation
+
+### Download the binary
+
+The Chemotion CLI tool is a binary file and needs no installation. The only prerequisite is that you install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (and, on Windows, [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). Depending on your OS, you can download the lastest release of the CLI from here:
+
+- [Linux, amd64](https://github.com/harivyasi/chemotion/releases/download/latest/chemotion)
+- [Windows, amd64](https://github.com/harivyasi/chemotion/releases/download/latest/chemotion.exe); remember to turn on [Docker integration with WSL](https://docs.docker.com/desktop/windows/wsl/).
+- [macOS, apple-silicon](https://github.com/harivyasi/chemotion/releases/download/latest/chemotion.arm.x)
+- [macOS, amd64](https://github.com/harivyasi/chemotion/releases/download/latest/chemotion.amd.x)
+
+### Make it an executable
+
+On Linux and macOS, make this file executable by doing: `chmod u+x chemotion`.
+On Windows, the file should be executable by default, i.e. do nothing.
+
+### Make a dedicated folder
+
+Make a folder where you want to store installation(s) of Chemotion. Ideally this folder should be in the largest drive (in terms of free space) of your system. Remember that Chemotion also uses space via Docker (docker containers, volumes etc.) and therefore you need to make sure that your system partition has abundant free space.
+
+### Usage
+
+All commands here after use term `chemotion` to refer to the executable. Depending on your configuration, you may have to use any one of the following:
+
+- `./chemotion`
+- `.\chemotion.exe`
+- `./chemotion.arm.x`
+- `./chemotion.amd.x`
+
+### First run
+
+To begin with installation, execute: `chemotion install` and follow the prompt. The first installation can take really long time (15-30 minutes depending on your download and processor speeds).
+
+This will create the first (production-grade) `instance` of Chemotion on your system. Generally, this is suffice if you want to use Chemotion in a single scientific group/lab. By default
+
+- this first instance will be available on port 4000
+- this first instance will be the `chosen` instance (more on this below)
+
+### Starting and Stopping Chemotion
+
+To turn on, or off, the `chosen` instance, issue the commands:
+
+- `chemotion on`, please wait for a minute before the instance becomes fully active
+- `chemotion off`
+
+## Uninstallation
+
+> Usual warning of "be sure about what you want to do" applies!
+
+You can uninstall everything created by the CLI tool by running: `chemotion advanced uninstall`. Last you can simply delete the downloaded binary itself.
+
+# Planned concept for CLI
 
 Following features are planned/thought of:
 
@@ -12,8 +65,6 @@ Following features are planned/thought of:
 - Instance life cycle commands, such as `chemotion instance start|stop|pause|restart|status`
 - Manage Settings: `chemotion settings import|export` to import/export you settings and `chemotion instance configure` to run configuration wizards that help you to create configuration stubs
 - Frequently asked for features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`, `chemotion system info|rails-shell|shell`
-
-# Planned concept for CLI
 
 We plan to follow one of the following layouts, depending on which one proves to be more handy in every day use.
 

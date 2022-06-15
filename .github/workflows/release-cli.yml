@@ -3,7 +3,7 @@ name: Release Chemotion CLI
 on:
   push:
     branches:
-      - wb_cli3_harivyasi
+      - chemotion-cli
 
 jobs:
   build-release-binary:
