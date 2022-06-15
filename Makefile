@@ -7,7 +7,7 @@ export
 ALL_STAGES=gather eln spectra ruby node msconvert base
 
 COMPOSE_PROJECT=chemotion-build
-DOCKERCMD=COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) DOCKER_BUILDKIT=1 docker
+DOCKERCMD=COMPOSE_PROJECT_NAME=$(COMPOSE_PROJECT) DOCKER_BUILDKIT=0 docker
 COMPOSECMD=$(DOCKERCMD)-compose -f docker-compose-test.yml
 
 prepare:
@@ -46,7 +46,6 @@ upload: tag
 	$(DOCKERCMD) push ptrxyz/chemotion:eln-$(CHEMOTION_BUILD_RELEASE)
 	$(DOCKERCMD) push ptrxyz/chemotion:spectra-$(CHEMOTION_BUILD_RELEASE)
 	$(DOCKERCMD) push ptrxyz/chemotion:msconvert-$(CHEMOTION_BUILD_RELEASE)
-	
 
 upload-dev:
 	$(DOCKERCMD) tag chemotion-build:eln ptrxyz/chemotion-build:eln
@@ -57,7 +56,7 @@ upload-dev:
 	$(DOCKERCMD) push ptrxyz/chemotion-build:msconvert
 
 $(ALL_STAGES): prepare
-	$(DOCKERCMD) buildx build -f .dockerfile 		\
+	$(DOCKERCMD) build -f .dockerfile 		\
 		--build-arg TINI_VERSION=$${TINI_VERSION} 	\
 		--build-arg ELNDIR=./eln 					\
 		--build-arg NODEDIR=./eln 					\
@@ -67,7 +66,9 @@ $(ALL_STAGES): prepare
 		--target $@									\
 		-t chemotion-build:$@						\
 		.
-	@[[ "$@" == "gather" ]] && $(DOCKERCMD) image rm -f chemotion-build:gather || true
+
+rmgather:
+	$(DOCKERCMD) image rm -f chemotion-build:gather || true
 
 composefile:
 	mkdir -p release/$(CHEMOTION_BUILD_RELEASE)
