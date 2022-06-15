@@ -11,7 +11,6 @@ RUN apt-get -y --autoremove --fix-missing install \
     curl `# for pandoc` \
     postgresql-client \
     inkscape `# this installs python3` \
-    xvfb \
     imagemagick \
     locales \
     make \
