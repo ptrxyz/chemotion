@@ -2,14 +2,12 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 var _root_instance_log_all_ bool
 var _root_instance_log_service_ string
-var _root_instance_log_rollNum_ = 1            // the index number assigned by virtualizer
 var _root_instance_log_defaultService_ = "eln" // the service that is used as the default for printing log"
 var _root_instance_log_v_details_ bool
 var _root_instance_log_v_follow_ bool
@@ -20,26 +18,18 @@ var _root_instance_log_v_tail_ string
 
 func instanceLog(givenName, service string) {
 	name := internalName(givenName)
-	out := getColumn(givenName, "Names")
-	var services, logOf []string
-	for _, line := range out { // determine what are the status messages for all associated containers
-		l := strings.TrimSpace(line) // use only the first word
-		if len(l) > 0 {
-			l = strings.TrimPrefix(l, fmt.Sprintf("%s-", name))
-			l = strings.TrimSuffix(l, fmt.Sprintf("-%d", _root_instance_log_rollNum_))
-			services = append(services, l)
-		}
-	}
+	services := getServices(givenName)
+	var logOf []string
 	if _root_instance_log_all_ {
 		logOf = services
 	} else {
 		if stringInArray(service, &services) > -1 {
 			logOf = []string{service}
 		} else {
-			zboth.Warn().Err(fmt.Errorf("named service not found")).Msgf("No service called %s found associated with the instance called %s.", service, givenName)
+			zboth.Fatal().Err(fmt.Errorf("named service not found")).Msgf("No service called %s found associated with the instance called %s.", service, givenName)
 		}
 	}
-	for _, service = range logOf {
+	for _, service := range logOf {
 		zboth.Info().Msgf("Printing logs for the instance-service called %s-%s.", givenName, service)
 		args := fmt.Sprintf("--tail %s", _root_instance_log_v_tail_)
 		if _root_instance_log_v_details_ {
@@ -59,16 +49,16 @@ func instanceLog(givenName, service string) {
 				zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot `follow` all the services. Use only one of the `--all` and `--follow` flags.")
 			}
 			args += " --follow"
-			callVirtualizer(fmt.Sprintf("logs %s %s-%s-%d", args, name, service, _root_instance_log_rollNum_))
+			callVirtualizer(fmt.Sprintf("logs %s %s-%s-%d", args, name, service, rollNum))
 		} else {
-			if res, err := execShell(fmt.Sprintf("%s logs %s %s-%s-%d", toLower(virtualizer), args, name, service, _root_instance_log_rollNum_)); err == nil {
+			if res, err := execShell(fmt.Sprintf("%s logs %s %s-%s-%d", toLower(virtualizer), args, name, service, rollNum)); err == nil {
 				if n, errPrint := fmt.Println(string(res)); errPrint == nil {
 					zboth.Debug().Msgf("Printed logs to screen that were %d lines long", n)
 				} else {
-					zboth.Warn().Err(errPrint).Msgf("Error while printing logs for the instance-container called %s-%s-%d.", name, service, _root_instance_log_rollNum_)
+					zboth.Warn().Err(errPrint).Msgf("Error while printing logs for the instance-container called %s-%s-%d.", name, service, rollNum)
 				}
 			} else {
-				zboth.Fatal().Err(err).Msgf("Failed to get logs for the instance-container called %s-%s-%d.", name, service, _root_instance_log_rollNum_)
+				zboth.Fatal().Err(err).Msgf("Failed to get logs for the instance-container called %s-%s-%d.", name, service, rollNum)
 			}
 		}
 	}
@@ -86,6 +76,7 @@ var logInstanceRootCmd = &cobra.Command{
 			zboth.Warn().Err(fmt.Errorf("illegal operation")).Msgf("Logs can't be printed in quiet mode.")
 		} else {
 			if _root_instance_log_service_ == "" {
+				zboth.Info().Msgf("No service specified, printing logs for all services.")
 				_root_instance_log_all_ = true
 			}
 			_root_instance_log_service_ = toLower(_root_instance_log_service_)

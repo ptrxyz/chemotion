@@ -56,6 +56,7 @@ const (
 	composeFilename       = "docker-compose.yml"
 	maxInstancesOfKind    = 64
 	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/release-112/release/1.1.2p220401/docker-compose.yml"
+	rollNum               = 1 // the default index number assigned by virtualizer to every container
 )
 
 var (

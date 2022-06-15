@@ -38,6 +38,8 @@ func confirmInstalled() {
 		msg := fmt.Sprintf("Please install %s by running `%s` before using it.", nameCLI, "chemotion install")
 		fmt.Println(msg)
 		zlog.Fatal().Err(fmt.Errorf("chemotion not installed")).Msgf(msg)
+	} else {
+		confirmVirtualizer(minimumVirtualizer)
 	}
 }
 
@@ -63,7 +65,7 @@ func uint16InArray(num uint16, array *[]uint16) int {
 
 // execute a command in shell
 func execShell(command string) (result []byte, err error) {
-	if result, err = exec.Command(shell, "-c", command).Output(); err == nil {
+	if result, err = exec.Command(shell, "-c", command).CombinedOutput(); err == nil {
 		zlog.Debug().Msgf("Sucessfully executed shell command: %s", command)
 	} else if !strings.HasSuffix(command, versionSuffix) {
 		zboth.Warn().Err(err).Msgf("Failed execution of command: %s", command)
@@ -219,10 +221,25 @@ func internalName(givenName string) (name string) {
 // get column associated with `ps` output for a given instance of chemotion
 func getColumn(givenName, column string) (values []string) {
 	name := internalName(givenName)
-	if res, err := execShell(fmt.Sprintf("docker ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", name, column)); err == nil {
+	if res, err := execShell(fmt.Sprintf("%s ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", toLower(virtualizer), name, column)); err == nil {
 		values = strings.Split(string(res), "\n")
 	} else {
 		values = []string{}
+	}
+	return
+}
+
+// get services associated with a given `instance` of Chemotion
+func getServices(givenName string) (services []string) {
+	name := internalName(givenName)
+	out := getColumn(givenName, "Names")
+	for _, line := range out { // determine what are the status messages for all associated containers
+		l := strings.TrimSpace(line) // use only the first word
+		if len(l) > 0 {
+			l = strings.TrimPrefix(l, fmt.Sprintf("%s-", name))
+			l = strings.TrimSuffix(l, fmt.Sprintf("-%d", rollNum))
+			services = append(services, l)
+		}
 	}
 	return
 }

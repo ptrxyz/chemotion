@@ -42,7 +42,6 @@ func instanceCreate(givenName string, kind string, use string) (success bool) {
 			zboth.Fatal().Err(fmt.Errorf("max instances")).Msgf("A maximum of %d instances of %s are allowed. Please contact us if you hit this limit.", maxInstancesOfKind, nameCLI)
 		}
 	}
-	confirmVirtualizer(minimumVirtualizer)
 	name := fmt.Sprintf("%s-%s", givenName, getNewUniqueID())
 	var composeFilepath pathlib.Path // TODO: check on the version of the compose file
 	var isUrl bool = false

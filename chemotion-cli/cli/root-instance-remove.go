@@ -24,7 +24,6 @@ func instanceRemove(givenName string) (success bool) {
 		}
 	}
 	changeDir(workDir.Join(instancesFolder, name).String())
-	confirmVirtualizer(minimumVirtualizer) // TODO if required: set virtualizer depending on compose file requirements
 	if _root_instance_remove_force_ {
 		success = callVirtualizer("compose kill")
 	} else {
