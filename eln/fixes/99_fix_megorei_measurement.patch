@@ -1,0 +1,19 @@
+FIXEDBY 50f0b25566f60819a073961da7dbffe6e830bcff
+commit e60235201bd3e0787564c6c86b81766e064bcde4 (gitlab/megorei-biology, megorei-biology)
+Author: PiTrem <pierre.tremouilhac@kit.edu>
+Date:   Mon May 9 14:28:24 2022 +0000
+
+    fix typo
+
+diff --git a/app/packs/src/components/fetchers/MeasurementsFetcher.js b/app/packs/src/components/fetchers/MeasurementsFetcher.js
+index cf8c386a6..d85431f0b 100644
+--- a/app/packs/src/components/fetchers/MeasurementsFetcher.js
++++ b/app/packs/src/components/fetchers/MeasurementsFetcher.js
+@@ -1,5 +1,5 @@
+ import 'whatwg-fetch';
+-import Measurement from '../models/measurement';
++import Measurement from '../models/Measurement';
+
+ export default class MeasurementsFetcher {
+   static fetchMeasurementHierarchy(sample) {
+
