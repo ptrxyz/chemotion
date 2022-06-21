@@ -24,7 +24,7 @@ func instanceRemove(givenName string) (success bool) {
 		}
 	}
 	changeDir(workDir.Join(instancesFolder, name).String())
-	if _root_instance_remove_force_ {
+	if _root_instance_remove_force_ && instanceStatus(givenName) == "Up" {
 		success = callVirtualizer("compose kill")
 	} else {
 		success = true

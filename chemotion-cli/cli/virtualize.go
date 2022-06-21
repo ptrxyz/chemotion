@@ -16,17 +16,20 @@ func confirmVirtualizer(minimum string) {
 	} else if version == "Unknown / not installed or found!" {
 		zboth.Fatal().Err(fmt.Errorf(version)).Msgf("%s is necessary to run %s", virtualizer, nameCLI)
 	} else {
-		zlog.Debug().Msgf("%s is installed", virtualizer)
+		zlog.Debug().Msgf("%s version %s is installed", virtualizer, version)
 	}
 	if err := compareSoftwareVersion(minimum, toLower(virtualizer)); err != nil {
 		zboth.Fatal().Err(err).Msgf(err.Error())
 	}
-	zlog.Debug().Msgf("%s version requirement met", virtualizer)
 }
 
 // call to virtualizer
 func callVirtualizer(args string) (success bool) {
-	zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell.", nameCLI, toLower(virtualizer), args)
+	if strings.Contains(args, "busybox") {
+		zboth.Debug().Msgf("%s will now fork the execution with command `%s %s` sent to shell.", nameCLI, toLower(virtualizer), args)
+	} else {
+		zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell.", nameCLI, toLower(virtualizer), args)
+	}
 	commandArgs := strings.Split(args, " ")
 	commandExec := exec.Command(toLower(virtualizer), commandArgs...)
 	// see https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html#:~:text=Capture%20output%20but%20also%20show%20progress%20%233

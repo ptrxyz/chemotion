@@ -17,16 +17,15 @@ The Chemotion CLI tool is a binary file and needs no installation. The only prer
 
 ### Make it an executable
 
-On Linux and macOS, make this file executable by doing: `chmod u+x chemotion`.
+On Linux, make this file executable by doing: `chmod u+x chemotion`.
+
 On Windows, the file should be executable by default, i.e. do nothing.
 
-### Make a dedicated folder
+On macOS, make this file executable by doing: `chmod u+x chemotion.amd.x` or `chmod u+x chemotion.arm.x`. If the there is a security pop-up when running the command, please also `Allow` the executable in `System Preferences > Security & Privacy`.
 
-Make a folder where you want to store installation(s) of Chemotion. Ideally this folder should be in the largest drive (in terms of free space) of your system. Remember that Chemotion also uses space via Docker (docker containers, volumes etc.) and therefore you need to make sure that your system partition has abundant free space.
+### Important Note:
 
-### Usage
-
-All commands here after use term `chemotion` to refer to the executable. Depending on your configuration, you may have to use any one of the following:
+All commands here, and in the documentation, use term `chemotion` to refer to the executable. Depending on your configuration, you may have to use any one of the following:
 
 - `./chemotion`
 - `.\chemotion.exe`
@@ -35,6 +34,12 @@ All commands here after use term `chemotion` to refer to the executable. Dependi
 
 ### First run
 
+#### Make a dedicated folder
+
+Make a folder where you want to store installation(s) of Chemotion. Ideally this folder should be in the largest drive (in terms of free space) of your system. Remember that Chemotion also uses space via Docker (docker containers, volumes etc.) and therefore you need to make sure that your system partition has abundant free space.
+
+#### Install
+
 To begin with installation, execute: `chemotion install` and follow the prompt. The first installation can take really long time (15-30 minutes depending on your download and processor speeds).
 
 This will create the first (production-grade) `instance` of Chemotion on your system. Generally, this is suffice if you want to use Chemotion in a single scientific group/lab. By default
@@ -42,12 +47,12 @@ This will create the first (production-grade) `instance` of Chemotion on your sy
 - this first instance will be available on port 4000
 - this first instance will be the `chosen` instance (more on this below)
 
-### Starting and Stopping Chemotion
+#### Start and Stop Chemotion
 
 To turn on, or off, the `chosen` instance, issue the commands:
 
 - `chemotion on`, please wait for a minute before the instance becomes fully active
-- `chemotion off`
+- `chemotion off`.
 
 ## Uninstallation
 

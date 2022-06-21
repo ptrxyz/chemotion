@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
+	"strconv"
 	"strings"
 
 	"github.com/cavaliergopher/grab/v3"
 	"github.com/chigopher/pathlib"
 	"github.com/google/uuid"
 	vercompare "github.com/hashicorp/go-version"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/viper"
 )
 
@@ -33,13 +34,12 @@ func confirmInteractive() {
 }
 
 func confirmInstalled() {
+	confirmVirtualizer(minimumVirtualizer)
 	if firstRun {
 		// Println output so that user is not discouraged by a FATAL error on-screen... especially when beginning with the tool.
 		msg := fmt.Sprintf("Please install %s by running `%s` before using it.", nameCLI, "chemotion install")
 		fmt.Println(msg)
 		zlog.Fatal().Err(fmt.Errorf("chemotion not installed")).Msgf(msg)
-	} else {
-		confirmVirtualizer(minimumVirtualizer)
 	}
 }
 
@@ -54,7 +54,7 @@ func stringInArray(str string, strings *[]string) int {
 }
 
 // check if a int is an array of int, if yes, return the 1st index, else -1.
-func uint16InArray(num uint16, array *[]uint16) int {
+func intInArray(num int, array *[]int) int {
 	for index, element := range *array {
 		if element == num {
 			return index
@@ -79,7 +79,7 @@ func findVersion(software string) (version string) {
 	version = strings.TrimSpace(strings.Split(strings.TrimPrefix(strings.TrimPrefix(string(ver), "v"), "Docker version "), ",")[0]) // TODO: Regexify!
 	if err != nil {
 		zlog.Debug().Err(err).Msgf("Version determination of %s failed", software)
-		if virtualizer == "Docker" && err.Error() == "exit status 1" {
+		if virtualizer == "Docker" && err.Error() == "exit status 1" && runtime.GOOS == "linux" {
 			version = "Docker on WSL not running!"
 		} else if err.Error() == "exit status 127" {
 			version = "Unknown / not installed or found!" // 127 is software not found
@@ -157,43 +157,6 @@ func joinKey(s ...string) (result string) {
 // to lower case, same as strings.ToLower
 var toLower = strings.ToLower
 
-// to select an instance, gives a list to select from when less than 5, else a text input
-func selectInstance(action string) (instance string) {
-	existingInstances := allInstances()
-	if len(existingInstances) < 5 {
-		fmt.Printf("Please pick the instance to %s:\n", action)
-		instance = selectOpt(existingInstances)
-	} else {
-		zlog.Debug().Msgf("String prompt to select instance")
-		prompt := promptui.Prompt{
-			Label: "Please name the instance to " + action,
-			Validate: func(input string) (err error) {
-				if input == "^C" {
-					err = fmt.Errorf("^C")
-				} else if len(input) == 0 {
-					err = fmt.Errorf("can not accept empty value")
-				} else {
-					if stringInArray(input, &existingInstances) > -1 {
-						err = nil
-					} else {
-						err = fmt.Errorf("no instance called %s", input)
-					}
-				}
-				return
-			},
-		}
-		if inst, err := prompt.Run(); err == nil {
-			zlog.Debug().Msgf("Given answer: %s", inst)
-			instance = inst
-		} else if err.Error() == "^C" {
-			zboth.Fatal().Err(fmt.Errorf("string prompt cancelled")).Msg("Input cancelled. Can't proceed without. Abort!")
-		} else {
-			zboth.Fatal().Err(err).Msgf("Prompt failed for unknown reason. Check log. Abort!")
-		}
-	}
-	return
-}
-
 // to get all existing instances as determined by the configuration file
 func allInstances() (instances []string) {
 	instances, _ = getKeysValues(&conf, "instances")
@@ -201,10 +164,10 @@ func allInstances() (instances []string) {
 }
 
 // to get all existing used ports
-func allPorts() (ports []uint16) {
+func allPorts() (ports []int) {
 	existingInstances := allInstances()
 	for _, instance := range existingInstances {
-		ports = append(ports, uint16(conf.GetUint32(joinKey("instances", instance, "port"))))
+		ports = append(ports, int(conf.GetUint32(joinKey("instances", instance, "port"))))
 	}
 	return
 }
@@ -251,6 +214,21 @@ func changeDir(location string) {
 	} else {
 		zboth.Fatal().Msgf("Failed to changed working directory as required.")
 	}
+}
+
+// split address into subcomponents
+func splitAddress(full string) (protocol string, address string, port int) {
+	if err := addressValidate(full); err != nil {
+		zboth.Fatal().Err(err).Msgf("Given address %s is invalid.", full)
+	}
+	var portStr string
+	protocol, address, _ = strings.Cut(full, ":")
+	address = strings.TrimPrefix(address, "//")
+	address, portStr, _ = strings.Cut(address, ":")
+	if portStr != "" {
+		port, _ = strconv.Atoi(portStr)
+	}
+	return
 }
 
 // TODO
