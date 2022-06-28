@@ -7,11 +7,13 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cavaliergopher/grab/v3"
 	"github.com/chigopher/pathlib"
 	"github.com/google/uuid"
 	vercompare "github.com/hashicorp/go-version"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
 )
 
@@ -78,7 +80,7 @@ func findVersion(software string) (version string) {
 	ver, err := execShell(software + versionSuffix)
 	version = strings.TrimSpace(strings.Split(strings.TrimPrefix(strings.TrimPrefix(string(ver), "v"), "Docker version "), ",")[0]) // TODO: Regexify!
 	if err != nil {
-		zlog.Debug().Err(err).Msgf("Version determination of %s failed", software)
+		zboth.Warn().Err(err).Msgf("Version determination of %s failed", software)
 		if virtualizer == "Docker" && err.Error() == "exit status 1" && runtime.GOOS == "linux" {
 			version = "Docker on WSL not running!"
 		} else if err.Error() == "exit status 127" {
@@ -124,6 +126,20 @@ func downloadFile(fileURL string, downloadLocation string) (filepath pathlib.Pat
 		zboth.Fatal().Err(err).Msgf("Failed to download file from: %s. Check log. ABORT!", fileURL)
 	}
 	return
+}
+
+// show (and then remove) a progress bar that waits on screen for given seconds to lapse
+func waitProgressBar(seconds int, message []string) {
+	bar := progressbar.NewOptions(seconds,
+		progressbar.OptionSetDescription(strings.Join(message, " ")+"..."),
+		progressbar.OptionSetPredictTime(false),
+		progressbar.OptionClearOnFinish(),
+	)
+	for i := 0; i < seconds; i++ {
+		time.Sleep(1 * time.Second)
+		bar.Add(1)
+	}
+	bar.Finish()
 }
 
 // copy a text file
@@ -173,7 +189,7 @@ func allPorts() (ports []int) {
 }
 
 // get internal name for an instance
-func internalName(givenName string) (name string) {
+func getInternalName(givenName string) (name string) {
 	name = conf.GetString(joinKey("instances", givenName, "name"))
 	if name == "" {
 		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", givenName)
@@ -183,7 +199,7 @@ func internalName(givenName string) (name string) {
 
 // get column associated with `ps` output for a given instance of chemotion
 func getColumn(givenName, column string) (values []string) {
-	name := internalName(givenName)
+	name := getInternalName(givenName)
 	if res, err := execShell(fmt.Sprintf("%s ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", toLower(virtualizer), name, column)); err == nil {
 		values = strings.Split(string(res), "\n")
 	} else {
@@ -194,8 +210,7 @@ func getColumn(givenName, column string) (values []string) {
 
 // get services associated with a given `instance` of Chemotion
 func getServices(givenName string) (services []string) {
-	name := internalName(givenName)
-	out := getColumn(givenName, "Names")
+	name, out := getInternalName(givenName), getColumn(givenName, "Names")
 	for _, line := range out { // determine what are the status messages for all associated containers
 		l := strings.TrimSpace(line) // use only the first word
 		if len(l) > 0 {
@@ -208,12 +223,20 @@ func getServices(givenName string) (services []string) {
 }
 
 // change directory with logging
-func changeDir(location string) {
-	if err := os.Chdir(location); err == nil {
-		zboth.Debug().Msgf("Changed working directory to: %s", location)
+func gotoFolder(givenName string) (pwd string) {
+	var folder string
+	if givenName == "workdir" {
+		folder = "../.."
+	} else {
+		folder = workDir.Join(instancesFolder, getInternalName(givenName)).String()
+	}
+	if err := os.Chdir(folder); err == nil {
+		pwd, _ = os.Getwd()
+		zboth.Debug().Msgf("Changed working directory to: %s", pwd)
 	} else {
 		zboth.Fatal().Msgf("Failed to changed working directory as required.")
 	}
+	return
 }
 
 // split address into subcomponents
@@ -221,11 +244,10 @@ func splitAddress(full string) (protocol string, address string, port int) {
 	if err := addressValidate(full); err != nil {
 		zboth.Fatal().Err(err).Msgf("Given address %s is invalid.", full)
 	}
-	var portStr string
 	protocol, address, _ = strings.Cut(full, ":")
 	address = strings.TrimPrefix(address, "//")
-	address, portStr, _ = strings.Cut(address, ":")
-	if portStr != "" {
+	address, portStr, _ := strings.Cut(address, ":")
+	if port = -1; portStr != "" {
 		port, _ = strconv.Atoi(portStr)
 	}
 	return

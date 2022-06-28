@@ -9,14 +9,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _root_instance_stat_all_ bool
-var _root_instance_stat_service_ string
+var (
+	_root_instance_stat_all_     bool
+	_root_instance_stat_service_ string
+)
 
 func instanceStat(givenName, service string) {
-	name := internalName(givenName)
-	services := getServices(givenName)
-	out := []string{""}
-	var statOf []string
+	name, services, out, statOf := getInternalName(givenName), getServices(givenName), []string{""}, []string{}
 	if _root_instance_stat_all_ {
 		statOf = services
 		zboth.Info().Msgf("Printing stats for the instance called %s.", givenName)

@@ -15,6 +15,9 @@ func instanceStatus(givenName string) (status string) {
 		l := strings.Split(line, " ") // use only the first word
 		if len(l) > 0 {
 			status := l[0] // use only the first word
+			if l[len(l)-1] == "(Paused)" {
+				status = "Paused"
+			}
 			if stringInArray(status, &statuses) == -1 && len(status) != 0 {
 				statuses = append(statuses, status)
 			}

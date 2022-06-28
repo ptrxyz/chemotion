@@ -2,16 +2,17 @@ package cli
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var _root_instance_remove_name_ string
-var _root_instance_remove_force_ bool
+var (
+	_root_instance_remove_name_  string
+	_root_instance_remove_force_ bool
+)
 
 func instanceRemove(givenName string) (success bool) {
-	name := internalName(givenName)
+	name := getInternalName(givenName)
 	if !_root_instance_remove_force_ {
 		if instanceStatus(givenName) == "Up" {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete an instance that is currently running. Please use `chemotion -i %s stop` to stop the instance.")
@@ -23,25 +24,25 @@ func instanceRemove(givenName string) (success bool) {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the only instance. Use `chemotion advanced uninstall` remove %s entirely", nameCLI)
 		}
 	}
-	changeDir(workDir.Join(instancesFolder, name).String())
-	if _root_instance_remove_force_ && instanceStatus(givenName) == "Up" {
-		success = callVirtualizer("compose kill")
+	if _root_instance_remove_force_ && !(instanceStatus(givenName) == "Exited" || instanceStatus(givenName) == "Created") {
+		if _, worked, _ := gotoFolder(givenName), callVirtualizer("compose kill"), gotoFolder("workdir"); worked {
+			success = worked
+		} else {
+			success = worked
+			zboth.Warn().Msgf("Failed to kill the containers associated with instance %s", givenName)
+		}
 	} else {
 		success = true
 	}
 	if success {
-		success = callVirtualizer("compose down --remove-orphans --volumes")
-		if success {
-			zboth.Info().Msgf("Successfully removed instance called %s.", givenName)
-		}
+		_, success, _ = gotoFolder(givenName), callVirtualizer("compose down --remove-orphans --volumes"), gotoFolder("workdir")
 	}
 	// delete folder
 	if success {
-		pwd, _ := os.Getwd()
-		zboth.Info().Msgf("Removing folder associated with %s. (arcane procedure!)", givenName)
-		success = callVirtualizer("run --rm -v " + pwd + ":/x --name chemotion-helper-safe-to-remove busybox rm -rf x/shared")
+		zboth.Info().Msgf("Successfully removed container of instance called %s.", givenName)
+		zboth.Info().Msgf("Removing `shared` folder associated with %s.", givenName)
+		success = modifyContainer(givenName, []string{"rm -rf", "shared"})
 	}
-	changeDir("../..")
 	if success {
 		if err := workDir.Join(instancesFolder, name).RemoveAll(); err != nil {
 			zboth.Warn().Err(err).Msgf("Failed to delete associated folder `%s` in `%s`.", name, instancesFolder)

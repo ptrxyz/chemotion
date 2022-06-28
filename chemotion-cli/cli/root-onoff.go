@@ -5,26 +5,40 @@ import (
 )
 
 func instanceStart(givenName string) {
-	name := internalName(givenName)
-	if instanceStatus(givenName) == "Up" {
+	status := instanceStatus(givenName)
+	if status == "Up" {
 		zboth.Warn().Msgf("The instance called %s is already running.", givenName)
 	} else {
-		changeDir(workDir.Join(instancesFolder, name).String())
-		callVirtualizer("compose up -d")
-		zboth.Info().Msgf("Successfully started instance called %s. Please give it a minute to initialize.", givenName)
-		changeDir("../..")
+		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose up -d"), gotoFolder("workdir"); success {
+			var (
+				seconds int
+				ft      string
+			)
+			if seconds = 20; status == "Created" {
+				seconds = 60
+			}
+			if firstRun {
+				ft = " for the first time"
+			}
+			zboth.Info().Msgf("Starting instance called %s. Please give it %d seconds to initialize%s.", givenName, seconds, ft)
+			waitProgressBar(seconds, []string{"Starting", givenName})
+			zboth.Info().Msgf("Successfully started instance called %s.", givenName)
+		} else {
+			zboth.Fatal().Msgf("Failed to start instance called %s.", givenName)
+		}
 	}
 }
 
 func instanceStop(givenName string) {
-	name := internalName(givenName)
-	if instanceStatus(givenName) == "Up" {
-		changeDir(workDir.Join(instancesFolder, name).String())
-		callVirtualizer("compose stop")
-		zboth.Info().Msgf("Successfully stopped instance called %s.", givenName)
-		changeDir("../..")
+	status := instanceStatus(givenName)
+	if status == "Up" {
+		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose stop"), gotoFolder("workdir"); success {
+			zboth.Info().Msgf("Successfully stopped instance called %s.", givenName)
+		} else {
+			zboth.Fatal().Msgf("Failed to stop instance called %s.", givenName)
+		}
 	} else {
-		zboth.Warn().Msgf("It seems that the instance %s is not running. Please check its status.", givenName)
+		zboth.Warn().Msgf("Cannot stop instance %s. It seems to be %s.", givenName, status)
 	}
 }
 

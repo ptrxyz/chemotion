@@ -8,20 +8,17 @@ import (
 
 // command to install a new container of Chemotion
 var installRootCmd = &cobra.Command{
-	Use:   "install",
-	Args:  cobra.NoArgs,
-	Short: "Initialize the configuration file and install the first instance of " + nameCLI,
+	Use:    "install",
+	Args:   cobra.NoArgs,
+	Short:  "Initialize the configuration file and install the first instance of " + nameCLI,
+	Hidden: !firstRun,
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
 		if firstRun {
-			var create bool
-			if currentState.quiet {
-				zboth.Info().Msgf("You chose do first run of %s in quiet mode. Will go ahead and install it!", nameCLI)
-				create = true
-			} else {
-				create = newInstanceInteraction()
-			}
-			if create {
+			if currentState.quiet || newInstanceInteraction() {
+				if currentState.quiet {
+					zboth.Info().Msgf("You chose do first run of %s in quiet mode. Will go ahead and install it!", nameCLI)
+				}
 				if success := instanceCreate(_root_instance_new_name_, _root_instance_new_use_, "Production", _root_instance_new_address_); success {
 					zboth.Info().Msgf("All done! Now you can do `%s on` and `%s off` to start/stop %s.", rootCmd.Name(), rootCmd.Name(), nameCLI)
 				}
@@ -37,4 +34,5 @@ func init() {
 	installRootCmd.Flags().StringVar(&_root_instance_new_name_, "name", instanceDefault, "Name of the first instance to create")
 	installRootCmd.Flags().StringVar(&_root_instance_new_use_, "use", composeURL, "URL or filepath to use for creating the instance")
 	installRootCmd.Flags().StringVar(&_root_instance_new_address_, "address", addressDefault, "Web-address (or hostname) for accessing the instance")
+	installRootCmd.Flags().StringVar(&_root_instance_new_env_, "env", "", ".env file for the first instance")
 }

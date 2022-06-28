@@ -13,7 +13,8 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 	Short: fmt.Sprintf("uninstall %s completely", nameCLI),
 	Run: func(cmd *cobra.Command, args []string) {
 		if currentState.quiet {
-			zboth.Info().Msgf("For security reasons, this command will not run in silent mode.")
+			fmt.Println("For security reasons, this command will not run in silent mode.")
+			zboth.Fatal().Msgf("For security reasons, this command will not run in silent mode.")
 		}
 		zerolog.SetGlobalLevel(zerolog.DebugLevel) // uninstall operates in debug mode
 		fmt.Println("Uninstall operates in debug mode!")
@@ -37,15 +38,15 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 				}
 			}
 			if err := workDir.Join(instancesFolder).RemoveAll(); err != nil {
-				zlog.Warn().Err(err).Msgf("Failed to delete the `%s` folder.", instancesFolder)
+				zboth.Warn().Err(err).Msgf("Failed to delete the `%s` folder.", instancesFolder)
 			}
 			if err := workDir.Join(conf.ConfigFileUsed()).Remove(); err != nil {
-				zlog.Warn().Err(err).Msgf("Failed to delete the configuration file: %s.", conf.ConfigFileUsed())
+				zboth.Warn().Err(err).Msgf("Failed to delete the configuration file: %s.", conf.ConfigFileUsed())
 			}
 			zboth.Info().Msgf("%s was successfully uninstalled.", nameCLI)
 			if selectYesNo("Do you want to remove the log file as well", false) {
 				if err := workDir.Join(logFilename).Remove(); err != nil {
-					zlog.Warn().Err(err).Msgf("Failed to delete the log file: %s.", logFilename)
+					zboth.Warn().Err(err).Msgf("Failed to delete the log file: %s.", logFilename)
 				}
 			}
 		} else {

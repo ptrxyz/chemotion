@@ -6,19 +6,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _root_instance_log_all_ bool
-var _root_instance_log_service_ string
-var _root_instance_log_defaultService_ = "eln" // the service that is used as the default for printing log"
-var _root_instance_log_v_details_ bool
-var _root_instance_log_v_follow_ bool
-var _root_instance_log_v_timestamps_ bool
-var _root_instance_log_v_since_ string
-var _root_instance_log_v_until_ string
-var _root_instance_log_v_tail_ string
+var (
+	_root_instance_log_all_            bool
+	_root_instance_log_service_        string
+	_root_instance_log_defaultService_ = "eln" // the service that is used as the default for printing log"
+	_root_instance_log_v_details_      bool
+	_root_instance_log_v_follow_       bool
+	_root_instance_log_v_timestamps_   bool
+	_root_instance_log_v_since_        string
+	_root_instance_log_v_until_        string
+	_root_instance_log_v_tail_         string
+)
 
 func instanceLog(givenName, service string) {
-	name := internalName(givenName)
-	services := getServices(givenName)
+	name, services := getInternalName(givenName), getServices(givenName)
 	var logOf []string
 	if _root_instance_log_all_ {
 		logOf = services
@@ -39,10 +40,10 @@ func instanceLog(givenName, service string) {
 			args += " --timestamps"
 		}
 		if _root_instance_log_v_since_ != "" {
-			args += fmt.Sprintf("--since %s", _root_instance_log_v_until_)
+			args += fmt.Sprintf(" --since %s", _root_instance_log_v_until_)
 		}
 		if _root_instance_log_v_until_ != "" {
-			args += fmt.Sprintf("--until %s", _root_instance_log_v_until_)
+			args += fmt.Sprintf(" --until %s", _root_instance_log_v_until_)
 		}
 		if _root_instance_log_v_follow_ {
 			if _root_instance_log_all_ {
