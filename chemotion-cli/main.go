@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 Peter Krauß, .Shashank S. Harivyasi
+Copyright © 2022 Peter Krauß, Shashank S. Harivyasi
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 package main
 
-import "chemotion-cli/cmd"
+import "chemotion-cli/cli"
 
 func main() {
-	cmd.Execute()
+	cli.Execute()
 }
