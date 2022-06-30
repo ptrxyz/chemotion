@@ -19,12 +19,12 @@ jobs:
           cd  chemotion-cli
           go  mod          verify
           GOOS=linux   GOARCH=amd64 go  build -o chemotion
-          GOOS=darwin  GOARCH=arm64 go  build -o chemotion.arm.x
-          GOOS=darwin  GOARCH=amd64 go  build -o chemotion.amd.x
+          GOOS=darwin  GOARCH=arm64 go  build -o chemotion.arm.osx
+          GOOS=darwin  GOARCH=amd64 go  build -o chemotion.amd.osx
           GOOS=windows GOARCH=amd64 go  build -o chemotion.exe
           mv  chemotion ..
-          mv  chemotion.arm.x ..
-          mv  chemotion.amd.x ..
+          mv  chemotion.arm.osx ..
+          mv  chemotion.amd.osx ..
           mv  chemotion.exe ..
       - name: Release Binaries
         uses: "marvinpinto/action-automatic-releases@latest"
@@ -34,6 +34,6 @@ jobs:
           prerelease: false
           files: |
             chemotion
-            chemotion.arm.x
-            chemotion.amd.x
+            chemotion.arm.osx
+            chemotion.amd.osx
             chemotion.exe
