@@ -79,29 +79,21 @@ func instanceValidate(input string) (err error) {
 }
 
 func addressValidate(input string) (err error) {
-	err = textValidate(input)
-	protocol, address, found := strings.Cut(input, ":")
-	if found {
-		address = strings.TrimPrefix(address, "//")
-		protocol += "://"
-	}
-	if err == nil {
-		if !found || !((protocol == "http://") || (protocol == "https://")) {
-			err = fmt.Errorf("address must start with protocol i.e. as `http://` or as `https://`")
-		}
-	}
-	address, port, portGiven := strings.Cut(address, ":")
-	if err == nil {
-		if err = textValidate(address); err != nil {
-			if err.Error() == "can not accept empty value" {
-				err = fmt.Errorf("can not accept empty value for address")
+	if err = textValidate(input); err == nil {
+		protocol, address, found := strings.Cut(input, "://")
+		if found && ((protocol == "http") || (protocol == "https")) {
+			address, port, portGiven := strings.Cut(address, ":")
+			if err = textValidate(address); err == nil {
+				if portGiven {
+					if _, err = strconv.Atoi(port); err != nil {
+						err = fmt.Errorf("port must be an integer")
+					}
+				}
+			} else {
+				err = fmt.Errorf("address cannot be empty")
 			}
-		}
-	}
-	if err == nil && portGiven {
-		_, err = strconv.Atoi(port)
-		if err != nil {
-			err = fmt.Errorf("port must be an integer")
+		} else {
+			err = fmt.Errorf("address must start with protocol i.e. as `http://` or as `https://`")
 		}
 	}
 	return

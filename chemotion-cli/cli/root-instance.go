@@ -12,14 +12,18 @@ var instanceRootCmd = &cobra.Command{
 		logWhere()
 		confirmInstalled()
 		confirmInteractive()
-		acceptedOpts := []string{"status", "switch", "list", "restart", "new", "remove", "exit"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
+		acceptedOpts := []string{"status", "stats", "switch", "list", "restart", "new", "remove", "exit"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
 		switch selectOpt(acceptedOpts) {
 		case "status":
 			statusInstanceRootCmd.Run(cmd, args)
+		case "stats":
+			statInstanceRootCmd.Run(cmd, args)
+		case "logs":
+			logInstanceRootCmd.Run(cmd, args)
 		case "switch":
 			switchInstanceRootCmd.Run(cmd, args)
 		case "list":
-			listInstanceRootCmd.Run(&cobra.Command{}, []string{})
+			listInstanceRootCmd.Run(cmd, args)
 		case "restart":
 			restartInstanceRootCmd.Run(cmd, args)
 		case "new":

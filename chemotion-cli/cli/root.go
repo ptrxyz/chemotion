@@ -49,7 +49,7 @@ const (
 	instanceDefault       = "initial"
 	addressDefault        = "http://localhost"
 	selector_key          = "selected" // key that is expected in the configFile to figure out the selected instance
-	stateFile             = "./version"
+	stateFile             = "/version"
 	instancesFolder       = "instances" // the folder in which chemotion expects to find all the instances
 	virtualizer           = "Docker"
 	shell                 = "bash"    // should work with linux (ubuntu, windows < WSL runs when running in powershell >, and macOS)
@@ -57,7 +57,7 @@ const (
 	composeFilename       = "docker-compose.yml"
 	maxInstancesOfKind    = 64
 	firstPort             = 4000
-	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/release-112/release/1.1.2p220401/docker-compose.yml"
+	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/chemotion-cli/docker-compose.yml"
 	rollNum               = 1 // the default index number assigned by virtualizer to every container
 )
 
