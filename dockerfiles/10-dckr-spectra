@@ -28,7 +28,7 @@ RUN bash /root/conda.sh -p /anaconda3 -b && \
     /anaconda3/condabin/conda update -y -n base -c defaults conda && \
     /anaconda3/condabin/conda env create -f /root/environment.yml && \
     /anaconda3/condabin/conda install -c anaconda -n chem-spectra setuptools==58.0.4
-    
+
 
 # Make RUN commands use the new environment:
 SHELL ["/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra", "/bin/bash", "-c"]
@@ -49,3 +49,9 @@ WORKDIR /app
 
 ENTRYPOINT ["/tini", "--", "/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra"]
 CMD gunicorn -w 4 -b 0.0.0.0:3007 server:app
+
+LABEL "org.opencontainers.image.authors" "Chemotion Team"
+LABEL "org.opencontainers.image.title" "Chemotion Spectra"
+LABEL "org.opencontainers.image.description" "Image for Chemotion Spectra"
+LABEL "org.opencontainers.image.version" "${SPECTRA_VERSION}"
+LABEL "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"

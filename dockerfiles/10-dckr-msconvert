@@ -18,4 +18,10 @@ ENV MSC_PORT=8088
 EXPOSE 8088
 
 ENTRYPOINT ["/tini", "--"]
-CMD /bin/mscrun /bin/mscrunner.py 
+CMD /bin/mscrun /bin/mscrunner.py
+
+LABEL "org.opencontainers.image.authors" "Chemotion Team"
+LABEL "org.opencontainers.image.title" "Chemotion MSConvert"
+LABEL "org.opencontainers.image.description" "Image for the Chemotion Spectra-MSConvert sidecar container"
+LABEL "org.opencontainers.image.version" "${SPECTRA_VERSION}"
+LABEL "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
