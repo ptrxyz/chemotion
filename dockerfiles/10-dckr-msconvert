@@ -3,6 +3,7 @@
 ####################################################################################################
 FROM chambm/pwiz-skyline-i-agree-to-the-vendor-licenses as msconvert
 ARG CONVERTDIR=./spectra
+ARG MSC_PORT=8088
 
 COPY --from=base /tini /tini
 
@@ -14,13 +15,14 @@ RUN apt-get -y update && \
 RUN mkdir -p /shared && rm -rf /data && \
     ln -s /shared /data
 
-# ADD ${CONVERTDIR}/scripts/dist/flaskrun35 /bin/mscrun
 ADD ${CONVERTDIR}/scripts/mscrunner.py /app/mscrunner.py
 
 # ENV WINEDEBUG=all
+ENV MSC_PORT=${MSC_PORT}
 ENV FLASK_ENV=production
 ENV FLASK_DEBUG=0
 ENV FLASK_APP="mscrunner.py"
+EXPOSE ${MSC_PORT}
 
 ENTRYPOINT ["/tini", "--"]
 WORKDIR "/app"
