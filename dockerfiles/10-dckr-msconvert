@@ -20,8 +20,8 @@ EXPOSE 8088
 ENTRYPOINT ["/tini", "--"]
 CMD /bin/mscrun /bin/mscrunner.py
 
-LABEL "org.opencontainers.image.authors" "Chemotion Team"
-LABEL "org.opencontainers.image.title" "Chemotion MSConvert"
-LABEL "org.opencontainers.image.description" "Image for the Chemotion Spectra-MSConvert sidecar container"
-LABEL "org.opencontainers.image.version" "${SPECTRA_VERSION}"
-LABEL "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+LABEL "org.opencontainers.image.authors" "Chemotion Team" \
+    "org.opencontainers.image.title" "Chemotion MSConvert" \
+    "org.opencontainers.image.description" "Image for the Chemotion Spectra-MSConvert sidecar container" \
+    "org.opencontainers.image.version" "${SPECTRA_VERSION}" \
+    "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"

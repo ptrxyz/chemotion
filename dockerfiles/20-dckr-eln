@@ -101,8 +101,8 @@ EXPOSE 4000
 ENTRYPOINT ["/tini", "--"]
 CMD /embed/run.sh
 
-LABEL "org.opencontainers.image.authors" "Chemotion Team"
-LABEL "org.opencontainers.image.title" "Chemotion ELN"
-LABEL "org.opencontainers.image.description" "Image for the Chemotion ELN"
-LABEL "org.opencontainers.image.version" "${CHEMOTION_BUILD_TAG}"
-LABEL "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+LABEL "org.opencontainers.image.authors" "Chemotion Team" \
+    "org.opencontainers.image.title" "Chemotion ELN" \
+    "org.opencontainers.image.description" "Image for the Chemotion ELN" \
+    "org.opencontainers.image.version" "${CHEMOTION_BUILD_TAG}" \
+    "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"

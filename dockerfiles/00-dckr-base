@@ -24,7 +24,7 @@ ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
-LABEL "org.opencontainers.image.authors" "Chemotion Team"
-LABEL "org.opencontainers.image.title" "Chemotion Base"
-LABEL "org.opencontainers.image.description" "Base image for Chemotion services"
-LABEL "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+LABEL "org.opencontainers.image.authors" "Chemotion Team" \
+    "org.opencontainers.image.title" "Chemotion Base" \
+    "org.opencontainers.image.description" "Base image for Chemotion services" \
+    "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
