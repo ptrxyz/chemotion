@@ -3,11 +3,16 @@ import json
 import os
 import subprocess as sbp
 import logging
+from gevent.pywsgi import WSGIServer
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
-os.environ["WERKZEUG_RUN_MAIN"] = "true"
-port = os.getenv("MSC_PORT", "8088")
+
+# Hack to make Flask's initial banner go away.
+# This only works with werkzeug<2.1.0
+# os.environ["WERKZEUG_RUN_MAIN"] = "true"
+
+
 
 
 @app.route("/run", methods=["POST"])
@@ -26,7 +31,10 @@ def run():
 
 
 def main():
-    app.run(host="0.0.0.0", port=port, debug=False)
+    port = int(os.getenv("MSC_PORT", "8088"))
+    logging.info("Starting server on port %d" % port)
+    http_server = WSGIServer(('0.0.0.0', int(port)), app)
+    http_server.serve_forever()
     print("Good Bye.")
 
 

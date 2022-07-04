@@ -6,19 +6,25 @@ ARG CONVERTDIR=./spectra
 
 COPY --from=base /tini /tini
 
-ADD ${CONVERTDIR}/scripts/dist/flaskrun35 /bin/mscrun
-ADD ${CONVERTDIR}/scripts/mscrunner.py /bin/mscrunner.py
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
+    apt-get -y install python3-pip && \
+    pip install flask gevent
 
-RUN apt-get -y update && apt-get -y upgrade
 RUN mkdir -p /shared && rm -rf /data && \
     ln -s /shared /data
 
+# ADD ${CONVERTDIR}/scripts/dist/flaskrun35 /bin/mscrun
+ADD ${CONVERTDIR}/scripts/mscrunner.py /app/mscrunner.py
+
 # ENV WINEDEBUG=all
-ENV MSC_PORT=8088
-EXPOSE 8088
+ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
+ENV FLASK_APP="mscrunner.py"
 
 ENTRYPOINT ["/tini", "--"]
-CMD /bin/mscrun /bin/mscrunner.py
+WORKDIR "/app"
+CMD ["python3", "mscrunner.py"]
 
 LABEL "org.opencontainers.image.authors" "Chemotion Team" \
     "org.opencontainers.image.title" "Chemotion MSConvert" \
