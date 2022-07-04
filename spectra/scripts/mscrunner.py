@@ -13,6 +13,9 @@ logging.basicConfig(level=logging.DEBUG)
 # os.environ["WERKZEUG_RUN_MAIN"] = "true"
 
 
+@app.route("/ping")
+def ping():
+    return ("pong\n", 200, {"Content-Type": "text/plain"})
 
 
 @app.route("/run", methods=["POST"])
@@ -27,7 +30,7 @@ def run():
         sbp.run(cmd, timeout=10, check=True)
     except Exception as ex:
         return (str(ex), 400)
-    return (json.dumps(cmd), 200)
+    return (json.dumps(cmd), 200, {"Content-Type": "application/json"})
 
 
 def main():
