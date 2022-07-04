@@ -57,15 +57,16 @@ upload-dev:
 	$(DOCKERCMD) push ptrxyz/chemotion-build:msconvert
 
 $(ALL_STAGES): prepare
-	$(DOCKERCMD) build -f .dockerfile 		\
-		--build-arg TINI_VERSION=$${TINI_VERSION} 	\
-		--build-arg ELNDIR=./eln 					\
-		--build-arg NODEDIR=./eln 					\
-		--build-arg RUBYDIR=./eln 					\
-		--build-arg CONVERTDIR=./spectra 			\
-		--build-arg SPECTRADIR=./spectra			\
-		--target $@									\
-		-t chemotion-build:$@						\
+	$(DOCKERCMD) build -f .dockerfile 					\
+		--build-arg TINI_VERSION=$${TINI_VERSION} 		\
+		--build-arg SPECTRA_VERSION=$${SPECTRA_VERSION} \
+		--build-arg ELNDIR=./eln 						\
+		--build-arg NODEDIR=./eln 						\
+		--build-arg RUBYDIR=./eln 						\
+		--build-arg CONVERTDIR=./spectra 				\
+		--build-arg SPECTRADIR=./spectra				\
+		--target $@										\
+		-t chemotion-build:$@							\
 		.
 
 rmgather:
