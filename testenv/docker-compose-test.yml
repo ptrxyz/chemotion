@@ -50,13 +50,13 @@ services:
       - db
       - spectra
     volumes:
-      - ../eln/embed:/embed
-      - ./shared/pullin:/shared
-      - ./shared/backup:/backup
+      # - ../eln/embed:/embed
+      - /tmp/shared/pullin:/shared
+      - /tmp/shared/backup:/backup
       - chemotion_data:/chemotion/data/
       - chemotion:/chemotion/app
     ports:
-      - 4001:4000
+      - 4000:4000
 
 volumes:
   chemotion:
