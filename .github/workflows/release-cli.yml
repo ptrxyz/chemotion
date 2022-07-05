@@ -3,7 +3,7 @@ name: Release Chemotion CLI
 on:
   push:
     tags:
-      - "cli-v*"
+      - "*"
 
 jobs:
   build-release-binary:
