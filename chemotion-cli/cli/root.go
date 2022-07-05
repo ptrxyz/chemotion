@@ -41,7 +41,7 @@ import (
 )
 
 const (
-	versionCLI            = "2207.alpha"
+	versionCLI            = "v0.1.alpha"
 	versionYAML           = "1.0"
 	nameCLI               = "Chemotion"
 	defaultConfigFilepath = "chemotion-cli.yml"
