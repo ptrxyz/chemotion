@@ -2,8 +2,8 @@ name: Release Chemotion CLI
 
 on:
   push:
-    branches:
-      - chemotion-cli
+    tags:
+      - "cli-v*"
 
 jobs:
   build-release-binary:
@@ -30,7 +30,6 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
           prerelease: false
           files: |
             chemotion
