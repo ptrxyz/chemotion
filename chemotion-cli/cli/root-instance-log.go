@@ -24,7 +24,7 @@ func instanceLog(givenName, service string) {
 	if _root_instance_log_all_ {
 		logOf = services
 	} else {
-		if stringInArray(service, &services) > -1 {
+		if elementInSlice(service, &services) > -1 {
 			logOf = []string{service}
 		} else {
 			zboth.Fatal().Err(fmt.Errorf("named service not found")).Msgf("No service called %s found associated with the instance called %s.", service, givenName)

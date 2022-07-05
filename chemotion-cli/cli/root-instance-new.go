@@ -28,14 +28,14 @@ func getFreshPort(kind string) (port int) {
 		existingPorts := allPorts()
 		if kind == "Production" {
 			for i := firstPort + 100; i <= maxInstancesOfKind+(firstPort+100); i++ {
-				if intInArray(i, &existingPorts) == -1 {
+				if elementInSlice(i, &existingPorts) == -1 {
 					port = i
 					break
 				}
 			}
 		} else if kind == "Development" {
 			for i := firstPort + 200; i <= maxInstancesOfKind+(firstPort+200); i++ {
-				if intInArray(i, &existingPorts) == -1 {
+				if elementInSlice(i, &existingPorts) == -1 {
 					port = i
 					break
 				}

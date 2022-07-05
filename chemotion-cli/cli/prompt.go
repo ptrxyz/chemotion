@@ -69,7 +69,7 @@ func instanceValidate(input string) (err error) {
 	err = textValidate(input)
 	if err == nil {
 		existingInstances := allInstances()
-		if stringInArray(input, &existingInstances) > -1 {
+		if elementInSlice(input, &existingInstances) > -1 {
 			err = nil
 		} else {
 			err = fmt.Errorf("there is no instance called %s", input)

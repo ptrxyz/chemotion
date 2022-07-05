@@ -20,7 +20,7 @@ func instanceStat(givenName, service string) {
 		statOf = services
 		zboth.Info().Msgf("Printing stats for the instance called %s.", givenName)
 	} else {
-		if stringInArray(service, &services) > -1 {
+		if elementInSlice(service, &services) > -1 {
 			statOf = []string{service}
 			zboth.Info().Msgf("Printing stats for the instance-service called %s-%s.", givenName, service)
 		} else {
