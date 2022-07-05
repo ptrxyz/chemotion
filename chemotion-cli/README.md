@@ -2,6 +2,8 @@
 
 Chemotion CLI tool is there to help you manage installation(s) of Chemotion on a machine. The goal is to make installation, maintenance and upgradation of Chemotion as easy as possible.
 
+> :information_source: [Link to quick intro video](https://youtu.be/10fk2C6qku0)
+
 ## Download
 
 ### Get the binary
