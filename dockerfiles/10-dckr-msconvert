@@ -18,10 +18,11 @@ RUN mkdir -p /shared && rm -rf /data && \
 ADD ${CONVERTDIR}/scripts/mscrunner.py /app/mscrunner.py
 
 # ENV WINEDEBUG=all
-ENV MSC_PORT=${MSC_PORT}
-ENV FLASK_ENV=production
-ENV FLASK_DEBUG=0
-ENV FLASK_APP="mscrunner.py"
+ENV MSC_PORT=${MSC_PORT} \
+    FLASK_ENV=production \
+    FLASK_DEBUG=0 \
+    FLASK_APP="mscrunner.py"
+
 EXPOSE ${MSC_PORT}
 
 ENTRYPOINT ["/tini", "--"]

@@ -9,9 +9,9 @@ ARG TZ=Europe/Berlin
 RUN ln -s /usr/share/zoneinfo/${TZ} /etc/localtime
 
 # locales
-ENV LANG=en_US.UTF-8
-ENV LANGUAGE=en_US.UTF-8
-ENV LC_ALL=en_US.UTF-8
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
 RUN echo -e "LANG=${LANG}\nLC_ALL=${LANG}" > /etc/locale.conf && \
     echo "${LANG} UTF-8" > /etc/locale.gen
 

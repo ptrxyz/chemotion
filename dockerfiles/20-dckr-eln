@@ -66,10 +66,13 @@ ADD ${ELNDIR}/embed /embed
 # check dependencies: this should be done in testing step
 # RUN find /ruby/lib/ruby/gems/ /node/lib/node_modules -iname '*.so' -type f -exec /embed/bin/lddcheck \{\} \; | tee /lddlog.txt | grep not | grep -v libRD | sort | uniq
 
-ENV TERM=xterm-256color
-ENV RAILS_LOG_TO_STDOUT=1
-ENV THOR_SILENCE_DEPRECATION=1
-ENV PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY=0
+ENV TERM=xterm-256color \
+    RAILS_LOG_TO_STDOUT=1 \
+    THOR_SILENCE_DEPRECATION=1 \
+    PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY=0 \
+    RAILS_ENV=production \
+    RAKE_ENV=production \
+    NODE_ENV=production
 
 # ENV DROP_UID=1000
 # ENV DROP_GID=1000
@@ -83,15 +86,11 @@ ENV PASSENGER_DOWNLOAD_NATIVE_SUPPORT_BINARY=0
 # and the bgworker can start working. (Needs to be on a shared volume.)
 ENV CONFIG_PIDFILE=/chemotion/app/tmp/eln.pid
 
-ENV RAILS_ENV=production
-ENV RAKE_ENV=production
-ENV NODE_ENV=production
 # this line is needed due to moving config folder around (where webpacks config .js files life)
 # it avoids MODULE_NOT_FOUND errors during webpack compilation
-ENV NODE_PATH=/chemotion/app/node_modules/
-ENV NODE_OPTIONS=--max_old_space_size=4096
-
-ENV BUNDLE_USER_HOME=/ruby/bundler
+ENV NODE_PATH=/chemotion/app/node_modules/ \
+    NODE_OPTIONS=--max_old_space_size=4096 \
+    BUNDLE_USER_HOME=/ruby/bundler
 
 VOLUME /chemotion/app
 VOLUME /chemotion/data

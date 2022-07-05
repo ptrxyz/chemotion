@@ -40,10 +40,10 @@ RUN cd /app && \
 
 EXPOSE 3007
 
-ENV FLASK_ENV=production
-ENV MSC_HOST=msconvert
-ENV MSC_PORT=8088
-ENV MSC_VALIDATE=true
+ENV FLASK_ENV=production \
+    MSC_HOST=msconvert \
+    MSC_PORT=8088 \
+    MSC_VALIDATE=true
 
 WORKDIR /app
 

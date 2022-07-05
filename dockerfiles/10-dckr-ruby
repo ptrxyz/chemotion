@@ -31,12 +31,12 @@ RUN cd /tmp && cat ruby.tar.bz2 | tar xvj && \
 RUN find /ruby/bin | xargs -i ln -s {} /bin/
 RUN gem install bundler -v 1.17.3
 
-ENV BUNDLE_USER_HOME=/ruby/bundler
-ENV RAILS_ENV=production
+ENV BUNDLE_USER_HOME=/ruby/bundler \
+    RAILS_ENV=production
 
 # metadata: contains info about NODE_VERSION to use
 # package.json, yarn.lock: package info
-# package_postinstall.sh: postinstall script referenced in package.json  
+# package_postinstall.sh: postinstall script referenced in package.json
 COPY ["${RUBYDIR}/src/app/.metadata", "${RUBYDIR}/src/app/Gemfile", "${RUBYDIR}/src/app/Gemfile.lock", "${RUBYDIR}/src/app/Gemfile.plugin", "/src/"]
 RUN cd /src && MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)" \
     bundle install --jobs=$(getconf _NPROCESSORS_ONLN) # --without development test
