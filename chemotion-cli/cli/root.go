@@ -57,7 +57,7 @@ const (
 	composeFilename       = "docker-compose.yml"
 	maxInstancesOfKind    = 64
 	firstPort             = 4000
-	composeURL            = "https://raw.githubusercontent.com/ptrxyz/chemotion/chemotion-cli/docker-compose.yml"
+	composeURL            = "https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/docker-compose.yml"
 	rollNum               = 1 // the default index number assigned by virtualizer to every container
 )
 
