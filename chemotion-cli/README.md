@@ -89,5 +89,5 @@ example:    chemotion     restart    instance   MyInstance  --force
 
 - The following flags cannot be specified in the configuration (`chemotion-cli.yml`) file:
   - `--config`: because that creates a circular dependency
-  - `chemotion off`: does not lead to exit of containers with exit code 0.
+  - `chemotion off`: does not lead to exit of containers with exit code 0; ([see also](https://github.com/krallin/tini#remapping-exit-codes)).
 - Everything happens in the folder (and subfolders) of where `chemotion` is executed. All files and folders are expected to be there; otherwise failures can happen.
