@@ -45,20 +45,10 @@ func confirmInstalled() {
 	}
 }
 
-// check if a string is an array of strings, if yes, return the 1st index, else -1.
-func stringInArray(str string, strings *[]string) int {
-	for index, element := range *strings {
-		if element == str {
-			return index
-		}
-	}
-	return -1
-}
-
-// check if a int is an array of int, if yes, return the 1st index, else -1.
-func intInArray(num int, array *[]int) int {
-	for index, element := range *array {
-		if element == num {
+// check if an element is in an array of type(element), if yes, return the 1st index, else -1.
+func elementInSlice(elem any, slice *[]any) int {
+	for index, element := range *slice {
+		if element == elem {
 			return index
 		}
 	}

@@ -49,7 +49,7 @@ const (
 	instanceDefault       = "initial"
 	addressDefault        = "http://localhost"
 	selector_key          = "selected" // key that is expected in the configFile to figure out the selected instance
-	stateFile             = "/version"
+	stateFile             = "/.version"
 	instancesFolder       = "instances" // the folder in which chemotion expects to find all the instances
 	virtualizer           = "Docker"
 	shell                 = "bash"    // should work with linux (ubuntu, windows < WSL runs when running in powershell >, and macOS)

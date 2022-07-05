@@ -18,7 +18,7 @@ func instanceStatus(givenName string) (status string) {
 			if l[len(l)-1] == "(Paused)" {
 				status = "Paused"
 			}
-			if stringInArray(status, &statuses) == -1 && len(status) != 0 {
+			if elementInSlice(status, &statuses) == -1 && len(status) != 0 {
 				statuses = append(statuses, status)
 			}
 		}
