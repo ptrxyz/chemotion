@@ -15,13 +15,13 @@ func instanceRemove(givenName string) (success bool) {
 	name := getInternalName(givenName)
 	if !_root_instance_remove_force_ {
 		if instanceStatus(givenName) == "Up" {
-			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete an instance that is currently running. Please use `chemotion -i %s stop` to stop the instance.")
+			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete an instance that is currently running. Please use `chemotion -i %s stop` to stop the instance.", givenName)
+		}
+		if len(allInstances()) == 1 {
+			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the only instance. Use `chemotion advanced uninstall` to remove %s entirely", nameCLI)
 		}
 		if givenName == currentState.name {
 			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the currently selected instance. Use `chemotion switch` to switch selection to another instance before proceeding.")
-		}
-		if len(allInstances()) == 1 {
-			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the only instance. Use `chemotion advanced uninstall` remove %s entirely", nameCLI)
 		}
 	}
 	if _root_instance_remove_force_ && !(instanceStatus(givenName) == "Exited" || instanceStatus(givenName) == "Created") {
