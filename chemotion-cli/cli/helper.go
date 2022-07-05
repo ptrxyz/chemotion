@@ -46,7 +46,7 @@ func confirmInstalled() {
 }
 
 // check if an element is in an array of type(element), if yes, return the 1st index, else -1.
-func elementInSlice(elem any, slice *[]any) int {
+func elementInSlice[T int | float64 | string](elem T, slice *[]T) int {
 	for index, element := range *slice {
 		if element == elem {
 			return index
