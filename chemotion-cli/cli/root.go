@@ -128,8 +128,9 @@ func init() {
 	initLog() // in logger.go
 	// initialize flags
 	zlog.Debug().Msg("Start: init(): initialize flags")
+	rootCmd.SetVersionTemplate(fmt.Sprintln("Chemotion CLI version", versionCLI))
 	// flag 1: instance, i.e. name of the instance to operate upon
-	// terminal overrides config-file, default is `default`
+	// terminal overrides config-file, default is `initial`
 	rootCmd.PersistentFlags().StringVarP(&currentState.name, "selected-instance", "i", "", fmt.Sprintf("select an existing instance of %s when starting", nameCLI))
 	// flag 2: config, the configuration file
 	// config as a flag cannot be read from the configuration file because that creates a circular dependency, default name is hard-coded

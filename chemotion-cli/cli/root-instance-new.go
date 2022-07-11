@@ -248,7 +248,7 @@ var newInstanceRootCmd = &cobra.Command{
 func init() {
 	instanceRootCmd.AddCommand(newInstanceRootCmd)
 	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_name_, "name", instanceDefault, "Name for the new instance")
-	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_use_, "use", composeURL, "URL or filepath to use for creating the instance")
+	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_use_, "use", composeURL, "URL or filepath of the compose file to use for creating the instance")
 	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_address_, "address", addressDefault, "Web-address (or hostname) for accessing the instance")
 	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_env_, "env", "", ".env file for the new instance")
 	newInstanceRootCmd.Flags().BoolVar(&_root_instance_new_development_, "development", false, "Create a development instance")
