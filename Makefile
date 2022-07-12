@@ -38,6 +38,9 @@ tag:
 	$(DOCKERCMD) tag chemotion-build:eln ptrxyz/chemotion:eln-latest
 	$(DOCKERCMD) tag chemotion-build:spectra ptrxyz/chemotion:spectra-latest
 	$(DOCKERCMD) tag chemotion-build:msconvert ptrxyz/chemotion:msconvert-latest
+	$(DOCKERCMD) tag chemotion-build:eln ptrxyz/chemotion:eln-$(CHEMOTION_SHORT_RELEASE)
+	$(DOCKERCMD) tag chemotion-build:spectra ptrxyz/chemotion:spectra-$(CHEMOTION_SHORT_RELEASE)
+	$(DOCKERCMD) tag chemotion-build:msconvert ptrxyz/chemotion:msconvert-$(CHEMOTION_SHORT_RELEASE)
 	make -C testenv composefile
 
 upload: tag
@@ -47,6 +50,9 @@ upload: tag
 	$(DOCKERCMD) push ptrxyz/chemotion:eln-$(CHEMOTION_BUILD_RELEASE)
 	$(DOCKERCMD) push ptrxyz/chemotion:spectra-$(CHEMOTION_BUILD_RELEASE)
 	$(DOCKERCMD) push ptrxyz/chemotion:msconvert-$(CHEMOTION_BUILD_RELEASE)
+	# $(DOCKERCMD) push ptrxyz/chemotion:eln-$(CHEMOTION_SHORT_RELEASE)
+	# $(DOCKERCMD) push ptrxyz/chemotion:spectra-$(CHEMOTION_SHORT_RELEASE)
+	# $(DOCKERCMD) push ptrxyz/chemotion:msconvert-$(CHEMOTION_SHORT_RELEASE)
 
 upload-dev:
 	$(DOCKERCMD) tag chemotion-build:eln ptrxyz/chemotion-build:eln
@@ -57,16 +63,17 @@ upload-dev:
 	$(DOCKERCMD) push ptrxyz/chemotion-build:msconvert
 
 $(ALL_STAGES): prepare
-	$(DOCKERCMD) build -f .dockerfile 					\
-		--build-arg TINI_VERSION=$${TINI_VERSION} 		\
-		--build-arg SPECTRA_VERSION=$${SPECTRA_VERSION} \
-		--build-arg ELNDIR=./eln 						\
-		--build-arg NODEDIR=./eln 						\
-		--build-arg RUBYDIR=./eln 						\
-		--build-arg CONVERTDIR=./spectra 				\
-		--build-arg SPECTRADIR=./spectra				\
-		--target $@										\
-		-t chemotion-build:$@							\
+	$(DOCKERCMD) buildx build -f .dockerfile 				\
+		--build-arg TINI_VERSION=$${TINI_VERSION} 			\
+		--build-arg SPECTRA_VERSION=$${SPECTRA_VERSION} 	\
+		--build-arg ELNDIR=./eln 							\
+		--build-arg NODEDIR=./eln 							\
+		--build-arg RUBYDIR=./eln 							\
+		--build-arg CONVERTDIR=./spectra 					\
+		--build-arg SPECTRADIR=./spectra					\
+		--target $@											\
+		-t chemotion-build:$@								\
+		-t chemotion-build/$@:$${CHEMOTION_SHORT_RELEASE}	\
 		.
 
 rmgather:
