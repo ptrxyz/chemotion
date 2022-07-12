@@ -111,10 +111,10 @@ Following features are exist:
 - ✔ Installation & Deployment: `chemotion install` installs a production instance that is ready to use.
 - ✔ Instance life cycle commands: `chemotion on|off` and `chemotion instance status|stats|list|restart`.
 - ✔ Multiple instances: `chemotion instance add|switch|remove` can be used to manage multiple instances.
+- ✔ Upgrade: use `chemotion instance upgrade` to upgrade an existing Chemotion instance
 
 Following features are planned:
 
-- Upgrade: use `chemotion instance upgrade` to upgrade an existing Chemotion instance
 - Backups: `chemotion snapshot create|restore` to savely store your data somewhere
 - Manage Settings: `chemotion instance settings --import|--export` to import/export settings and to run auto-configuring wizards.
 - Frequently asked for features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`, `chemotion system info|rails-shell|shell`

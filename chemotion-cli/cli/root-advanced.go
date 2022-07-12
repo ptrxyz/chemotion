@@ -8,6 +8,7 @@ import (
 var advancedRootCmd = &cobra.Command{
 	Use:   "advanced {info|uninstall}",
 	Short: "Perform advanced actions related to system and " + nameCLI,
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		logWhere()
 		confirmInstalled()
