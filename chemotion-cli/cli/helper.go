@@ -111,7 +111,7 @@ func getNewUniqueID() string {
 func downloadFile(fileURL string, downloadLocation string) (filepath pathlib.Path) {
 	if resp, err := grab.Get(downloadLocation, fileURL); err == nil {
 		zboth.Info().Msgf("Downloaded file saved as: %s", resp.Filename)
-		filepath = *pathlib.NewPath(downloadLocation).Join(resp.Filename)
+		filepath = *pathlib.NewPath(resp.Filename)
 	} else {
 		zboth.Fatal().Err(err).Msgf("Failed to download file from: %s. Check log. ABORT!", fileURL)
 	}
