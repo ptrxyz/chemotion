@@ -15,8 +15,6 @@ var instanceRootCmd = &cobra.Command{
 		confirmInteractive()
 		acceptedOpts := []string{"status", "stats", "logs", "switch", "backup", "upgrade", "list", "restart", "new", "remove", "exit"} //, "status", "upgrade", "switch", "start", "pause", "stop", "restart", "delete"}
 		switch selectOpt(acceptedOpts) {
-		case "status":
-			statusInstanceRootCmd.Run(cmd, args)
 		case "stats":
 			statInstanceRootCmd.Run(cmd, args)
 		case "logs":
