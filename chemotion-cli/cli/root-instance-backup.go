@@ -25,7 +25,7 @@ func instanceBackup(givenName string) {
 	}
 	status := instanceStatus(givenName)
 	if successStart := callVirtualizer("compose start eln"); successStart {
-		if successCurl := callVirtualizer("compose exec eln curl https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/chemotion-cli/payload/backup.sh --output /embed/scripts/backup.sh1"); successCurl {
+		if successCurl := callVirtualizer("compose exec eln curl https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/chemotion-cli/payload/backup.sh --output /embed/scripts/backup.sh"); successCurl {
 			if successBackUp := callVirtualizer("compose exec --env BACKUP_WHAT=" + portion + " eln chemotion backup"); successBackUp {
 				zboth.Info().Msgf("Backup successful.")
 			} else {
