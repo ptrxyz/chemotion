@@ -15,6 +15,8 @@ The Chemotion CLI tool is a binary file and needs no installation. The only prer
 - macOS, apple-silicon
 - macOS, amd64
 
+Please be sure that you have both, `docker` and `docker compose` commands. This should be the case if you install Docker Desktop following the instructions [here](https://docs.docker.com/desktop/#download-and-install). If you choose to install only Docker Engine, then please make sure that you _also_ have `docker compose` as a command (as opposed to `docker-compose`).
+
 ### Make it an executable
 
 On Linux, make this file executable by doing: `chmod u+x chemotion`.
