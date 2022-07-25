@@ -2,29 +2,34 @@ package cli
 
 import (
 	"github.com/spf13/cobra"
+	"golang.org/x/exp/maps"
 )
+
+var advancedCmdTable = make(cmdTable)
 
 // Backbone for system-related commands
 var advancedRootCmd = &cobra.Command{
-	Use:   "advanced {info|uninstall}",
-	Short: "Perform advanced actions related to system and " + nameCLI,
-	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		confirmInteractive()
-		acceptedOpts := []string{"info", "pull image", "uninstall", "exit"}
-		selected := selectOpt(acceptedOpts)
-		switch selected {
-		case "info":
-			infoAdvancedRootCmd.Run(cmd, args)
-		case "pull image":
-			pullimageAdvancedRootCmd.Run(cmd, args)
-		case "uninstall":
-			uninstallAdvancedRootCmd.Run(cmd, args)
-		case "exit":
-			zlog.Debug().Msg("Chose to exit")
+	Use:       "advanced",
+	Short:     "Perform advanced actions related to system and " + nameCLI,
+	ValidArgs: maps.Keys(advancedCmdTable),
+	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
+		if cmd.Flag("selected-instance").Changed {
+			zboth.Warn().Msgf("The `-i` flag is not supported for the `advanced` command and its subcommands.")
 		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		isInteractive(true)
+		acceptedOpts := []string{"info", "pull image", "uninstall"}
+		if cmd.Use == cmd.CalledAs() { // || elementInSlice(cmd.CalledAs(), &cmd.Aliases) > -1 { { // there are no aliases at the moment
+			acceptedOpts = append(acceptedOpts, "exit")
+		} else {
+			acceptedOpts = append(acceptedOpts, []string{"back", "exit"}...)
+			advancedCmdTable["back"] = cmd.Run
+		}
+		advancedCmdTable["info"] = infoAdvancedRootCmd.Run
+		advancedCmdTable["pull image"] = pullimageAdvancedRootCmd.Run
+		advancedCmdTable["uninstall"] = uninstallAdvancedRootCmd.Run
+		advancedCmdTable[selectOpt(acceptedOpts, "")](cmd, args)
 	},
 }
 

@@ -8,14 +8,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _instance_upgrade_use_ string
-
 func instanceUpgrade(givenName, use string) {
 	// first read the new compose file
 	tempCompose := getCompose(use)
 	name := getInternalName(givenName)
 	// back up old compose file
-	oldComposeFile := workDir.Join(instancesFolder, name, defaultComposeFilename)
+	oldComposeFile := workDir.Join(instancesWord, name, defaultComposeFilename)
 	oldCompose := getCompose(oldComposeFile.String())
 	// for some reason (no idea why), labels must be set before port
 	setUniqueLabels(&tempCompose, name)
@@ -33,8 +31,8 @@ func instanceUpgrade(givenName, use string) {
 		}
 	}
 	if success {
-		oldComposeFile.Rename(workDir.Join(instancesFolder, name, strconv.FormatInt(time.Now().Unix(), 10)+".old."+defaultComposeFilename))
-		if err := tempCompose.WriteConfigAs(workDir.Join(instancesFolder, name, defaultComposeFilename).String()); err == nil {
+		oldComposeFile.Rename(workDir.Join(instancesWord, name, strconv.FormatInt(time.Now().Unix(), 10)+".old."+defaultComposeFilename))
+		if err := tempCompose.WriteConfigAs(workDir.Join(instancesWord, name, defaultComposeFilename).String()); err == nil {
 			commandStr := fmt.Sprintf("compose -f %s up --no-start", defaultComposeFilename)
 			zboth.Info().Msgf("Starting %s with command: %s", virtualizer, commandStr)
 			if _, worked, _ := gotoFolder(givenName), callVirtualizer(commandStr), gotoFolder("workdir"); !worked {
@@ -50,20 +48,22 @@ var upgradeInstanceRootCmd = &cobra.Command{
 	Use:   "upgrade",
 	Args:  cobra.NoArgs,
 	Short: "Upgrade (the selected) instance of " + nameCLI,
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		if instanceStatus(currentState.name) == "Up" {
+	Run: func(cmd *cobra.Command, _ []string) {
+		if instanceStatus(currentInstance) == "Up" {
 			zboth.Fatal().Err(fmt.Errorf("upgrade fail; instance is up")).Msgf("Cannot upgrade an instance that is currently running. Please turn it off before continuing.")
 		} else {
-			if selectYesNo("Please be sure to backup before proceeding. Continue", false) {
-				instanceUpgrade(currentState.name, _instance_upgrade_use_)
+			upgrade := true
+			if isInteractive(false) {
+				upgrade = selectYesNo("Please be sure to backup before proceeding. Continue", false)
+			}
+			if upgrade {
+				instanceUpgrade(currentInstance, cmd.Flag("use").Value.String())
 			}
 		}
 	},
 }
 
 func init() {
-	upgradeInstanceRootCmd.Flags().StringVar(&_instance_upgrade_use_, "use", composeURL, "URL or filepath of the compose file to use for upgrading")
+	upgradeInstanceRootCmd.Flags().String("use", composeURL, "URL or filepath of the compose file to use for upgrading")
 	instanceRootCmd.AddCommand(upgradeInstanceRootCmd)
 }

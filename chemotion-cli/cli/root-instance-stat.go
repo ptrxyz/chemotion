@@ -7,18 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	_root_instance_stat_all_ bool
-)
-
 func instanceStatus(givenName string) (status string) {
 	out := getColumn(givenName, "Status")
 	var statuses []string
 	for _, line := range out { // determine what are the status messages for all associated containers
 		l := strings.Split(line, " ") // use only the first word
 		if len(l) > 0 {
-			status := l[0] // use only the first word
-			if l[len(l)-1] == "(Paused)" {
+			status := l[0]                 // use only the first word
+			if l[len(l)-1] == "(Paused)" { // use this if the last word is Paused
 				status = "Paused"
 			}
 			if elementInSlice(status, &statuses) == -1 && len(status) != 0 {
@@ -68,21 +64,25 @@ var statInstanceRootCmd = &cobra.Command{
 	Aliases: []string{"stats", "status"},
 	Args:    cobra.NoArgs,
 	Short:   "Get status and status of an instance of " + nameCLI,
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		if _root_instance_stat_all_ {
-			for _, instance := range allInstances() {
-				status := instanceStatus(instance)
-				zboth.Info().Msgf("The status of %s is: %s.", instance, status)
+	Run: func(cmd *cobra.Command, _ []string) {
+		if ownCall(cmd) && toBool(cmd.Flag("all").Value.String()) {
+			instances := allInstances()
+			if len(instances) == 1 {
+				zboth.Info().Msgf("You have only one instance of %s. Ignoring the `--all` flag.", nameCLI)
+				instanceStat(currentInstance)
+			} else {
+				for _, instance := range instances {
+					status := instanceStatus(instance)
+					zboth.Info().Msgf("The status of %s is: %s.", instance, status)
+				}
 			}
 		} else {
-			instanceStat(currentState.name)
+			instanceStat(currentInstance)
 		}
 	},
 }
 
 func init() {
 	instanceRootCmd.AddCommand(statInstanceRootCmd)
-	statInstanceRootCmd.Flags().BoolVar(&_root_instance_stat_all_, "all", false, "show the status of all instances")
+	statInstanceRootCmd.Flags().Bool("all", false, "show the status of all instances")
 }

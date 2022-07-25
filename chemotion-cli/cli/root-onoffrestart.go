@@ -10,17 +10,11 @@ func instanceStart(givenName string) {
 		zboth.Warn().Msgf("The instance called %s is already running.", givenName)
 	} else {
 		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose up -d"), gotoFolder("workdir"); success {
-			var (
-				seconds int
-				ft      string
-			)
-			if seconds = 20; status == "Created" {
-				seconds = 60
+			seconds := 40
+			if status == "Exited" {
+				seconds = 20
 			}
-			if firstRun {
-				ft = " for the first time"
-			}
-			zboth.Info().Msgf("Starting instance called %s. Please give it %d seconds to initialize%s.", givenName, seconds, ft)
+			zboth.Info().Msgf("Starting instance called %s. Please give it %d seconds to initialize.", givenName, seconds)
 			waitProgressBar(seconds, []string{"Starting", givenName})
 			zboth.Info().Msgf("Successfully started instance called %s.", givenName)
 		} else {
@@ -42,29 +36,41 @@ func instanceStop(givenName string) {
 	}
 }
 
-var onRootCmd = &cobra.Command{
-	Use:   "on",
+func instanceRestart(givenName string) {
+	instanceStop(givenName)
+	instanceStart(givenName)
+}
+
+var restartRootCmd = &cobra.Command{
+	Use:   "restart [-i <instance_name>]",
 	Args:  cobra.NoArgs,
-	Short: "Start (the selected instance of) chemotion",
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		instanceStart(currentState.name)
+	Short: "Restart the selected instance of " + nameCLI,
+	Run: func(_ *cobra.Command, _ []string) {
+		instanceRestart(currentInstance)
+	},
+	// TODO: add a force restart flag
+}
+
+var onRootCmd = &cobra.Command{
+	Use:   "on [-i <instance_name>]",
+	Args:  cobra.NoArgs,
+	Short: "Start the selected instance of " + nameCLI,
+	Run: func(_ *cobra.Command, _ []string) {
+		instanceStart(currentInstance)
 	},
 }
 
 var offRootCmd = &cobra.Command{
-	Use:   "off",
+	Use:   "off [-i <instance_name>]",
 	Args:  cobra.NoArgs,
-	Short: "Stop (the selected instance of) chemotion",
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		instanceStop(currentState.name)
+	Short: "Stop the selected instance of " + nameCLI,
+	Run: func(_ *cobra.Command, _ []string) {
+		instanceStop(currentInstance)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(onRootCmd)
 	rootCmd.AddCommand(offRootCmd)
+	rootCmd.AddCommand(restartRootCmd)
 }

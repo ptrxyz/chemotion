@@ -6,27 +6,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var _advanced_pull_use_ string
+func advancedPullImage(use string) {
+	tempCompose := getCompose(use)
+	services := getSubHeadings(&tempCompose, "services")
+	if len(services) == 0 {
+		zboth.Warn().Err(fmt.Errorf("no services found")).Msgf("Please check that %s is a valid compose file with named services.", tempCompose.ConfigFileUsed())
+	}
+	for _, service := range services {
+		zboth.Info().Msgf("Pulling image for the service called %s", service)
+		if success := callVirtualizer(fmt.Sprintf("pull %s", tempCompose.GetString(joinKey("services", service, "image")))); !success {
+			zboth.Warn().Err(fmt.Errorf("pull failed")).Msgf("Failed to pull image for the service called %s", service)
+		}
+	}
+}
 
 var pullimageAdvancedRootCmd = &cobra.Command{
 	Use:   "pull-image",
 	Args:  cobra.NoArgs,
 	Short: fmt.Sprintf("pull latest image of %s from the internet", nameCLI),
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		tempCompose := getCompose(_advanced_pull_use_)
-		services := getSubHeadings(&tempCompose, "services")
-		for _, service := range services {
-			zboth.Info().Msgf("Pulling image for the service called %s", service)
-			if success := callVirtualizer(fmt.Sprintf("pull %s", tempCompose.GetString(joinKey("services", service, "image")))); !success {
-				zboth.Warn().Err(fmt.Errorf("pull failed")).Msgf("Failed to pull image for the service called %s", service)
-			}
+	Run: func(cmd *cobra.Command, _ []string) {
+		var use string
+		if ownCall(cmd) {
+			use = cmd.Flag("use").Value.String()
+		} else {
+			use = composeURL
 		}
+		zboth.Info().Msgf("Using compose file from: %s", use)
+		advancedPullImage(use)
 	},
 }
 
 func init() {
-	pullimageAdvancedRootCmd.Flags().StringVar(&_advanced_pull_use_, "use", composeURL, "URL or filepath of the compose file to use when pulling the instance")
+	pullimageAdvancedRootCmd.Flags().String("use", composeURL, "URL or filepath of the compose file to use when pulling the instance")
 	advancedRootCmd.AddCommand(pullimageAdvancedRootCmd)
 }

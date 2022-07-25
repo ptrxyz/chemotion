@@ -1,13 +1,16 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
 func instanceSwitch(givenName string) {
-	conf.Set(selector_key, givenName)
-	if err := conf.WriteConfig(); err == nil {
-		zboth.Info().Msgf("Modified configuration file %s.", conf.ConfigFileUsed())
+	conf.Set(selectorWord, givenName)
+	if err := rewriteConfig(); err == nil {
+		currentInstance = givenName
+		zboth.Info().Msgf("Instance being managed switched to %s%s%s%s.", string("\033[31m"), string("\033[1m"), currentInstance, string("\033[0m"))
 	} else {
 		zboth.Fatal().Err(err).Msgf("Failed to update the selected instance.")
 	}
@@ -16,22 +19,23 @@ func instanceSwitch(givenName string) {
 var switchInstanceRootCmd = &cobra.Command{
 	Use:   "switch",
 	Short: "Switch to an instance of " + nameCLI,
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
-		if currentState.quiet {
-			if cmd.Flags().Lookup("selected-instance").Changed { // this implies a non-interactive run
-				instanceSwitch(currentState.name)
+	Run: func(cmd *cobra.Command, _ []string) {
+		if len(allInstances()) == 1 {
+			zboth.Fatal().Err(fmt.Errorf("only one instance")).Msgf("You cannot switch because you only have one instance.")
+
+		}
+		if ownCall(cmd) {
+			if cmd.Flag("selected-instance").Changed {
+				instanceSwitch(cmd.Flag("selected-instance").Value.String())
+			} else {
+				isInteractive(true)
+				instanceSwitch(selectInstance("switch to"))
 			}
 		} else {
-			confirmInteractive()
-			if cmd.Flags().Lookup("selected-instance").Changed {
-				if selectYesNo("Confirm switching selected instance to "+currentState.name, false) {
-					instanceSwitch(currentState.name)
-				}
+			if isInteractive(false) {
+				instanceSwitch(selectInstance("switch to"))
 			} else {
-				currentState.name = selectInstance("switch to")
-				instanceSwitch(currentState.name)
+				zboth.Fatal().Err(fmt.Errorf("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
 			}
 		}
 	},

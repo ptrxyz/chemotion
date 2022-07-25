@@ -12,14 +12,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-var (
-	_root_instance_new_name_        string
-	_root_instance_new_use_         string
-	_root_instance_new_development_ bool
-	_root_instance_new_address_     string
-	_root_instance_new_env_         string
-)
-
 // helper function to get a compose file
 func getCompose(use string) (compose viper.Viper) {
 	var (
@@ -67,72 +59,90 @@ func setUniqueLabels(compose *viper.Viper, name string) {
 }
 
 // helper function to get a fresh (unassigned port)
-func getFreshPort(kind string) (port int) {
+func getFreshPort(kind string) (port uint) {
 	if firstRun {
 		port = firstPort
 	} else {
 		existingPorts := allPorts()
 		if kind == "Production" {
-			for i := firstPort + 100; i <= maxInstancesOfKind+(firstPort+100); i++ {
+			for i := firstPort + 101; i <= maxInstancesOfKind+(firstPort+101); i++ {
 				if elementInSlice(i, &existingPorts) == -1 {
 					port = i
 					break
 				}
 			}
 		} else if kind == "Development" {
-			for i := firstPort + 200; i <= maxInstancesOfKind+(firstPort+200); i++ {
+			for i := firstPort + 201; i <= maxInstancesOfKind+(firstPort+201); i++ {
 				if elementInSlice(i, &existingPorts) == -1 {
 					port = i
 					break
 				}
 			}
 		}
-		if port == (firstPort+100)+maxInstancesOfKind || port == (firstPort+200)+maxInstancesOfKind {
+		if port == (firstPort+101)+maxInstancesOfKind || port == (firstPort+201)+maxInstancesOfKind {
 			zboth.Fatal().Err(fmt.Errorf("max instances")).Msgf("A maximum of %d instances of %s are allowed. Please contact us if you hit this limit.", maxInstancesOfKind, nameCLI)
 		}
 	}
 	return
 }
 
-func instanceCreate(givenName string, use string, kind string, givenAddress string) (success bool) {
-	if err := newInstanceValidate(givenName); err != nil {
+func readEnv(filepath string) (env *viper.Viper) {
+	env = viper.New()
+	env.SetConfigType("env")
+	if filepath == "" {
+		env.SetConfigFile(".env")
+	} else {
+		env.SetConfigFile(filepath)
+		if err := env.ReadInConfig(); err != nil {
+			zboth.Fatal().Err(err).Msgf("Failed to parse the supplied .env file.")
+		}
+	}
+	return
+}
+
+func instanceCreateDevelopment(cmd *cobra.Command) (success bool) {
+	zboth.Fatal().Err(fmt.Errorf("not implemented")).Msgf("This feature is currently under development.")
+	if err := newInstanceValidate(cmd.Flag("name").Value.String()); err != nil {
+		zboth.Fatal().Err(err).Msgf("Given instance name is invalid because %s.", err.Error())
+	}
+	return false
+}
+
+func instanceCreateProduction(cmd *cobra.Command) (success bool) {
+	if err := newInstanceValidate(cmd.Flag("name").Value.String()); err != nil {
 		zboth.Fatal().Err(err).Msgf("Given instance name is invalid because %s.", err.Error())
 	}
 	var (
-		port     int
+		port uint
+		// expose   uint
 		protocol string
 		address  string
 		env      *viper.Viper
 	)
-	env = viper.New()
-	env.SetConfigType("env")
-	if _root_instance_new_env_ != "" {
-		env.SetConfigFile(_root_instance_new_env_)
-		if err := env.ReadInConfig(); err != nil {
-			zboth.Fatal().Err(err).Msgf("Failed to parse the supplied .env file.")
-		}
-		if env.InConfig("URL_PROTOCOL") && env.InConfig("URL_HOST") {
-			if givenAddress == addressDefault {
-				givenAddress = env.GetString("URL_PROTOCOL") + "://" + env.GetString("URL_HOST")
-			} else {
-				zboth.Warn().Msgf("It seems you have `address` set in .env file as well as via the --address flag. The value in the given .env file will be overwritten.")
-			}
+	givenAddress := cmd.Flag("address").Value.String()
+	givenName := cmd.Flag("name").Value.String()
+	env = readEnv(cmd.Flag("env").Value.String())
+	if env.InConfig("URL_PROTOCOL") && env.InConfig("URL_HOST") {
+		if cmd.Flag("address").Changed {
+			zboth.Warn().Msgf("It seems you have `address` set in .env file as well as via the --address flag. The value in the given .env file will be overwritten.")
+		} else {
+			givenAddress = env.GetString("URL_PROTOCOL") + "://" + env.GetString("URL_HOST")
 		}
 	}
 	protocol, address, port = splitAddress(givenAddress)
 	if address != "localhost" && (protocol == "http" && port == 443) || (protocol == "https" && port == 80) {
 		zboth.Warn().Err(fmt.Errorf("port mismatch")).Msgf("You have chosen port %d for protocol %s. This is generally a very bad idea.", port, protocol)
-		if !currentState.quiet {
+		if isInteractive(false) {
 			if !selectYesNo("Continue still", false) {
 				zboth.Info().Msgf("Operation cancelled")
 				os.Exit(2)
 			}
 		}
 	}
-	if port == -1 { // i.e. a port was not suggested by the user
+	if port == 0 { // i.e. a port was not suggested by the user
 		if address == "localhost" {
-			port = getFreshPort(kind)
-			givenAddress += ":" + strconv.Itoa(port)
+			port = getFreshPort("Production")
+			givenAddress += ":" + strconv.Itoa(int(port))
 		} else {
 			if protocol == "http" {
 				port = 80
@@ -143,7 +153,7 @@ func instanceCreate(givenName string, use string, kind string, givenAddress stri
 	} else {
 		if address == "localhost" {
 			zboth.Warn().Err(fmt.Errorf("localhost && port suggested")).Msgf("You suggested a port while running on localhost. We strongly recommend that you use the default schema i.e. do not assign a specific port.")
-			if !currentState.quiet {
+			if isInteractive(false) {
 				if !selectYesNo("Continue still", false) {
 					zboth.Info().Msgf("Operation cancelled")
 					os.Exit(2)
@@ -157,24 +167,24 @@ func instanceCreate(givenName string, use string, kind string, givenAddress stri
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
 		conf.Set("version", versionYAML)
-		conf.Set(selector_key, givenName)
+		conf.Set(selectorWord, givenName)
+		conf.Set(joinKey(stateWord, "quiet"), false)
+		conf.Set(joinKey(stateWord, "debug"), false)
 	}
-	conf.Set(joinKey("instances", givenName, "name"), name)
-	conf.Set(joinKey("instances", givenName, "kind"), kind)
-	conf.Set(joinKey("instances", givenName, "quiet"), false)
-	conf.Set(joinKey("instances", givenName, "debug"), kind == "Development")
-	conf.Set(joinKey("instances", givenName, "protocol"), protocol)
-	conf.Set(joinKey("instances", givenName, "address"), address)
-	conf.Set(joinKey("instances", givenName, "port"), port)
+	conf.Set(joinKey(instancesWord, givenName, "name"), name)
+	conf.Set(joinKey(instancesWord, givenName, "kind"), "Production")
+	conf.Set(joinKey(instancesWord, givenName, "protocol"), protocol)
+	conf.Set(joinKey(instancesWord, givenName, "address"), address)
+	conf.Set(joinKey(instancesWord, givenName, "port"), port)
 	// get the compose file for the instance
-	compose := getCompose(use)
+	compose := getCompose(cmd.Flag("use").Value.String())
 	// for some reason (no idea why), labels must be set before port
 	setUniqueLabels(&compose, name)
 	// set the port in the compose file
 	compose.Set(joinKey("services", "eln", "ports"), []string{fmt.Sprintf("%d:4000", port)})
 	zboth.Info().Msgf("Creating a new instance of %s called %s.", nameCLI, name)
 	// make folder
-	if err := workDir.Join(instancesFolder, name).MkdirAll(); err != nil {
+	if err := workDir.Join(instancesWord, name).MkdirAll(); err != nil {
 		zboth.Fatal().Err(err).Msgf("Unable to create folder to store instances of %s.", nameCLI)
 	}
 	if _, err, _ := gotoFolder(givenName), compose.WriteConfigAs(defaultComposeFilename), gotoFolder("workdir"); err == nil {
@@ -190,13 +200,13 @@ func instanceCreate(givenName string, use string, kind string, givenAddress stri
 		zboth.Fatal().Err(err).Msgf("Failed to write the compose file to its repective folder. This is necessary for future use.")
 	}
 	// write env file into the container
-	envFile := workDir.Join(instancesFolder, name, ".env")
+	envFile := workDir.Join(instancesWord, name, ".env")
 	env.SetConfigFile(envFile.String())
 	env.Set("URL_HOST", strings.TrimPrefix(givenAddress, protocol+"://"))
 	env.Set("URL_PROTOCOL", protocol)
 	if err := env.WriteConfig(); err == nil {
-		modifyContainer(givenName, []string{"mkdir -p", "shared/pullin"})
-		if worked := modifyContainer(givenName, []string{"cp", ".env", "shared/pullin"}); !worked {
+		modifyContainer(givenName, "mkdir -p", "shared/pullin", "")
+		if worked := modifyContainer(givenName, "cp", ".env", "shared/pullin/."); !worked {
 			success = worked
 			zboth.Warn().Msgf("Failed to write .env file in `%s/shared/pullin`", name)
 		}
@@ -204,24 +214,31 @@ func instanceCreate(givenName string, use string, kind string, givenAddress stri
 		zboth.Warn().Err(err).Msgf("Failed to write .env file")
 	}
 	envFile.Remove()
-	zboth.Info().Msgf("Successfully created the container called . New %s port available at %d.", nameCLI, port)
+	zboth.Info().Msgf("Successfully created the instance called %s. New %s port available at %d.", givenName, nameCLI, port)
 	// now modify the config file
-	if err := conf.WriteConfig(); err == nil {
-		zboth.Info().Msgf("Written config file: %s.", conf.ConfigFileUsed())
-	} else {
+	if err := rewriteConfig(); err != nil {
 		zboth.Fatal().Err(err).Msg("Failed to write config file. Check log. ABORT!")
 	}
 	return success
 }
 
-func newInstanceInteraction() (create bool) {
-	create = selectYesNo("Installation process may download containers (of multiple GBs) and can take some time. Continue", true)
+func newInstanceInteraction(cmd *cobra.Command) (create bool) {
+	create = true
+	if firstRun || !ownCall(cmd) { // don't ask if the command is run directly i.e. without the menu
+		create = selectYesNo("Installation process may download containers (of multiple GBs) and can take some time. Continue", true)
+	}
 	if create {
-		if _root_instance_new_name_ == instanceDefault { // i.e user has not changed it by passing an argument
-			_root_instance_new_name_ = getString("Please enter the name of the instance you want to create", newInstanceValidate)
+		if ownCall(cmd) && !cmd.Flag("name").Changed { // i.e user has not changed it by passing an argument
+			if err := cmd.Flag("name").Value.Set(getString("Please enter the name of the instance you want to create", newInstanceValidate)); err != nil {
+				zboth.Warn().Err(err).Msgf("Failed to allocate given value. It will be ignored.")
+			}
 		}
-		if _root_instance_new_env_ == "" && _root_instance_new_address_ == addressDefault && selectYesNo("Is this instance running on a web-server?", false) { // i.e user has not changed it by passing an argument
-			_root_instance_new_address_ = getString("Please enter the web-address e.g. https://chemotion.uni.de:125", addressValidate)
+		if ownCall(cmd) && (!cmd.Flag("env").Changed && !cmd.Flag("address").Changed) { // i.e user has not changed it by passing an argument
+			if selectYesNo("Is this instance running on a web-server?", false) {
+				if err := cmd.Flag("address").Value.Set(getString("Please enter the web-address e.g. https://chemotion.uni.de:125", addressValidate)); err != nil {
+					zboth.Warn().Err(err).Msgf("Failed to allocate given value. It will be ignored.")
+				}
+			}
 		}
 	} else {
 		zboth.Info().Msgf("Installation cancelled.")
@@ -234,25 +251,23 @@ var newInstanceRootCmd = &cobra.Command{
 	Use:   "new",
 	Args:  cobra.NoArgs,
 	Short: "Create a new instance of " + nameCLI,
-	Run: func(cmd *cobra.Command, args []string) {
-		logWhere()
-		confirmInstalled()
+	Run: func(cmd *cobra.Command, _ []string) {
 		create := true
-		kind := "Production"
-		if _root_instance_new_development_ {
-			kind = "Development"
-		}
-		if !currentState.quiet {
-			confirmInteractive()
-			create = newInstanceInteraction()
-			if create && !_root_instance_new_development_ { // i.e. the flag was not set
-				fmt.Println("What kind of instance do you want?")
-				kind = selectOpt([]string{"Production", "Development"})
+		if isInteractive(true) {
+			create = newInstanceInteraction(cmd)
+			if create && ownCall(cmd) && !cmd.Flag("development").Changed { // i.e. the flag was not set
+				cmd.Flag("development").Value.Set(strconv.FormatBool(!selectYesNo("Do you want a Production instance", true)))
 			}
 		}
 		if create {
-			if success := instanceCreate(_root_instance_new_name_, _root_instance_new_use_, kind, _root_instance_new_address_); success {
-				zboth.Info().Msg("Successfully created the new instance")
+			if toBool(cmd.Flag("development").Value.String()) {
+				if success := instanceCreateDevelopment(cmd); success {
+					zboth.Info().Msg("Successfully created a new development instance.")
+				}
+			} else {
+				if success := instanceCreateProduction(cmd); success {
+					zboth.Info().Msg("Successfully created a new production instance.")
+				}
 			}
 		}
 	},
@@ -260,9 +275,10 @@ var newInstanceRootCmd = &cobra.Command{
 
 func init() {
 	instanceRootCmd.AddCommand(newInstanceRootCmd)
-	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_name_, "name", instanceDefault, "Name for the new instance")
-	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_use_, "use", composeURL, "URL or filepath of the compose file to use for creating the instance")
-	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_address_, "address", addressDefault, "Web-address (or hostname) for accessing the instance")
-	newInstanceRootCmd.Flags().StringVar(&_root_instance_new_env_, "env", "", ".env file for the new instance")
-	newInstanceRootCmd.Flags().BoolVar(&_root_instance_new_development_, "development", false, "Create a development instance")
+	newInstanceRootCmd.Flags().String("name", instanceDefault, "Name for the new instance")
+	newInstanceRootCmd.Flags().String("use", composeURL, "URL or filepath of the compose file to use for creating the instance")
+	newInstanceRootCmd.Flags().String("address", addressDefault, "Web-address (or hostname) for accessing the instance")
+	newInstanceRootCmd.Flags().String("env", "", ".env file for the new instance")
+	newInstanceRootCmd.Flags().Uint("expose", 0, "port that is exposed by the instance to access it")
+	newInstanceRootCmd.Flags().Bool("development", false, "Create a development instance")
 }
