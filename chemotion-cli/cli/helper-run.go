@@ -76,7 +76,7 @@ func toBool(s string) (value bool) {
 	} else if toLower(s) == "false" {
 		value = false
 	} else {
-		err := fmt.Errorf("cannot convert %s to bool", s)
+		err := toError("cannot convert %s to bool", s)
 		zboth.Fatal().Err(err).Msgf(err.Error())
 	}
 	return
@@ -106,7 +106,7 @@ func allPorts() (ports []uint) {
 func getInternalName(givenName string) (name string) {
 	name = conf.GetString(joinKey(instancesWord, givenName, "name"))
 	if name == "" {
-		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", givenName)
+		zboth.Fatal().Err(toError("instance not found")).Msgf("No such instance: %s", givenName)
 	}
 	return
 }

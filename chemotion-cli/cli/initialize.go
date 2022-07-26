@@ -60,8 +60,7 @@ func initConf() {
 	// if changed and specified file is not found then exit
 	// otherwise set the value of configFile on viper
 	// then use the path as determined by viper and set as the value of configFile
-	if rootCmd.Flag("config-file").Changed && !existingFile(configFile) {
-		// here configFile should be same as rootCmd.Flag("config-file").Value.String()
+	if configFile != defaultConfigFilepath && !existingFile(configFile) { // the flag was set but file is missing
 		zboth.Fatal().Err(toError("specified config file not found")).Msgf("Please ensure that the file you specify using --config/-f flag does exist.")
 	}
 	conf.SetConfigFile(configFile)
@@ -72,8 +71,10 @@ func initConf() {
 		// Try and read the configuration file, then unmarshal it
 		if err := conf.ReadInConfig(); err == nil {
 			if conf.IsSet(selectorWord) && conf.IsSet(instancesWord) {
-				if errUnmarshal := conf.UnmarshalKey(selectorWord, &currentInstance); errUnmarshal != nil {
-					zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to unmarshal the mandatory key %s in the file: %s.", selectorWord, configFile)
+				if currentInstance == "" { // i.e. the flag was not set
+					if errUnmarshal := conf.UnmarshalKey(selectorWord, &currentInstance); errUnmarshal != nil {
+						zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to unmarshal the mandatory key %s in the file: %s.", selectorWord, configFile)
+					}
 				}
 				if !conf.IsSet(joinKey(instancesWord, currentInstance)) {
 					zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the description for instance `%s` in the file: %s.", currentInstance, configFile)

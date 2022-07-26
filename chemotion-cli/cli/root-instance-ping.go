@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -30,15 +29,15 @@ func instancePing(domain string) (code int, err error) {
 	return
 }
 
-// sends the URL of
+// sends the URL of a given chemotion instance
 func getURL(givenName string) string {
 	hostProtocol := conf.GetString(joinKey(instancesWord, givenName, "protocol"))
 	hostAddress := conf.GetString(joinKey(instancesWord, givenName, "address"))
 	hostPort := conf.GetString(joinKey(instancesWord, givenName, "port"))
 	if hostProtocol == "" || hostAddress == "" || hostPort == "" {
-		zboth.Fatal().Err(fmt.Errorf("key not found")).Msgf("Failed to find parts of URL for %s in %s.", givenName, conf.ConfigFileUsed())
+		zboth.Fatal().Err(toError("key not found")).Msgf("Failed to find parts of URL for %s in %s.", givenName, conf.ConfigFileUsed())
 	}
-	return fmt.Sprintf("%s://%s:%s", hostProtocol, hostAddress, hostPort)
+	return toSprintf("%s://%s:%s", hostProtocol, hostAddress, hostPort)
 }
 
 // PingCmd represents the ping command
