@@ -15,9 +15,10 @@ var instanceRootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		isInteractive(true)
 		var acceptedOpts []string
-		if elementInSlice(instanceStatus(currentInstance), &[]string{"Exited", "Created"}) == -1 {
-			acceptedOpts = []string{"stats", "logs"}
+		if elementInSlice(instanceStatus(currentInstance), &[]string{"Exited", "Created"}) == -1 { // checks if the instance is running
+			acceptedOpts = []string{"stats", "ping", "logs"}
 			instanceCmdTable["stats"] = statInstanceRootCmd.Run
+			instanceCmdTable["ping"] = pingInstanceRootCmd.Run
 		} else {
 			acceptedOpts = []string{"logs"}
 		}
