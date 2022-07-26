@@ -51,12 +51,15 @@ var upgradeInstanceRootCmd = &cobra.Command{
 		if instanceStatus(currentInstance) == "Up" {
 			zboth.Fatal().Err(toError("upgrade fail; instance is up")).Msgf("Cannot upgrade an instance that is currently running. Please turn it off before continuing.")
 		} else {
-			upgrade := true
+			upgrade, use := true, composeURL
 			if isInteractive(false) {
 				upgrade = selectYesNo("Please be sure to backup before proceeding. Continue", false)
 			}
+			if ownCall(cmd) {
+				use = cmd.Flag("use").Value.String()
+			}
 			if upgrade {
-				instanceUpgrade(currentInstance, cmd.Flag("use").Value.String())
+				instanceUpgrade(currentInstance, use)
 			}
 		}
 	},

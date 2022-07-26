@@ -74,7 +74,7 @@ var removeInstanceRootCmd = &cobra.Command{
 			}
 		}
 		if givenName == currentInstance {
-			zboth.Fatal().Err(toError("illegal operation")).Msgf("Cannot delete the currently selected instance. Use `%s %s` to switch selection to another instance before proceeding.", commandForCLI, switchInstanceRootCmd.Use)
+			zboth.Fatal().Err(toError("illegal operation")).Msgf("Cannot delete the currently selected instance. Use `%s instance %s` to switch selection to another instance before proceeding.", commandForCLI, switchInstanceRootCmd.Use)
 		}
 		status := instanceStatus(givenName)
 		if elementInSlice(status, &[]string{"Exited", "Created"}) == -1 {
