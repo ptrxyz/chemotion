@@ -11,13 +11,13 @@ import (
 // get system information
 func getSystemInfo() (info string) {
 	// CPU
-	info += fmt.Sprintf("\n- CPU Cores: %d", runtime.NumCPU())
+	info += toSprintf("\n- CPU Cores: %d", runtime.NumCPU())
 	info += getDiskSpace() // Disk Space
 	info += getMemory()    // Memory
 	// info += fmt.Sprintln("Used software versions:") // TODO: fix this
 	// printVersionOf := []string{"docker", "ruby", "passenger", "node", "npm"}
 	// for _, software := range printVersionOf {
-	// 	info += fmt.Sprintf("- %s: %s\n", strings.ToTitle(software), findVersion(software))
+	// 	info += toSprintf("- %s: %s\n", strings.ToTitle(software), findVersion(software))
 	// }
 	return
 }

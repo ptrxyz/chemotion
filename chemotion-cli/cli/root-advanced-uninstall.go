@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -15,7 +14,7 @@ func advancedUninstall(removeLogfile bool) {
 		zboth.Info().Msgf("Removing instance called %s.", inst)
 		if err := instanceRemove(inst, true); err != nil {
 			zboth.Warn().Err(err).Msgf(err.Error())
-			zboth.Fatal().Err(fmt.Errorf("uninstalled failed")).Msgf("Uninstall failed while trying to remove %s", inst)
+			zboth.Fatal().Err(toError("uninstalled failed")).Msgf("Uninstall failed while trying to remove %s", inst)
 		}
 	}
 	if err := workDir.Join(instancesWord).RemoveAll(); err != nil {
@@ -35,7 +34,7 @@ func advancedUninstall(removeLogfile bool) {
 var uninstallAdvancedRootCmd = &cobra.Command{
 	Use:   "uninstall",
 	Args:  cobra.NoArgs,
-	Short: fmt.Sprintf("uninstall %s completely", nameCLI),
+	Short: toSprintf("uninstall %s completely", nameCLI),
 	Run: func(_ *cobra.Command, _ []string) {
 		if isInteractive(false) {
 			zerolog.SetGlobalLevel(zerolog.DebugLevel) // uninstall operates in debug mode
@@ -57,7 +56,7 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 				}
 			}
 		} else {
-			zboth.Fatal().Err(fmt.Errorf("uninstall in silent mode")).Msgf("For security reasons, this command will not run in silent mode.")
+			zboth.Fatal().Err(toError("uninstall in silent mode")).Msgf("For security reasons, this command will not run in silent mode.")
 		}
 	},
 }

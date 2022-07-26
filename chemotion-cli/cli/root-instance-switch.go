@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +19,7 @@ var switchInstanceRootCmd = &cobra.Command{
 	Short: "Switch to an instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if len(allInstances()) == 1 {
-			zboth.Fatal().Err(fmt.Errorf("only one instance")).Msgf("You cannot switch because you only have one instance.")
+			zboth.Fatal().Err(toError("only one instance")).Msgf("You cannot switch because you only have one instance.")
 
 		}
 		if ownCall(cmd) {
@@ -35,7 +33,7 @@ var switchInstanceRootCmd = &cobra.Command{
 			if isInteractive(false) {
 				instanceSwitch(selectInstance("switch to"))
 			} else {
-				zboth.Fatal().Err(fmt.Errorf("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
+				zboth.Fatal().Err(toError("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
 			}
 		}
 	},

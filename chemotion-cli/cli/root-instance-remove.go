@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -13,14 +11,14 @@ func instanceRemove(givenName string, force bool) (err error) {
 		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose kill"), gotoFolder("workdir"); success {
 			zboth.Debug().Msgf("Successfully killed container of instance called %s.", givenName)
 		} else {
-			err = fmt.Errorf("failed to kill the containers associated with instance %s", givenName)
+			err = toError("failed to kill the containers associated with instance %s", givenName)
 			return
 		}
 	}
 	if _, success, _ := gotoFolder(givenName), callVirtualizer("compose down --remove-orphans --volumes"), gotoFolder("workdir"); success {
 		zboth.Debug().Msgf("Successfully removed container of instance called %s.", givenName)
 	} else {
-		err = fmt.Errorf("failed to remove the containers associated with instance %s", givenName)
+		err = toError("failed to remove the containers associated with instance %s", givenName)
 		return
 	}
 	// delete folders: shared folder and then named instance folder
@@ -29,11 +27,11 @@ func instanceRemove(givenName string, force bool) (err error) {
 		if deleteFolder := workDir.Join(instancesWord, name).RemoveAll(); deleteFolder == nil {
 			zboth.Debug().Msgf("Successfully removed named instance folder associated with %s.", givenName)
 		} else {
-			err = fmt.Errorf("failed to delete associated folder `%s` in `%s`", name, instancesWord)
+			err = toError("failed to delete associated folder `%s` in `%s`", name, instancesWord)
 			return
 		}
 	} else {
-		err = fmt.Errorf("failed to remove the `shared` associated with instance %s; you may require admin priviledges to remove it", givenName)
+		err = toError("failed to remove the `shared` associated with instance %s; you may require admin priviledges to remove it", givenName)
 		return
 	}
 	// delete entry in config
@@ -41,7 +39,7 @@ func instanceRemove(givenName string, force bool) (err error) {
 	delete(configMap, givenName)
 	conf.Set(instancesWord, configMap)
 	if err = rewriteConfig(); err != nil {
-		err = fmt.Errorf("fail to rewrite configuration file")
+		err = toError("fail to rewrite configuration file")
 	}
 	return
 }
@@ -52,7 +50,7 @@ var removeInstanceRootCmd = &cobra.Command{
 	Short: "Remove an existing instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if len(allInstances()) == 1 {
-			zboth.Fatal().Err(fmt.Errorf("only one instance")).Msgf("Cannot delete the only instance. Use `%s %s %s` remove %s entirely", commandForCLI, advancedRootCmd.Use, uninstallAdvancedRootCmd.Use, commandForCLI)
+			zboth.Fatal().Err(toError("only one instance")).Msgf("Cannot delete the only instance. Use `%s %s %s` remove %s entirely", commandForCLI, advancedRootCmd.Use, uninstallAdvancedRootCmd.Use, commandForCLI)
 		}
 		var (
 			givenName string
@@ -72,11 +70,11 @@ var removeInstanceRootCmd = &cobra.Command{
 			if isInteractive(false) {
 				givenName = selectInstance("remove")
 			} else {
-				zboth.Fatal().Err(fmt.Errorf("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
+				zboth.Fatal().Err(toError("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
 			}
 		}
 		if givenName == currentInstance {
-			zboth.Fatal().Err(fmt.Errorf("illegal operation")).Msgf("Cannot delete the currently selected instance. Use `%s %s` to switch selection to another instance before proceeding.", commandForCLI, switchInstanceRootCmd.Use)
+			zboth.Fatal().Err(toError("illegal operation")).Msgf("Cannot delete the currently selected instance. Use `%s %s` to switch selection to another instance before proceeding.", commandForCLI, switchInstanceRootCmd.Use)
 		}
 		status := instanceStatus(givenName)
 		if elementInSlice(status, &[]string{"Exited", "Created"}) == -1 {
@@ -90,7 +88,7 @@ var removeInstanceRootCmd = &cobra.Command{
 				if isInteractive(false) {
 					force = selectYesNo("Force remove", false)
 				} else {
-					zboth.Fatal().Err(fmt.Errorf("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
+					zboth.Fatal().Err(toError("unexpected operation")).Msgf("Please repeat your actions with the `--debug` flag and report this error.")
 				}
 			}
 		}
