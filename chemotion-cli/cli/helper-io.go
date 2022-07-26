@@ -4,11 +4,9 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/cavaliergopher/grab/v3"
 	"github.com/chigopher/pathlib"
-	"github.com/schollz/progressbar/v3"
 )
 
 // debug level logging of where we are running at the moment
@@ -81,20 +79,6 @@ func execShell(command string) (result []byte, err error) {
 		zboth.Warn().Err(err).Msgf("Failed execution of command: %s", command)
 	}
 	return
-}
-
-// show (and then remove) a progress bar that waits on screen for given seconds to lapse
-func waitProgressBar(seconds int, message []string) {
-	bar := progressbar.NewOptions(seconds,
-		progressbar.OptionSetDescription(strings.Join(message, " ")+"..."),
-		progressbar.OptionSetPredictTime(false),
-		progressbar.OptionClearOnFinish(),
-	)
-	for i := 0; i < seconds; i++ {
-		time.Sleep(1 * time.Second)
-		bar.Add(1)
-	}
-	bar.Finish()
 }
 
 // copy a text file
