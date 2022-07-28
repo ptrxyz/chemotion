@@ -11,6 +11,7 @@ var instanceRootCmd = &cobra.Command{
 	Use:       "instance",
 	Aliases:   []string{"i"},
 	ValidArgs: maps.Keys(instanceCmdTable),
+	Args:      cobra.NoArgs,
 	Short:     "Manipulate instances of " + nameCLI,
 	Run: func(cmd *cobra.Command, args []string) {
 		isInteractive(true)

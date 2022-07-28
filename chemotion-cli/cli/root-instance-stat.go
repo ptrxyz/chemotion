@@ -65,12 +65,12 @@ var statInstanceRootCmd = &cobra.Command{
 	Short:   "Get status and status of an instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, _ []string) {
 		if ownCall(cmd) && toBool(cmd.Flag("all").Value.String()) {
-			instances := allInstances()
-			if len(instances) == 1 {
+			existingInstances := allInstances()
+			if len(existingInstances) == 1 {
 				zboth.Info().Msgf("You have only one instance of %s. Ignoring the `--all` flag.", nameCLI)
 				instanceStat(currentInstance)
 			} else {
-				for _, instance := range instances {
+				for _, instance := range existingInstances {
 					status := instanceStatus(instance)
 					zboth.Info().Msgf("The status of %s is: %s.", instance, status)
 				}

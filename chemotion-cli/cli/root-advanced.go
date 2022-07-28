@@ -11,6 +11,7 @@ var advancedCmdTable = make(cmdTable)
 var advancedRootCmd = &cobra.Command{
 	Use:       "advanced",
 	Short:     "Perform advanced actions related to system and " + nameCLI,
+	Args:      cobra.NoArgs,
 	ValidArgs: maps.Keys(advancedCmdTable),
 	PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 		if cmd.Flag("selected-instance").Changed {
@@ -19,7 +20,7 @@ var advancedRootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		isInteractive(true)
-		acceptedOpts := []string{"info", "pull image", "uninstall"}
+		acceptedOpts := []string{"info", "update cli", "pull image", "uninstall"}
 		if cmd.Use == cmd.CalledAs() { // || elementInSlice(cmd.CalledAs(), &cmd.Aliases) > -1 { { // there are no aliases at the moment
 			acceptedOpts = append(acceptedOpts, "exit")
 		} else {
@@ -27,7 +28,7 @@ var advancedRootCmd = &cobra.Command{
 			advancedCmdTable["back"] = cmd.Run
 		}
 		advancedCmdTable["info"] = infoAdvancedRootCmd.Run
-		advancedCmdTable["pull image"] = pullimageAdvancedRootCmd.Run
+		advancedCmdTable["update cli"] = updateSelfAdvancedRootCmd.Run
 		advancedCmdTable["uninstall"] = uninstallAdvancedRootCmd.Run
 		advancedCmdTable[selectOpt(acceptedOpts, "")](cmd, args)
 	},

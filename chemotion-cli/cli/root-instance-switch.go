@@ -23,8 +23,12 @@ var switchInstanceRootCmd = &cobra.Command{
 
 		}
 		if ownCall(cmd) {
-			if cmd.Flag("selected-instance").Changed {
-				instanceSwitch(cmd.Flag("selected-instance").Value.String())
+			if cmd.Flag("name").Changed {
+				givenName := cmd.Flag("name").Value.String()
+				if err := instanceValidate(givenName); err != nil {
+					zboth.Fatal().Err(err).Msgf(err.Error())
+				}
+				instanceSwitch(givenName)
 			} else {
 				isInteractive(true)
 				instanceSwitch(selectInstance("switch to"))
@@ -41,4 +45,5 @@ var switchInstanceRootCmd = &cobra.Command{
 
 func init() {
 	instanceRootCmd.AddCommand(switchInstanceRootCmd)
+	switchInstanceRootCmd.Flags().StringP("name", "n", "", "Name of instance to switch to.")
 }

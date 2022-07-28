@@ -60,6 +60,7 @@ const (
 	maxInstancesOfKind          = 63
 	firstPort              uint = 4000
 	composeURL                  = "https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/docker-compose.yml"
+	releaseUnresolvedURL        = "https://github.com/harivyasi/chemotion/releases/latest"
 	rollNum                     = 1 // the default index number assigned by virtualizer to every container
 	primaryService              = "eln"
 )

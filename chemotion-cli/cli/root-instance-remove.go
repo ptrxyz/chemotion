@@ -100,6 +100,6 @@ var removeInstanceRootCmd = &cobra.Command{
 
 func init() {
 	instanceRootCmd.AddCommand(removeInstanceRootCmd)
-	removeInstanceRootCmd.Flags().String("name", "", "name of the instance to remove")
+	removeInstanceRootCmd.Flags().StringP("name", "n", "", "name of the instance to remove")
 	removeInstanceRootCmd.Flags().Bool("force", false, "force remove an instance (very risky)")
 }

@@ -36,12 +36,6 @@ func elementInSlice[T uint | int | float64 | string](elem T, slice *[]T) int {
 	return -1
 }
 
-// remove element from slice, CAUTION: order not preserved
-func removeElementInSlice[T uint | int | float64 | string](index int, slice []T) []T {
-	slice[index] = slice[len(slice)-1]
-	return slice[:len(slice)-1]
-}
-
 // generate a new UID (of the form xxxxxxxx) as a string
 func getNewUniqueID() string {
 	id, _ := uuid.NewRandom()
@@ -104,9 +98,10 @@ func allPorts() (ports []uint) {
 
 // get internal name for an instance
 func getInternalName(givenName string) (name string) {
-	name = conf.GetString(joinKey(instancesWord, givenName, "name"))
-	if name == "" {
-		zboth.Fatal().Err(toError("instance not found")).Msgf("No such instance: %s", givenName)
+	if err := instanceValidate(givenName); err == nil {
+		name = conf.GetString(joinKey(instancesWord, givenName, "name"))
+	} else {
+		zboth.Fatal().Err(err).Msgf("No such instance: %s", givenName)
 	}
 	return
 }

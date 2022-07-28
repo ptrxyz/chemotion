@@ -11,6 +11,10 @@ import (
 // Prompt to select a value from a given set of values.
 // Also displays the currently selected instance.
 func selectOpt(acceptedOpts []string, msg string) (result string) {
+	coloredExit := toSprintf("%sexit", string("\033[31m"))
+	if acceptedOpts[len(acceptedOpts)-1] == "exit" {
+		acceptedOpts[len(acceptedOpts)-1] = coloredExit
+	}
 	zlog.Debug().Msgf("Selection prompt with options %s:", acceptedOpts)
 	if msg == "" {
 		msg = toSprintf("%s%s%s%s Select one of the following", string("\033[31m"), string("\033[1m"), currentInstance, string("\033[0m"))
@@ -27,7 +31,7 @@ func selectOpt(acceptedOpts []string, msg string) (result string) {
 	} else {
 		zboth.Fatal().Err(err).Msgf("Selection failed! Check log. ABORT!")
 	}
-	if result == "exit" {
+	if result == coloredExit {
 		zboth.Debug().Msgf("Chose to exit")
 		os.Exit(0)
 	}
@@ -64,7 +68,7 @@ func selectYesNo(question string, defValue bool) (result bool) {
 func textValidate(input string) (err error) {
 	if len(strings.ReplaceAll(input, " ", "")) == 0 {
 		err = toError("can not accept empty value")
-	} else if len(strings.Fields(input)) > 1 {
+	} else if len(strings.Fields(input)) > 1 || strings.ContainsRune(input, ' ') {
 		err = toError("can not have spaces in this input")
 	} else {
 		err = nil
@@ -75,10 +79,7 @@ func textValidate(input string) (err error) {
 func instanceValidate(input string) (err error) {
 	err = textValidate(input)
 	if err == nil {
-		existingInstances := allInstances()
-		if elementInSlice(input, &existingInstances) > -1 {
-			err = nil
-		} else {
+		if len(getSubHeadings(&conf, joinKey(instancesWord, input))) == 0 {
 			err = toError("there is no instance called %s", input)
 		}
 	}
@@ -114,7 +115,7 @@ func newInstanceValidate(input string) (err error) {
 	}
 	if err == nil {
 		if exists := instanceValidate(input); exists == nil {
-			err = toError("this value is alredy taken")
+			err = toError("this value is already taken")
 		} else {
 			err = nil
 		}
@@ -142,10 +143,11 @@ func getString(message string, validator promptui.ValidateFunc) (result string) 
 
 // to select an instance, gives a list to select from when less than 5, else a text input
 func selectInstance(action string) (instance string) {
-	existingInstances := allInstances()
-	if len(existingInstances) < 5 {
-		instance = selectOpt(existingInstances, toSprintf("Please pick the instance to %s:\n", action))
+	existingInstances := append(allInstances(), "exit")
+	if len(existingInstances) < 6 {
+		instance = selectOpt(existingInstances, toSprintf("Please pick the instance to %s:", action))
 	} else {
+		zboth.Info().Msgf(strings.Join(append([]string{"The following instances exist: "}, allInstances()...), "\n"))
 		zlog.Debug().Msgf("String prompt to select instance")
 		instance = getString("Please name the instance to "+action, instanceValidate)
 	}

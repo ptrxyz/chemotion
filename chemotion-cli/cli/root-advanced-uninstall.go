@@ -8,9 +8,10 @@ import (
 )
 
 func advancedUninstall(removeLogfile bool) {
-	instances := allInstances()
-	instances = append(removeElementInSlice(elementInSlice(currentInstance, &instances), instances), currentInstance)
-	for _, inst := range instances {
+	existingInstances := allInstances()
+	existingInstances[elementInSlice(currentInstance, &existingInstances)] = existingInstances[len(existingInstances)-1]
+	existingInstances[len(existingInstances)-1] = currentInstance // move currentInstance to the end of the queue for deletion
+	for _, inst := range existingInstances {
 		zboth.Info().Msgf("Removing instance called %s.", inst)
 		if err := instanceRemove(inst, true); err != nil {
 			zboth.Warn().Err(err).Msgf(err.Error())
@@ -40,7 +41,7 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 			zerolog.SetGlobalLevel(zerolog.DebugLevel) // uninstall operates in debug mode
 			zboth.Debug().Msgf("Uninstall operates in debug mode!")
 			if selectYesNo("Are you sure you want to uninstall "+nameCLI, false) {
-				switch selectOpt([]string{"yes", "no", "exit"}, "Do you want to keep the log file after successful uninstallation?") {
+				switch selectOpt([]string{"yes", "no", "exit"}, "Do you want to keep the log file after successful uninstallation") {
 				case "exit":
 					// ideally this case is handled in the selectOpt function, here as a safety precaution
 					os.Exit(0)

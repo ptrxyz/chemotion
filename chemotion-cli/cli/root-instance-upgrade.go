@@ -2,10 +2,25 @@ package cli
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 )
+
+func pullImages(use string) {
+	tempCompose := getCompose(use)
+	services := getSubHeadings(&tempCompose, "services")
+	if len(services) == 0 {
+		zboth.Warn().Err(toError("no services found")).Msgf("Please check that %s is a valid compose file with named services.", tempCompose.ConfigFileUsed())
+	}
+	for _, service := range services {
+		zboth.Info().Msgf("Pulling image for the service called %s", service)
+		if success := callVirtualizer(toSprintf("pull %s", tempCompose.GetString(joinKey("services", service, "image")))); !success {
+			zboth.Warn().Err(toError("pull failed")).Msgf("Failed to pull image for the service called %s", service)
+		}
+	}
+}
 
 func instanceUpgrade(givenName, use string) {
 	// first read the new compose file
@@ -48,24 +63,52 @@ var upgradeInstanceRootCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Short: "Upgrade (the selected) instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, _ []string) {
-		if instanceStatus(currentInstance) == "Up" {
-			zboth.Fatal().Err(toError("upgrade fail; instance is up")).Msgf("Cannot upgrade an instance that is currently running. Please turn it off before continuing.")
-		} else {
-			upgrade, use := true, composeURL
-			if isInteractive(false) {
-				upgrade = selectYesNo("Please be sure to backup before proceeding. Continue", false)
-			}
-			if ownCall(cmd) {
+		var pull, backup, upgrade bool = false, false, true
+		var use string = ""
+		if ownCall(cmd) {
+			if cmd.Flag("use").Changed {
 				use = cmd.Flag("use").Value.String()
 			}
-			if upgrade {
-				instanceUpgrade(currentInstance, use)
+			pull = toBool(cmd.Flag("pull-only").Value.String())
+			upgrade = !pull
+		}
+		if !pull && isInteractive(false) {
+			switch selectOpt([]string{"all actions: pull image, backup and upgrade", "preparation: pull image and backup", "upgrade only (if already prepared)", "pull image only", "exit"}, "What do you want to do") {
+			case "all actions: pull image, backup and upgrade":
+				pull, backup, upgrade = true, true, true
+			case "preparation: pull image and backup":
+				pull, backup, upgrade = true, true, false
+			case "upgrade only (if already prepared)":
+				pull, backup, upgrade = false, false, true
+			case "pull image only":
+				pull, backup, upgrade = true, false, false
 			}
+		}
+		if use == "" {
+			if url, err := getLatestReleaseURL(); err == nil {
+				use = strings.Join([]string{url, defaultComposeFilename}, "/")
+			} else {
+				zboth.Warn().Err(err).Msgf("Could not determine the address of the latest compose file, using this one: %s.", composeURL)
+				use = composeURL
+			}
+		}
+		if pull {
+			pullImages(use)
+		}
+		if backup {
+			instanceBackup(currentInstance, "both")
+		}
+		if upgrade {
+			if instanceStatus(currentInstance) == "Up" {
+				zboth.Fatal().Err(toError("upgrade fail; instance is up")).Msgf("Cannot upgrade an instance that is currently running. Please turn it off before continuing.")
+			}
+			instanceUpgrade(currentInstance, use)
 		}
 	},
 }
 
 func init() {
 	upgradeInstanceRootCmd.Flags().String("use", composeURL, "URL or filepath of the compose file to use for upgrading")
+	upgradeInstanceRootCmd.Flags().Bool("pull-only", false, "Pull image for use in upgrade, don't do the upgrade")
 	instanceRootCmd.AddCommand(upgradeInstanceRootCmd)
 }
