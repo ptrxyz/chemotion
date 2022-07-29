@@ -3,8 +3,10 @@ package cli
 import (
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/chigopher/pathlib"
+	vercompare "github.com/hashicorp/go-version"
 	"github.com/spf13/cobra"
 )
 
@@ -26,11 +28,36 @@ func getLatestReleaseURL() (url string, err error) {
 	return strings.Replace(url, "tag", "download", -1), err
 }
 
+func getLatestVersion() (version string) {
+	if url, err := getLatestReleaseURL(); err == nil {
+		urlInParts := strings.Split(url, "/")
+		version = urlInParts[len(urlInParts)-1]
+		zboth.Debug().Msgf("Latest version of CLI is %s, installed version is %s.", version, versionCLI)
+	} else {
+		zboth.Fatal().Err(err).Msgf("Could not resolve the version of latest release.")
+	}
+	return
+}
+
+func updateRequired() (required bool) {
+	key := joinKey(stateWord, "version_checked_on")
+	checkedOn := conf.GetTime(key)
+	if checkedOn.IsZero() || (time.Since(checkedOn).Hours() > 24) { // check every 24 hours
+		existingVer, _ := vercompare.NewVersion(versionCLI)
+		newVer, _ := vercompare.NewVersion(getLatestVersion())
+		required = newVer.GreaterThan(existingVer)
+		conf.Set(key, time.Now())
+		rewriteConfig()
+	}
+	return
+}
+
 func selfUpdate() {
 	var url string
-	if u, err := getLatestReleaseURL(); err != nil {
-		zboth.Fatal().Err(err).Msgf("Could not determine address of latest executable.")
+	if u, err := getLatestReleaseURL(); err == nil {
 		url = u
+	} else {
+		zboth.Fatal().Err(err).Msgf("Could not determine address of latest executable.")
 	}
 	oldVersion := pathlib.NewPath(commandForCLI)
 	stat, _ := oldVersion.Stat()
@@ -49,17 +76,25 @@ func selfUpdate() {
 	} else {
 		zboth.Warn().Err(errOld).Msgf("Successfully downloaded the new version but failed to rename the old one. The new version is called %s, please rename it %s. The old version is safe to remove.", newVersion.Name(), cliFileName)
 	}
-
 }
 
 var updateSelfAdvancedRootCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update this tool itself",
-	Run: func(cmd *cobra.Command, args []string) {
-		selfUpdate()
+	Run: func(cmd *cobra.Command, _ []string) {
+		update := updateRequired()
+		if !update && ownCall(cmd) {
+			update = toBool(cmd.Flag("force").Value.String())
+		}
+		if update {
+			selfUpdate()
+		} else {
+			zboth.Info().Msgf("You are already on the latest version of %s CLI tool.", nameCLI)
+		}
 	},
 }
 
 func init() {
 	advancedRootCmd.AddCommand(updateSelfAdvancedRootCmd)
+	updateSelfAdvancedRootCmd.Flags().Bool("force", false, toSprintf("Force update the %s CLI.", nameCLI))
 }

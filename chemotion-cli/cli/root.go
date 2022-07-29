@@ -109,6 +109,9 @@ var rootCmd = &cobra.Command{
 		}
 		zboth.Info().Msgf("Welcome to %s! You are on a host machine.", nameCLI)
 		if !firstRun {
+			if updateRequired() {
+				zboth.Info().Msgf("The version of %s - the CLI tool - you are using is outdated. Please update it by using `%s advanced update` command.", nameCLI, commandForCLI)
+			}
 			if cmd.Flag("selected-instance").Changed {
 				if err := instanceValidate(cmd.Flag("selected-instance").Value.String()); err != nil {
 					zboth.Fatal().Err(err).Msgf(err.Error())
