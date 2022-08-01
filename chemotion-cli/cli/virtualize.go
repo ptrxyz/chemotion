@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -15,12 +14,12 @@ import (
 // modify file system in container
 func modifyContainer(givenName, command, source, target string) (success bool) {
 	if target != "" {
-		command = fmt.Sprintf("%s /mountedFolder/%s /mountedFolder/%s", command, source, target)
+		command = toSprintf("%s /mountedFolder/%s /mountedFolder/%s", command, source, target)
 	} else {
-		command = fmt.Sprintf("%s /mountedFolder/%s", command, source)
+		command = toSprintf("%s /mountedFolder/%s", command, source)
 	}
 	zboth.Debug().Msgf("Executing `%s` in the container of %s", command, givenName)
-	commandStr := fmt.Sprintf("run --rm -v %s:/mountedFolder --name chemotion-helper-safe-to-remove busybox %s", gotoFolder(givenName), command)
+	commandStr := toSprintf("run --rm -v %s:/mountedFolder --name chemotion-helper-safe-to-remove busybox %s", gotoFolder(givenName), command)
 	success = callVirtualizer(commandStr)
 	gotoFolder("workdir")
 	return
@@ -37,13 +36,13 @@ func confirmVirtualizer(minimum string) {
 				zboth.Fatal().Err(err).Msgf("%s is out of date. Please update it before proceeding.", virtualizer)
 			}
 		} else {
-			zboth.Fatal().Err(fmt.Errorf("failed to convert version string")).Msgf("Failed to understand the following output upon executing `%s --version`: ", ver, toLower(virtualizer))
+			zboth.Fatal().Err(toError("failed to convert version string")).Msgf("Failed to understand the following output upon executing `%s --version`: ", ver, toLower(virtualizer))
 		}
 	} else {
 		if err.Error() == "exit status 1" && runtime.GOOS == "linux" {
-			zboth.Fatal().Err(fmt.Errorf("%s on WSL not running", virtualizer)).Msgf("%s is not running in your WSL environment. Hint: Turn on WSL integration setting in %s Desktop.", virtualizer, virtualizer)
+			zboth.Fatal().Err(toError("%s on WSL not running", virtualizer)).Msgf("%s is not running in your WSL environment. Hint: Turn on WSL integration setting in %s Desktop.", virtualizer, virtualizer)
 		} else if err.Error() == "exit status 127" { // 127 is software not found
-			zboth.Fatal().Err(fmt.Errorf("%s not found", virtualizer)).Msgf("%s is necessary to run %s", virtualizer, nameCLI)
+			zboth.Fatal().Err(toError("%s not found", virtualizer)).Msgf("%s is necessary to run %s", virtualizer, nameCLI)
 		} else {
 			zboth.Fatal().Err(err).Msgf(err.Error())
 		}
@@ -56,7 +55,7 @@ func compareSoftwareVersion(required, current string) (err error) {
 	if req, err = vercompare.NewVersion(required); err == nil {
 		if curr, err = vercompare.NewVersion(current); err == nil {
 			if curr.LessThan(req) {
-				return fmt.Errorf("current version: %s is less than the minimum required: %s", curr.String(), req.String())
+				return toError("current version: %s is less than the minimum required: %s", curr.String(), req.String())
 			}
 		}
 	}

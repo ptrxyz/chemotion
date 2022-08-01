@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -39,13 +38,13 @@ func initFlags() {
 	zlog.Debug().Msg("Start: initialize flags")
 	// flag 1: instance, i.e. name of the instance to operate upon
 	// terminal overrides config-file, default is read from the config file
-	rootCmd.PersistentFlags().StringVarP(&currentInstance, "selected-instance", "i", "", fmt.Sprintf("select an existing instance of %s when starting", nameCLI))
+	rootCmd.PersistentFlags().StringVarP(&currentInstance, "selected-instance", "i", "", toSprintf("select an existing instance of %s when starting", nameCLI))
 	// flag 2: config, the configuration file
 	// config as a flag cannot be read from the configuration file because that creates a circular dependency, default name is hard-coded
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config-file", "f", defaultConfigFilepath, "path to the configuration file")
 	// flag 3: quiet, i.e. should the CLI run in interactive mode
 	// terminal overrides config-file, default is false
-	rootCmd.PersistentFlags().BoolP("quiet", "q", false, fmt.Sprintf("use %s in scripted mode i.e. without an interactive prompt", commandForCLI))
+	rootCmd.PersistentFlags().BoolP("quiet", "q", false, toSprintf("use %s in scripted mode i.e. without an interactive prompt", commandForCLI))
 	// flag 4: debug, i.e. should debug messages be logged
 	// terminal overrides config-file, default is false
 	rootCmd.PersistentFlags().BoolP("debug", "d", false, "enable logging of debug messages")
@@ -61,9 +60,8 @@ func initConf() {
 	// if changed and specified file is not found then exit
 	// otherwise set the value of configFile on viper
 	// then use the path as determined by viper and set as the value of configFile
-	if rootCmd.Flag("config-file").Changed && !existingFile(configFile) {
-		// here configFile should be same as rootCmd.Flag("config-file").Value.String()
-		zboth.Fatal().Err(fmt.Errorf("specified config file not found")).Msgf("Please ensure that the file you specify using --config/-f flag does exist.")
+	if configFile != defaultConfigFilepath && !existingFile(configFile) { // the flag was set but file is missing
+		zboth.Fatal().Err(toError("specified config file not found")).Msgf("Please ensure that the file you specify using --config/-f flag does exist.")
 	}
 	conf.SetConfigFile(configFile)
 	zlog.Debug().Msg("Attempting to read configuration file")
@@ -73,14 +71,16 @@ func initConf() {
 		// Try and read the configuration file, then unmarshal it
 		if err := conf.ReadInConfig(); err == nil {
 			if conf.IsSet(selectorWord) && conf.IsSet(instancesWord) {
-				if errUnmarshal := conf.UnmarshalKey(selectorWord, &currentInstance); errUnmarshal != nil {
-					zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to unmarshal the mandatory key %s in the file: %s.", selectorWord, configFile)
+				if currentInstance == "" { // i.e. the flag was not set
+					if errUnmarshal := conf.UnmarshalKey(selectorWord, &currentInstance); errUnmarshal != nil {
+						zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to unmarshal the mandatory key %s in the file: %s.", selectorWord, configFile)
+					}
 				}
 				if !conf.IsSet(joinKey(instancesWord, currentInstance)) {
-					zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the description for instance `%s` in the file: %s.", currentInstance, configFile)
+					zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the description for instance `%s` in the file: %s.", currentInstance, configFile)
 				}
 			} else {
-				zboth.Fatal().Err(fmt.Errorf("unmarshal failed")).Msgf("Failed to find the mandatory keys `%s` and `%s` in the file: %s.", selectorWord, instancesWord, configFile)
+				zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the mandatory keys `%s` and `%s` in the file: %s.", selectorWord, instancesWord, configFile)
 			}
 		} else {
 			zboth.Fatal().Err(err).Msgf("Failed to read configuration file: %s. ABORT!", configFile)

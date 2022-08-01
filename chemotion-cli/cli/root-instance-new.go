@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"net/url"
 	"os"
 	"strconv"
@@ -80,7 +79,7 @@ func getFreshPort(kind string) (port uint) {
 			}
 		}
 		if port == (firstPort+101)+maxInstancesOfKind || port == (firstPort+201)+maxInstancesOfKind {
-			zboth.Fatal().Err(fmt.Errorf("max instances")).Msgf("A maximum of %d instances of %s are allowed. Please contact us if you hit this limit.", maxInstancesOfKind, nameCLI)
+			zboth.Fatal().Err(toError("max instances")).Msgf("A maximum of %d instances of %s are allowed. Please contact us if you hit this limit.", maxInstancesOfKind, nameCLI)
 		}
 	}
 	return
@@ -101,7 +100,7 @@ func readEnv(filepath string) (env *viper.Viper) {
 }
 
 func instanceCreateDevelopment(cmd *cobra.Command) (success bool) {
-	zboth.Fatal().Err(fmt.Errorf("not implemented")).Msgf("This feature is currently under development.")
+	zboth.Fatal().Err(toError("not implemented")).Msgf("This feature is currently under development.")
 	if err := newInstanceValidate(cmd.Flag("name").Value.String()); err != nil {
 		zboth.Fatal().Err(err).Msgf("Given instance name is invalid because %s.", err.Error())
 	}
@@ -131,7 +130,7 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 	}
 	protocol, address, port = splitAddress(givenAddress)
 	if address != "localhost" && (protocol == "http" && port == 443) || (protocol == "https" && port == 80) {
-		zboth.Warn().Err(fmt.Errorf("port mismatch")).Msgf("You have chosen port %d for protocol %s. This is generally a very bad idea.", port, protocol)
+		zboth.Warn().Err(toError("port mismatch")).Msgf("You have chosen port %d for protocol %s. This is generally a very bad idea.", port, protocol)
 		if isInteractive(false) {
 			if !selectYesNo("Continue still", false) {
 				zboth.Info().Msgf("Operation cancelled")
@@ -152,7 +151,7 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 		}
 	} else {
 		if address == "localhost" {
-			zboth.Warn().Err(fmt.Errorf("localhost && port suggested")).Msgf("You suggested a port while running on localhost. We strongly recommend that you use the default schema i.e. do not assign a specific port.")
+			zboth.Warn().Err(toError("localhost && port suggested")).Msgf("You suggested a port while running on localhost. We strongly recommend that you use the default schema i.e. do not assign a specific port.")
 			if isInteractive(false) {
 				if !selectYesNo("Continue still", false) {
 					zboth.Info().Msgf("Operation cancelled")
@@ -162,7 +161,7 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 		}
 	}
 	// create new unique name for the instance
-	name := fmt.Sprintf("%s-%s", givenName, getNewUniqueID())
+	name := toSprintf("%s-%s", givenName, getNewUniqueID())
 	// store values in the conf, the conf file is modified only later
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
@@ -181,7 +180,7 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 	// for some reason (no idea why), labels must be set before port
 	setUniqueLabels(&compose, name)
 	// set the port in the compose file
-	compose.Set(joinKey("services", "eln", "ports"), []string{fmt.Sprintf("%d:4000", port)})
+	compose.Set(joinKey("services", "eln", "ports"), []string{toSprintf("%d:4000", port)})
 	zboth.Info().Msgf("Creating a new instance of %s called %s.", nameCLI, name)
 	// make folder
 	if err := workDir.Join(instancesWord, name).MkdirAll(); err != nil {
@@ -189,11 +188,11 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 	}
 	if _, err, _ := gotoFolder(givenName), compose.WriteConfigAs(defaultComposeFilename), gotoFolder("workdir"); err == nil {
 		zboth.Info().Msgf("Written compose file %s in the above step.", compose.ConfigFileUsed())
-		commandStr := fmt.Sprintf("compose -f %s up --no-start", defaultComposeFilename)
+		commandStr := toSprintf("compose -f %s up --no-start", defaultComposeFilename)
 		zboth.Info().Msgf("Starting %s with command: %s", virtualizer, commandStr)
 		if _, worked, _ := gotoFolder(givenName), callVirtualizer(commandStr), gotoFolder("workdir"); !worked {
 			success = worked
-			zboth.Fatal().Err(fmt.Errorf("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
+			zboth.Fatal().Err(toError("%s failed", commandStr)).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 		}
 	} else {
 		success = false

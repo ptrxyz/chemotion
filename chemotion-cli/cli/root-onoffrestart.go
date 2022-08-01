@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/schollz/progressbar/v3"
@@ -9,7 +8,7 @@ import (
 )
 
 // show (and then remove) a progress bar that waits for an instance to start
-func waitStartSpinner(seconds int, givenName, message string) (waitTime int) {
+func waitStartSpinner(seconds int, givenName string) (waitTime int) {
 	url := getURL(givenName)
 	var (
 		err  error
@@ -17,11 +16,13 @@ func waitStartSpinner(seconds int, givenName, message string) (waitTime int) {
 	)
 	bar := progressbar.NewOptions(
 		-1,
-		progressbar.OptionSetDescription(fmt.Sprintf("%s %s...", message, givenName)),
+		progressbar.OptionSetDescription(toSprintf("Starting %s...", givenName)),
 		progressbar.OptionSetPredictTime(false),
 		progressbar.OptionClearOnFinish(),
+		progressbar.OptionSetRenderBlankState(true),
+		progressbar.OptionSetVisibility(true),
+		progressbar.OptionSpinnerType(51),
 	)
-	bar.RenderBlank()
 	for i := 0; i < seconds; i++ {
 		if code, err = instancePing(url); code == 200 {
 			bar.Finish()
@@ -47,8 +48,8 @@ func instanceStart(givenName string) {
 			if status == "Exited" {
 				waitFor = 20
 			}
-			zboth.Info().Msgf("Starting instance called %s.", givenName)
-			waitTime := waitStartSpinner(waitFor, givenName, "Starting")
+			zlog.Info().Msgf("Starting instance called %s.", givenName) // because user sees the spinner
+			waitTime := waitStartSpinner(waitFor, givenName)
 			if waitTime >= 0 {
 				zboth.Info().Msgf("Successfully started instance called %s in %d seconds.", givenName, waitTime)
 			} else {

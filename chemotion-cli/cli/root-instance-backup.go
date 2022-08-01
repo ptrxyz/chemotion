@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -33,7 +31,7 @@ func instanceBackup(givenName, portion string) {
 	}
 	gotoFolder("workdir")
 	if err != "" {
-		zboth.Fatal().Err(fmt.Errorf(err)).Msgf(msg)
+		zboth.Fatal().Err(toError(err)).Msgf(msg)
 	}
 }
 
@@ -44,13 +42,13 @@ var backupInstanceRootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, _ []string) {
 		backup, status := true, instanceStatus(currentInstance)
 		if status == "Up" {
-			zboth.Warn().Err(fmt.Errorf("instance running")).Msgf("The instance called %s is running. Backing up a running instance is not a good idea.", currentInstance)
+			zboth.Warn().Err(toError("instance running")).Msgf("The instance called %s is running. Backing up a running instance is not a good idea.", currentInstance)
 			if isInteractive(false) {
 				backup = selectYesNo("Continue", false)
 			}
 		}
 		if status == "Created" {
-			zboth.Warn().Err(fmt.Errorf("instance never run")).Msgf("The instance called %s was created but never turned on. Backing up such an instance is not a good idea.", currentInstance)
+			zboth.Warn().Err(toError("instance never run")).Msgf("The instance called %s was created but never turned on. Backing up such an instance is not a good idea.", currentInstance)
 			if isInteractive(false) {
 				backup = selectYesNo("Continue", false)
 			}

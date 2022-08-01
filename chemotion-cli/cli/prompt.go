@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -12,9 +11,13 @@ import (
 // Prompt to select a value from a given set of values.
 // Also displays the currently selected instance.
 func selectOpt(acceptedOpts []string, msg string) (result string) {
+	coloredExit := toSprintf("%sexit", string("\033[31m"))
+	if acceptedOpts[len(acceptedOpts)-1] == "exit" {
+		acceptedOpts[len(acceptedOpts)-1] = coloredExit
+	}
 	zlog.Debug().Msgf("Selection prompt with options %s:", acceptedOpts)
 	if msg == "" {
-		msg = fmt.Sprintf("%s%s%s%s Select one of the following", string("\033[31m"), string("\033[1m"), currentInstance, string("\033[0m"))
+		msg = toSprintf("%s%s%s%s Select one of the following", string("\033[31m"), string("\033[1m"), currentInstance, string("\033[0m"))
 	}
 	selection := promptui.Select{
 		Label: msg,
@@ -28,7 +31,7 @@ func selectOpt(acceptedOpts []string, msg string) (result string) {
 	} else {
 		zboth.Fatal().Err(err).Msgf("Selection failed! Check log. ABORT!")
 	}
-	if result == "exit" {
+	if result == coloredExit {
 		zboth.Debug().Msgf("Chose to exit")
 		os.Exit(0)
 	}
@@ -54,7 +57,7 @@ func selectYesNo(question string, defValue bool) (result bool) {
 	} else if err == promptui.ErrAbort {
 		result = false
 	} else if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-		zboth.Fatal().Err(fmt.Errorf("yesno prompt cancelled")).Msgf("Selection cancelled.")
+		zboth.Fatal().Err(toError("yesno prompt cancelled")).Msgf("Selection cancelled.")
 	} else {
 		zboth.Fatal().Err(err).Msgf("Selection failed! Check log. ABORT!")
 	}
@@ -64,9 +67,9 @@ func selectYesNo(question string, defValue bool) (result bool) {
 
 func textValidate(input string) (err error) {
 	if len(strings.ReplaceAll(input, " ", "")) == 0 {
-		err = fmt.Errorf("can not accept empty value")
-	} else if len(strings.Fields(input)) > 1 {
-		err = fmt.Errorf("can not have spaces in this input")
+		err = toError("can not accept empty value")
+	} else if len(strings.Fields(input)) > 1 || strings.ContainsRune(input, ' ') {
+		err = toError("can not have spaces in this input")
 	} else {
 		err = nil
 	}
@@ -76,11 +79,8 @@ func textValidate(input string) (err error) {
 func instanceValidate(input string) (err error) {
 	err = textValidate(input)
 	if err == nil {
-		existingInstances := allInstances()
-		if elementInSlice(input, &existingInstances) > -1 {
-			err = nil
-		} else {
-			err = fmt.Errorf("there is no instance called %s", input)
+		if len(getSubHeadings(&conf, joinKey(instancesWord, input))) == 0 {
+			err = toError("there is no instance called %s", input)
 		}
 	}
 	return
@@ -94,14 +94,14 @@ func addressValidate(input string) (err error) {
 			if err = textValidate(address); err == nil {
 				if portGiven {
 					if p, errConv := strconv.Atoi(port); errConv != nil || p < 1 {
-						err = fmt.Errorf("port must an integer above 0")
+						err = toError("port must an integer above 0")
 					}
 				}
 			} else {
-				err = fmt.Errorf("address cannot be empty")
+				err = toError("address cannot be empty")
 			}
 		} else {
-			err = fmt.Errorf("address must start with protocol i.e. as `http://` or as `https://`")
+			err = toError("address must start with protocol i.e. as `http://` or as `https://`")
 		}
 	}
 	return
@@ -111,11 +111,11 @@ func addressValidate(input string) (err error) {
 func newInstanceValidate(input string) (err error) {
 	err = textValidate(input)
 	if elementInSlice(input, &reseveredWords) > -1 {
-		err = fmt.Errorf("this is a reserved word; pick another")
+		err = toError("this is a reserved word; pick another")
 	}
 	if err == nil {
 		if exists := instanceValidate(input); exists == nil {
-			err = fmt.Errorf("this value is alredy taken")
+			err = toError("this value is already taken")
 		} else {
 			err = nil
 		}
@@ -134,7 +134,7 @@ func getString(message string, validator promptui.ValidateFunc) (result string) 
 		zlog.Debug().Msgf("Given answer: %s", res)
 		result = res
 	} else if err == promptui.ErrInterrupt || err == promptui.ErrEOF {
-		zboth.Fatal().Err(fmt.Errorf("prompt cancelled")).Msgf("Prompt cancelled. Can't proceed without. ABORT!")
+		zboth.Fatal().Err(toError("prompt cancelled")).Msgf("Prompt cancelled. Can't proceed without. ABORT!")
 	} else {
 		zboth.Fatal().Err(err).Msgf("Prompt failed because: %s.", err.Error())
 	}
@@ -143,10 +143,11 @@ func getString(message string, validator promptui.ValidateFunc) (result string) 
 
 // to select an instance, gives a list to select from when less than 5, else a text input
 func selectInstance(action string) (instance string) {
-	existingInstances := allInstances()
-	if len(existingInstances) < 5 {
-		instance = selectOpt(existingInstances, fmt.Sprintf("Please pick the instance to %s:\n", action))
+	existingInstances := append(allInstances(), "exit")
+	if len(existingInstances) < 6 {
+		instance = selectOpt(existingInstances, toSprintf("Please pick the instance to %s:", action))
 	} else {
+		zboth.Info().Msgf(strings.Join(append([]string{"The following instances exist: "}, allInstances()...), "\n"))
 		zlog.Debug().Msgf("String prompt to select instance")
 		instance = getString("Please name the instance to "+action, instanceValidate)
 	}

@@ -15,12 +15,12 @@ func isInteractive(fail bool) (interactive bool) {
 	interactive = true
 	if conf.GetBool(joinKey(stateWord, "quiet")) {
 		if interactive = false; fail {
-			zboth.Fatal().Err(fmt.Errorf("incomplete in quiet mode")).Msgf("%s is in quiet mode. Give all arguments to specify the desired action; use '--help' flag for more. ABORT!", nameCLI)
+			zboth.Fatal().Err(toError("incomplete in quiet mode")).Msgf("%s is in quiet mode. Give all arguments to specify the desired action; use '--help' flag for more. ABORT!", nameCLI)
 		}
 	}
 	if isInContainer {
 		if interactive = false; fail {
-			zboth.Fatal().Err(fmt.Errorf("inside container in interactive mode")).Msgf("%s CLI is not meant to executed interactively from within a container. Use the `-q` flag. ABORT!", nameCLI)
+			zboth.Fatal().Err(toError("inside container in interactive mode")).Msgf("%s CLI is not meant to executed interactively from within a container. Use the `-q` flag. ABORT!", nameCLI)
 		}
 	}
 	return
@@ -34,12 +34,6 @@ func elementInSlice[T uint | int | float64 | string](elem T, slice *[]T) int {
 		}
 	}
 	return -1
-}
-
-// remove element from slice, CAUTION: order not preserved
-func removeElementInSlice[T uint | int | float64 | string](index int, slice []T) []T {
-	slice[index] = slice[len(slice)-1]
-	return slice[:len(slice)-1]
 }
 
 // generate a new UID (of the form xxxxxxxx) as a string
@@ -65,6 +59,10 @@ func joinKey(s ...string) (result string) {
 // to lower case, same as strings.ToLower
 var toLower = strings.ToLower
 
+// to shorten fmt statements
+var toError = fmt.Errorf
+var toSprintf = fmt.Sprintf
+
 // toBool
 func toBool(s string) (value bool) {
 	if toLower(s) == "true" {
@@ -72,7 +70,7 @@ func toBool(s string) (value bool) {
 	} else if toLower(s) == "false" {
 		value = false
 	} else {
-		err := fmt.Errorf("cannot convert %s to bool", s)
+		err := toError("cannot convert %s to bool", s)
 		zboth.Fatal().Err(err).Msgf(err.Error())
 	}
 	return
@@ -100,9 +98,10 @@ func allPorts() (ports []uint) {
 
 // get internal name for an instance
 func getInternalName(givenName string) (name string) {
-	name = conf.GetString(joinKey(instancesWord, givenName, "name"))
-	if name == "" {
-		zboth.Fatal().Err(fmt.Errorf("instance not found")).Msgf("No such instance: %s", givenName)
+	if err := instanceValidate(givenName); err == nil {
+		name = conf.GetString(joinKey(instancesWord, givenName, "name"))
+	} else {
+		zboth.Fatal().Err(err).Msgf("No such instance: %s", givenName)
 	}
 	return
 }
@@ -110,7 +109,7 @@ func getInternalName(givenName string) (name string) {
 // get column associated with `ps` output for a given instance of chemotion
 func getColumn(givenName, column string) (values []string) {
 	name := getInternalName(givenName)
-	if res, err := execShell(fmt.Sprintf("%s ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", toLower(virtualizer), name, column)); err == nil {
+	if res, err := execShell(toSprintf("%s ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", toLower(virtualizer), name, column)); err == nil {
 		values = strings.Split(string(res), "\n")
 	} else {
 		values = []string{}
@@ -124,8 +123,8 @@ func getServices(givenName string) (services []string) {
 	for _, line := range out { // determine what are the status messages for all associated containers
 		l := strings.TrimSpace(line) // use only the first word
 		if len(l) > 0 {
-			l = strings.TrimPrefix(l, fmt.Sprintf("%s-", name))
-			l = strings.TrimSuffix(l, fmt.Sprintf("-%d", rollNum))
+			l = strings.TrimPrefix(l, toSprintf("%s-", name))
+			l = strings.TrimSuffix(l, toSprintf("-%d", rollNum))
 			services = append(services, l)
 		}
 	}
@@ -178,7 +177,7 @@ func splitAddress(full string) (protocol string, address string, port uint) {
 // var uninstallAdvancedRootCmd = &cobra.Command{
 // 	Use:   "uninstall",
 // 	Args:  cobra.NoArgs,
-// 	Short: fmt.Sprintf("Uninstall %s completely.", nameCLI),
+// 	Short: toSprintf("Uninstall %s completely.", nameCLI),
 // 	Run: func(cmd *cobra.Command, args []string) {
 //
 //

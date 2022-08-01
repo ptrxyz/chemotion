@@ -45,8 +45,9 @@ func existingFile(filePath string) (exists bool) {
 
 // download a file, filepath is respective to current working directory
 func downloadFile(fileURL string, downloadLocation string) (filepath pathlib.Path) {
+	zboth.Debug().Msgf("Trying to download %s to %s", fileURL, downloadLocation)
 	if resp, err := grab.Get(downloadLocation, fileURL); err == nil {
-		zboth.Info().Msgf("Downloaded file saved as: %s", resp.Filename)
+		zboth.Debug().Msgf("Downloaded file saved as: %s", resp.Filename)
 		filepath = *pathlib.NewPath(resp.Filename)
 	} else {
 		zboth.Fatal().Err(err).Msgf("Failed to download file from: %s. Check log. ABORT!", fileURL)

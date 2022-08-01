@@ -60,6 +60,7 @@ const (
 	maxInstancesOfKind          = 63
 	firstPort              uint = 4000
 	composeURL                  = "https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/docker-compose.yml"
+	releaseUnresolvedURL        = "https://github.com/harivyasi/chemotion/releases/latest"
 	rollNum                     = 1 // the default index number assigned by virtualizer to every container
 	primaryService              = "eln"
 )
@@ -88,7 +89,7 @@ var rootCmdTable = make(cmdTable)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:     fmt.Sprintf("%s [command]", commandForCLI),
+	Use:     toSprintf("%s [command]", commandForCLI),
 	Short:   "CLI for Chemotion ELN",
 	Long:    "Chemotion ELN is an Electronic Lab Notebook solution.\nDeveloped for researchers, the software aims to work for you.\nSee, https://www.chemotion.net.",
 	Version: versionCLI,
@@ -102,12 +103,15 @@ var rootCmd = &cobra.Command{
 		confirmVirtualizer(minimumVirtualizer)
 		if firstRun && cmd.CalledAs() != "install" {
 			// Println output so that user is not discouraged by a FATAL error on-screen... especially when beginning with the tool.
-			msg := fmt.Sprintf("Please install %s by running `%s install` before using it.", nameCLI, commandForCLI)
+			msg := toSprintf("Please install %s by running `%s install` before using it.", nameCLI, commandForCLI)
 			fmt.Println(msg)
-			zlog.Fatal().Err(fmt.Errorf("chemotion not installed")).Msgf(msg) // zlog i.e. don't print on screen.
+			zlog.Fatal().Err(toError("chemotion not installed")).Msgf(msg) // zlog i.e. don't print on screen.
 		}
 		zboth.Info().Msgf("Welcome to %s! You are on a host machine.", nameCLI)
 		if !firstRun {
+			if updateRequired() {
+				zboth.Info().Msgf("The version of %s - the CLI tool - you are using is outdated. Please update it by using `%s advanced update` command.", nameCLI, commandForCLI)
+			}
 			if cmd.Flag("selected-instance").Changed {
 				if err := instanceValidate(cmd.Flag("selected-instance").Value.String()); err != nil {
 					zboth.Fatal().Err(err).Msgf(err.Error())
@@ -142,7 +146,7 @@ func Execute() {
 	if err := rootCmd.Execute(); err == nil {
 		zlog.Debug().Msgf("%s exited gracefully", nameCLI)
 	} else {
-		zboth.Fatal().Err(fmt.Errorf("unexplained")).Msgf("%s exited abruptly, check log file if necessary. ABORT!", nameCLI)
+		zboth.Fatal().Err(toError("unexplained")).Msgf("%s exited abruptly, check log file if necessary. ABORT!", nameCLI)
 	}
 }
 

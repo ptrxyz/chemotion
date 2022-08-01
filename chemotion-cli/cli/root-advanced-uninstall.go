@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -9,13 +8,14 @@ import (
 )
 
 func advancedUninstall(removeLogfile bool) {
-	instances := allInstances()
-	instances = append(removeElementInSlice(elementInSlice(currentInstance, &instances), instances), currentInstance)
-	for _, inst := range instances {
+	existingInstances := allInstances()
+	existingInstances[elementInSlice(currentInstance, &existingInstances)] = existingInstances[len(existingInstances)-1]
+	existingInstances[len(existingInstances)-1] = currentInstance // move currentInstance to the end of the queue for deletion
+	for _, inst := range existingInstances {
 		zboth.Info().Msgf("Removing instance called %s.", inst)
 		if err := instanceRemove(inst, true); err != nil {
 			zboth.Warn().Err(err).Msgf(err.Error())
-			zboth.Fatal().Err(fmt.Errorf("uninstalled failed")).Msgf("Uninstall failed while trying to remove %s", inst)
+			zboth.Fatal().Err(toError("uninstalled failed")).Msgf("Uninstall failed while trying to remove %s", inst)
 		}
 	}
 	if err := workDir.Join(instancesWord).RemoveAll(); err != nil {
@@ -35,13 +35,13 @@ func advancedUninstall(removeLogfile bool) {
 var uninstallAdvancedRootCmd = &cobra.Command{
 	Use:   "uninstall",
 	Args:  cobra.NoArgs,
-	Short: fmt.Sprintf("uninstall %s completely", nameCLI),
+	Short: toSprintf("uninstall %s completely", nameCLI),
 	Run: func(_ *cobra.Command, _ []string) {
 		if isInteractive(false) {
 			zerolog.SetGlobalLevel(zerolog.DebugLevel) // uninstall operates in debug mode
 			zboth.Debug().Msgf("Uninstall operates in debug mode!")
 			if selectYesNo("Are you sure you want to uninstall "+nameCLI, false) {
-				switch selectOpt([]string{"yes", "no", "exit"}, "Do you want to keep the log file after successful uninstallation?") {
+				switch selectOpt([]string{"yes", "no", "exit"}, "Do you want to keep the log file after successful uninstallation") {
 				case "exit":
 					// ideally this case is handled in the selectOpt function, here as a safety precaution
 					os.Exit(0)
@@ -57,7 +57,7 @@ var uninstallAdvancedRootCmd = &cobra.Command{
 				}
 			}
 		} else {
-			zboth.Fatal().Err(fmt.Errorf("uninstall in silent mode")).Msgf("For security reasons, this command will not run in silent mode.")
+			zboth.Fatal().Err(toError("uninstall in silent mode")).Msgf("For security reasons, this command will not run in silent mode.")
 		}
 	},
 }
