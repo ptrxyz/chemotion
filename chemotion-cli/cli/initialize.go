@@ -70,17 +70,17 @@ func initConf() {
 		firstRun = false
 		// Try and read the configuration file, then unmarshal it
 		if err := conf.ReadInConfig(); err == nil {
-			if conf.IsSet(selectorWord) && conf.IsSet(instancesWord) {
+			if conf.IsSet(joinKey(stateWord, selectorWord)) && conf.IsSet(instancesWord) {
 				if currentInstance == "" { // i.e. the flag was not set
-					if errUnmarshal := conf.UnmarshalKey(selectorWord, &currentInstance); errUnmarshal != nil {
-						zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to unmarshal the mandatory key %s in the file: %s.", selectorWord, configFile)
+					if errUnmarshal := conf.UnmarshalKey(joinKey(stateWord, selectorWord), &currentInstance); errUnmarshal != nil {
+						zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to unmarshal the mandatory key %s in the file: %s.", joinKey(stateWord, selectorWord), configFile)
 					}
 				}
 				if !conf.IsSet(joinKey(instancesWord, currentInstance)) {
 					zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the description for instance `%s` in the file: %s.", currentInstance, configFile)
 				}
 			} else {
-				zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the mandatory keys `%s` and `%s` in the file: %s.", selectorWord, instancesWord, configFile)
+				zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the mandatory keys %s, `%s` and `%s` in the file: %s.", stateWord, selectorWord, instancesWord, configFile)
 			}
 		} else {
 			zboth.Fatal().Err(err).Msgf("Failed to read configuration file: %s. ABORT!", configFile)
@@ -92,7 +92,7 @@ func initConf() {
 // bind the command line flags to the configuration
 func bindFlags() {
 	zlog.Debug().Msg("Start: bind flags")
-	if err := conf.BindPFlag(selectorWord, rootCmd.Flag("selected-instance")); err != nil {
+	if err := conf.BindPFlag(joinKey(stateWord, selectorWord), rootCmd.Flag("selected-instance")); err != nil {
 		zboth.Warn().Err(err).Msgf("Failed to bind flag: %s. Will ignore command line input.", "selected-instance")
 	}
 	for _, flag := range []string{"debug", "quiet"} {

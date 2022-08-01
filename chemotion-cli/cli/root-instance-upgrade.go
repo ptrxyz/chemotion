@@ -9,7 +9,7 @@ import (
 )
 
 func pullImages(use string) {
-	tempCompose := getCompose(use)
+	tempCompose := parseCompose(use)
 	services := getSubHeadings(&tempCompose, "services")
 	if len(services) == 0 {
 		zboth.Warn().Err(toError("no services found")).Msgf("Please check that %s is a valid compose file with named services.", tempCompose.ConfigFileUsed())
@@ -24,11 +24,11 @@ func pullImages(use string) {
 
 func instanceUpgrade(givenName, use string) {
 	// first read the new compose file
-	tempCompose := getCompose(use)
+	tempCompose := parseCompose(use)
 	name := getInternalName(givenName)
 	// back up old compose file
 	oldComposeFile := workDir.Join(instancesWord, name, defaultComposeFilename)
-	oldCompose := getCompose(oldComposeFile.String())
+	oldCompose := parseCompose(oldComposeFile.String())
 	// for some reason (no idea why), labels must be set before port
 	setUniqueLabels(&tempCompose, name)
 	tempCompose.Set(joinKey("services", "eln", "ports"), oldCompose.GetStringSlice(joinKey("services", "eln", "ports"))) // copy over the ports listing
@@ -58,6 +58,17 @@ func instanceUpgrade(givenName, use string) {
 	}
 }
 
+func getLatestComposeURL() (url string) {
+	var err error
+	if url, err = getLatestReleaseURL(); err == nil {
+		url = strings.Join([]string{url, defaultComposeFilename}, "/")
+	} else {
+		zboth.Warn().Err(err).Msgf("Could not determine the address of the latest compose file, using this one: %s.", composeURL)
+		url = composeURL
+	}
+	return
+}
+
 var upgradeInstanceRootCmd = &cobra.Command{
 	Use:   "upgrade",
 	Args:  cobra.NoArgs,
@@ -85,12 +96,7 @@ var upgradeInstanceRootCmd = &cobra.Command{
 			}
 		}
 		if use == "" {
-			if url, err := getLatestReleaseURL(); err == nil {
-				use = strings.Join([]string{url, defaultComposeFilename}, "/")
-			} else {
-				zboth.Warn().Err(err).Msgf("Could not determine the address of the latest compose file, using this one: %s.", composeURL)
-				use = composeURL
-			}
+			use = getLatestComposeURL()
 		}
 		if pull {
 			pullImages(use)

@@ -36,9 +36,8 @@ var installRootCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(installRootCmd)
-	installRootCmd.Flags().String("name", instanceDefault, "Name of the first instance to create")
+	installRootCmd.Flags().StringP("name", "n", instanceDefault, "Name of the first instance to create")
 	installRootCmd.Flags().String("use", composeURL, "URL or filepath of the compose file to use for creating the instance")
 	installRootCmd.Flags().String("address", addressDefault, "Web-address (or hostname) for accessing the instance")
 	installRootCmd.Flags().String("env", "", ".env file for the first instance")
-	installRootCmd.Flags().Uint("expose", 0, "Port that is exposed by the instance to access it")
 }

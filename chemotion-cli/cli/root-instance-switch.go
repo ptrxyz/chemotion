@@ -5,7 +5,7 @@ import (
 )
 
 func instanceSwitch(givenName string) {
-	conf.Set(selectorWord, givenName)
+	conf.Set(joinKey(stateWord, selectorWord), givenName)
 	if err := rewriteConfig(); err == nil {
 		currentInstance = givenName
 		zboth.Info().Msgf("Instance being managed switched to %s%s%s%s.", string("\033[31m"), string("\033[1m"), currentInstance, string("\033[0m"))

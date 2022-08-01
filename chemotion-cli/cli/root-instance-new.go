@@ -12,7 +12,7 @@ import (
 )
 
 // helper function to get a compose file
-func getCompose(use string) (compose viper.Viper) {
+func parseCompose(use string) (compose viper.Viper) {
 	var (
 		composeFilepath pathlib.Path
 		isUrl           bool
@@ -166,7 +166,7 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
 		conf.Set("version", versionYAML)
-		conf.Set(selectorWord, givenName)
+		conf.Set(joinKey(stateWord, selectorWord), givenName)
 		conf.Set(joinKey(stateWord, "quiet"), false)
 		conf.Set(joinKey(stateWord, "debug"), false)
 	}
@@ -176,7 +176,7 @@ func instanceCreateProduction(cmd *cobra.Command) (success bool) {
 	conf.Set(joinKey(instancesWord, givenName, "address"), address)
 	conf.Set(joinKey(instancesWord, givenName, "port"), port)
 	// get the compose file for the instance
-	compose := getCompose(cmd.Flag("use").Value.String())
+	compose := parseCompose(cmd.Flag("use").Value.String())
 	// for some reason (no idea why), labels must be set before port
 	setUniqueLabels(&compose, name)
 	// set the port in the compose file

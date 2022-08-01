@@ -34,7 +34,6 @@ var advancedRootCmd = &cobra.Command{
 		}
 		advancedCmdTable["info"] = infoAdvancedRootCmd.Run
 		advancedCmdTable["console"] = consoleAdvancedRootCmd.Run
-		advancedCmdTable["pull image"] = pullimageAdvancedRootCmd.Run
 		advancedCmdTable["uninstall"] = uninstallAdvancedRootCmd.Run
 		advancedCmdTable[selectOpt(acceptedOpts, "")](cmd, args)
 	},
