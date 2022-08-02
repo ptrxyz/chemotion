@@ -46,7 +46,7 @@ func instanceStart(givenName string) {
 		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose up -d"), gotoFolder("workdir"); success {
 			waitFor := 120 // in seconds
 			if status == "Exited" {
-				waitFor = 20
+				waitFor = 30
 			}
 			zlog.Info().Msgf("Starting instance called %s.", givenName) // because user sees the spinner
 			waitTime := waitStartSpinner(waitFor, givenName)
