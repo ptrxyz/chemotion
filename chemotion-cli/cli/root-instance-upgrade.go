@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,37 +22,39 @@ func pullImages(use string) {
 }
 
 func instanceUpgrade(givenName, use string) {
-	// first read the new compose file
-	tempCompose := parseCompose(use)
+	var success bool = true
 	name := getInternalName(givenName)
-	// back up old compose file
+	// download the new compose (in the working directory)
+	newComposeFile := downloadFile(getLatestComposeURL(), workDir.String())
+	if err := removeKeys(newComposeFile.String(), []string{joinKey("services", "eln", "ports")}); err != nil {
+		newComposeFile.Remove()
+		zboth.Fatal().Err(err).Msgf("Failed to update the downloaded compose file. This is necessary for future use. The file was removed.")
+	}
+	// backup the old compose file
 	oldComposeFile := workDir.Join(instancesWord, name, defaultComposeFilename)
-	oldCompose := parseCompose(oldComposeFile.String())
-	// for some reason (no idea why), labels must be set before port
-	setUniqueLabels(&tempCompose, name)
-	tempCompose.Set(joinKey("services", "eln", "ports"), oldCompose.GetStringSlice(joinKey("services", "eln", "ports"))) // copy over the ports listing
+	if err := oldComposeFile.Rename(workDir.Join(instancesWord, name, toSprintf("%s.old.%s.%s", getNewUniqueID(), time.Now().Format("Basic short date")), defaultComposeFilename)); err == nil {
+		zboth.Info().Msgf("The old compose file is now called %s:", oldComposeFile.String())
+	} else {
+		newComposeFile.Remove()
+		zboth.Fatal().Err(err).Msgf("Failed to remove the old compose file. Check log. ABORT!")
+	}
+	if err := newComposeFile.Rename(workDir.Join(instancesWord, name, defaultComposeFilename)); err != nil {
+		zboth.Fatal().Err(err).Msgf("Failed to rename the new compose file: %s. Check log. ABORT!", newComposeFile.String())
+	}
 	// shutdown existing instance's docker
-	success := true
-	if _, worked, _ := gotoFolder(givenName), callVirtualizer("compose down --remove-orphans"), gotoFolder("workdir"); !worked {
-		success = worked
+	if _, success, _ = gotoFolder(givenName), callVirtualizer(composeCall+"down --remove-orphans"), gotoFolder("workdir"); success {
 		zboth.Fatal().Err(toError("compose down failed")).Msgf("Failed to stop %s. Check log. ABORT!", givenName)
 	}
 	if success {
-		if _, worked, _ := gotoFolder(givenName), callVirtualizer(toSprintf("volume rm %s_chemotion_app", name)), gotoFolder("workdir"); !worked {
-			success = worked
+		if _, success, _ = gotoFolder(givenName), callVirtualizer(toSprintf("volume rm %s_chemotion_app", name)), gotoFolder("workdir"); !success {
 			zboth.Fatal().Err(toError("volume removal failed")).Msgf("Failed to remove old app volume. Check log. ABORT!")
 		}
 	}
 	if success {
-		oldComposeFile.Rename(workDir.Join(instancesWord, name, strconv.FormatInt(time.Now().Unix(), 10)+".old."+defaultComposeFilename))
-		if err := tempCompose.WriteConfigAs(workDir.Join(instancesWord, name, defaultComposeFilename).String()); err == nil {
-			commandStr := toSprintf("compose -f %s up --no-start", defaultComposeFilename)
-			zboth.Info().Msgf("Starting %s with command: %s", virtualizer, commandStr)
-			if _, worked, _ := gotoFolder(givenName), callVirtualizer(commandStr), gotoFolder("workdir"); !worked {
-				zboth.Fatal().Err(toError("%s failed", commandStr)).Msgf("Failed to initialize upgraded %s. Check log. ABORT!", givenName)
-			}
-		} else {
-			zboth.Fatal().Err(toError("compose file write fail")).Msgf("Failed to write the new compose file. The old one is still available as %s", oldComposeFile.Name())
+		commandStr := toSprintf(composeCall + "up --no-start")
+		zboth.Info().Msgf("Starting %s with command: %s", virtualizer, commandStr)
+		if _, success, _ = gotoFolder(givenName), callVirtualizer(commandStr), gotoFolder("workdir"); !success {
+			zboth.Fatal().Err(toError("%s failed", commandStr)).Msgf("Failed to initialize upgraded %s. Check log. ABORT!", givenName)
 		}
 	}
 }

@@ -118,6 +118,7 @@ Following features are exist:
 
 Following features are planned:
 
+- Restore backup: `chemotion restore`
 - Manage Settings: `chemotion instance settings --import|--export` to import/export settings and to run auto-configuring wizards.
 - Frequently asked for features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`, `chemotion system info|rails-shell|shell`
 - Command to manage underlying docker installation i.e. free up space and prune network

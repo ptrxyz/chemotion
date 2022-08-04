@@ -9,11 +9,6 @@ import (
 
 // show (and then remove) a progress bar that waits for an instance to start
 func waitStartSpinner(seconds int, givenName string) (waitTime int) {
-	url := getURL(givenName)
-	var (
-		err  error
-		code int
-	)
 	bar := progressbar.NewOptions(
 		-1,
 		progressbar.OptionSetDescription(toSprintf("Starting %s...", givenName)),
@@ -24,7 +19,7 @@ func waitStartSpinner(seconds int, givenName string) (waitTime int) {
 		progressbar.OptionSpinnerType(51),
 	)
 	for i := 0; i < seconds; i++ {
-		if code, err = instancePing(url); code == 200 {
+		if instancePing(givenName) == "200 OK" {
 			bar.Finish()
 			waitTime = i
 			return
@@ -33,7 +28,6 @@ func waitStartSpinner(seconds int, givenName string) (waitTime int) {
 		time.Sleep(1 * time.Second)
 	}
 	bar.Finish()
-	zboth.Warn().Err(err).Msgf("Response from the instance is %d", code)
 	waitTime = -1
 	return
 }
@@ -43,7 +37,7 @@ func instanceStart(givenName string) {
 	if status == "Up" {
 		zboth.Warn().Msgf("The instance called %s is already running.", givenName)
 	} else {
-		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose up -d"), gotoFolder("workdir"); success {
+		if _, success, _ := gotoFolder(givenName), callVirtualizer(composeCall+"up -d"), gotoFolder("workdir"); success {
 			waitFor := 120 // in seconds
 			if status == "Exited" {
 				waitFor = 30
@@ -64,7 +58,7 @@ func instanceStart(givenName string) {
 func instanceStop(givenName string) {
 	status := instanceStatus(givenName)
 	if status == "Up" {
-		if _, success, _ := gotoFolder(givenName), callVirtualizer("compose stop"), gotoFolder("workdir"); success {
+		if _, success, _ := gotoFolder(givenName), callVirtualizer(composeCall+"stop"), gotoFolder("workdir"); success {
 			zboth.Info().Msgf("Successfully stopped instance called %s.", givenName)
 		} else {
 			zboth.Fatal().Msgf("Failed to stop instance called %s.", givenName)

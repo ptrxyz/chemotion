@@ -7,7 +7,7 @@ import (
 )
 
 func instanceStatus(givenName string) (status string) {
-	out := getColumn(givenName, "Status")
+	out := getColumn(givenName, "Status", "")
 	var statuses []string
 	for _, line := range out { // determine what are the status messages for all associated containers
 		l := strings.Split(line, " ") // use only the first word
@@ -34,17 +34,17 @@ func instanceStatus(givenName string) (status string) {
 func instanceStat(givenName string) {
 	name, services, out := getInternalName(givenName), getServices(givenName), []string{""}
 	zboth.Info().Msgf("The status of %s is: %s.\n\nIts stats are:", givenName, instanceStatus(givenName))
-	if res, err := execShell(toSprintf("%s stats --all --no-stream --no-trunc --format \"{{ .Name }} {{ .MemUsage }} {{ .MemPerc }} {{ .CPUPerc }}\"", toLower(virtualizer))); err == nil {
+	if res, err := execShell(toSprintf("%s stats --all --no-stream --no-trunc --format \"{{ .Name }} {{ .ID }} {{ .MemUsage }} {{ .MemPerc }} {{ .CPUPerc }}\"", toLower(virtualizer))); err == nil {
 		out[0] = string(res)
 		out = strings.Split(out[0], "\n")
-		zboth.Info().Msgf("%10s %10s %10s %10s", "Name", " Memory", "Mem %", "CPU %")
-		zboth.Info().Msgf("---------- ---------- ---------- ----------")
+		zboth.Info().Msgf("%10s %10s %10s %10s %10s", "Name", "ID", " Memory", "Mem %", "CPU %")
+		zboth.Info().Msgf("---------- ---------- ---------- ---------- ----------")
 		for _, service := range services {
 			found := false
 			for _, line := range out {
 				l := strings.Split(line, " ")
 				if l[0] == toSprintf("%s-%s-%d", name, service, rollNum) {
-					zboth.Info().Msgf("%10s %10s %10s %10s", service, l[1], l[4], l[5])
+					zboth.Info().Msgf("%10s %10s %10s %10s %10s", service, l[1][:10], l[2], l[5], l[6])
 					found = true
 					break
 				}

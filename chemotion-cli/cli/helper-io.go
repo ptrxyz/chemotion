@@ -55,6 +55,17 @@ func downloadFile(fileURL string, downloadLocation string) (filepath pathlib.Pat
 	return
 }
 
+// to copy a file
+func copyfile(source, destination string) (err error) {
+	file := *pathlib.NewPath(source)
+	var read []byte
+	read, err = file.ReadFile()
+	if err == nil {
+		err = pathlib.NewPath(destination).WriteFile(read)
+	}
+	return
+}
+
 // change directory with logging
 func gotoFolder(givenName string) (pwd string) {
 	var folder string
@@ -82,15 +93,21 @@ func execShell(command string) (result []byte, err error) {
 	return
 }
 
-// copy a text file
-// func copyTextFile(source *pathlib.Path, target *pathlib.Path) (err error) {
-// 	fmt.Println(source.String(), target.String())
-// 	if reader, errRead := source.ReadFile(); err == nil {
-// 		if errWrite := target.WriteFile(reader); err != nil {
-// 			err = errWrite
-// 		}
-// 	} else {
-// 		err = errRead
-// 	}
-// 	return
-// }
+// to be called from the folder where file exists
+func removeKeys(filename string, keys []string) (err error) {
+	var where string
+	where, err = os.Getwd()
+	if err == nil {
+		if existingFile(filename) {
+			for _, key := range keys {
+				if success := callVirtualizer(toSprintf("run --rm -v %s:/workdir mikefarah/yq eval -i del(.%s) %s", where, key, filename)); !success {
+					err = toError("failed to update %s in %s", key, filename)
+					return
+				}
+			}
+		} else {
+			err = toError("file %s not found", filename)
+		}
+	}
+	return
+}

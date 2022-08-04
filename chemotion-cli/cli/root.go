@@ -42,27 +42,28 @@ import (
 )
 
 const (
-	versionCLI                  = "0.2.0-alpha"
-	versionYAML                 = "1.1"
-	nameCLI                     = "Chemotion"
-	defaultConfigFilepath       = "chemotion-cli.yml"
-	logFilename                 = "chemotion-cli.log"
-	instanceDefault             = "initial"
-	addressDefault              = "http://localhost"
-	insideFile                  = "/.version"
-	stateWord                   = "cli_state"
-	selectorWord                = "selected"  // key that is expected in the configFile to figure out the selected instance
-	instancesWord               = "instances" // the folder/key in which chemotion expects to find all the instances
-	virtualizer                 = "Docker"
-	shell                       = "bash"    // should work with linux (ubuntu, windows < WSL runs when running in powershell >, and macOS)
-	minimumVirtualizer          = "20.10.2" // so as to support docker compose files version 3.5 and avoid this: https://github.com/docker/for-mac/issues/4975 by forcing Docker Desktop >= 3.0.4
-	defaultComposeFilename      = "docker-compose.yml"
-	maxInstancesOfKind          = 63
-	firstPort              uint = 4000
-	composeURL                  = "https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/docker-compose.yml"
-	releaseUnresolvedURL        = "https://github.com/harivyasi/chemotion/releases/latest"
-	rollNum                     = 1 // the default index number assigned by virtualizer to every container
-	primaryService              = "eln"
+	versionCLI                    = "0.2.0-alpha"
+	versionYAML                   = "1.1"
+	nameCLI                       = "Chemotion"
+	defaultConfigFilepath         = "chemotion-cli.yml"
+	logFilename                   = "chemotion-cli.log"
+	instanceDefault               = "initial"
+	addressDefault                = "http://localhost"
+	insideFile                    = "/.version"
+	stateWord                     = "cli_state"
+	selectorWord                  = "selected"  // key that is expected in the configFile to figure out the selected instance
+	instancesWord                 = "instances" // the folder/key in which chemotion expects to find all the instances
+	virtualizer                   = "Docker"
+	shell                         = "bash"    // should work with linux (ubuntu, windows < WSL runs when running in powershell >, and macOS)
+	minimumVirtualizer            = "20.10.2" // so as to support docker compose files version 3.5 and avoid this: https://github.com/docker/for-mac/issues/4975 by forcing Docker Desktop >= 3.0.4
+	defaultComposeFilename        = "docker-compose.yml"
+	extenedComposeFilename        = "docker-compose.cli.yml"
+	maxInstancesOfKind            = 63
+	firstPort              uint64 = 4000
+	composeURL                    = "https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/docker-compose.yml"
+	releaseUnresolvedURL          = "https://github.com/harivyasi/chemotion/releases/latest"
+	rollNum                       = 1 // the default index number assigned by virtualizer to every container
+	primaryService                = "eln"
 )
 
 // data type that maps a string to corresponding cobra command
@@ -83,6 +84,7 @@ var (
 	commandForCLI string = os.Args[0]
 	// others
 	reseveredWords = []string{"instance", "advanced", "back", "exit"}
+	composeCall    = toSprintf("compose -f %s -f %s ", defaultComposeFilename, extenedComposeFilename) // extra space at end is on purpose
 )
 
 var rootCmdTable = make(cmdTable)

@@ -10,9 +10,9 @@ func instanceBackup(givenName, portion string) {
 	gotoFolder(givenName)
 	var err, msg string
 	status := instanceStatus(givenName)
-	if successStart := callVirtualizer("compose start eln"); successStart {
-		if successCurl := callVirtualizer("compose exec eln curl https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/chemotion-cli/payload/backup.sh --output /embed/scripts/backup.sh"); successCurl {
-			if successBackUp := callVirtualizer("compose exec --env BACKUP_WHAT=" + portion + " eln chemotion backup"); successBackUp {
+	if successStart := callVirtualizer(composeCall + "start eln"); successStart {
+		if successCurl := callVirtualizer(composeCall + "exec eln curl https://raw.githubusercontent.com/harivyasi/chemotion/chemotion-cli/chemotion-cli/payload/backup.sh --output /embed/scripts/backup.sh"); successCurl {
+			if successBackUp := callVirtualizer(composeCall + "exec --env BACKUP_WHAT=" + portion + " eln chemotion backup"); successBackUp {
 				zboth.Info().Msgf("Backup successful.")
 			} else {
 				msg = "Backup process failed."
@@ -23,7 +23,7 @@ func instanceBackup(givenName, portion string) {
 			msg = "Could not fix the broken `backup.sh`. Can't create backup."
 		}
 		if status != "Up" { // if instance was not Up prior to start then stop it now
-			callVirtualizer("compose stop") // need to be low-level because only one service is running
+			callVirtualizer(composeCall + "stop") // need to be low-level because only one service is running
 		}
 	} else {
 		err = "starting eln service failed"

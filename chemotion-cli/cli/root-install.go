@@ -15,16 +15,14 @@ var installRootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, _ []string) {
-		var create bool
 		if firstRun {
-			if isInteractive(false) {
-				create = newInstanceInteraction(cmd)
-			} else {
-				zboth.Info().Msgf("You chose do first run of %s in quiet mode. Will go ahead and install it!", nameCLI)
-				create = true
-			}
+			details := make(map[string]string)
+			create := processInstallAndInstanceCreateCmd(cmd, details)
 			if create {
-				if success := instanceCreateProduction(cmd); success {
+				if !isInteractive(false) {
+					zboth.Info().Msgf("You chose do first run of %s in quiet mode. Will go ahead and install it!", nameCLI)
+				}
+				if success := instanceCreateProduction(details); success {
 					zboth.Info().Msgf("All done! Now you can do `%s on` and `%s off` to start/stop %s.", commandForCLI, commandForCLI, nameCLI)
 				}
 			}
@@ -37,7 +35,6 @@ var installRootCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(installRootCmd)
 	installRootCmd.Flags().StringP("name", "n", instanceDefault, "Name of the first instance to create")
-	installRootCmd.Flags().String("use", composeURL, "URL or filepath of the compose file to use for creating the instance")
-	installRootCmd.Flags().String("address", addressDefault, "Web-address (or hostname) for accessing the instance")
-	installRootCmd.Flags().String("env", "", ".env file for the first instance")
+	installRootCmd.Flags().String("use", "", "URL or filepath of the compose file to use for creating the first instance")
+	installRootCmd.Flags().String("address", addressDefault, "Web-address (or hostname) for accessing the first instance")
 }

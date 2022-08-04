@@ -64,7 +64,7 @@ func compareSoftwareVersion(required, current string) (err error) {
 
 // call to virtualizer (this must not end in fatal error, i.e. must return `var success bool`)
 func callVirtualizer(args string) (success bool) {
-	if strings.Contains(args, "busybox") {
+	if strings.Contains(args, "busybox") || strings.Contains(args, "mikefarah/yq") {
 		zboth.Debug().Msgf("%s will now fork the execution with command `%s %s` sent to shell.", nameCLI, toLower(virtualizer), args)
 	} else {
 		zboth.Info().Msgf("%s will now fork the execution with command `%s %s` sent to shell.", nameCLI, toLower(virtualizer), args)

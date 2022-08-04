@@ -27,7 +27,7 @@ func isInteractive(fail bool) (interactive bool) {
 }
 
 // check if an element is in an array of type(element), if yes, return the 1st index, else -1.
-func elementInSlice[T uint | int | float64 | string](elem T, slice *[]T) int {
+func elementInSlice[T uint64 | int | float64 | string](elem T, slice *[]T) int {
 	for index, element := range *slice {
 		if element == elem {
 			return index
@@ -88,10 +88,10 @@ func allInstances() (instances []string) {
 }
 
 // to get all existing used ports
-func allPorts() (ports []uint) {
+func allPorts() (ports []uint64) {
 	existingInstances := allInstances()
 	for _, instance := range existingInstances {
-		ports = append(ports, uint(conf.GetUint32(joinKey(instancesWord, instance, "port"))))
+		ports = append(ports, conf.GetUint64(joinKey(instancesWord, instance, "port")))
 	}
 	return
 }
@@ -107,9 +107,13 @@ func getInternalName(givenName string) (name string) {
 }
 
 // get column associated with `ps` output for a given instance of chemotion
-func getColumn(givenName, column string) (values []string) {
+func getColumn(givenName, column, service string) (values []string) {
 	name := getInternalName(givenName)
-	if res, err := execShell(toSprintf("%s ps -a --filter \"label=net.chemotion.cli.project=%s\" --format \"{{.%s}}\"", toLower(virtualizer), name, column)); err == nil {
+	filterStr := toSprintf("--filter \"label=net.chemotion.cli.project=%s\"", name)
+	if service != "" {
+		filterStr += toSprintf(" --filter name=%s", service)
+	}
+	if res, err := execShell(toSprintf("%s ps -a %s --format \"{{.%s}}\"", toLower(virtualizer), filterStr, column)); err == nil {
 		values = strings.Split(string(res), "\n")
 	} else {
 		values = []string{}
@@ -119,7 +123,7 @@ func getColumn(givenName, column string) (values []string) {
 
 // get services associated with a given `instance` of Chemotion
 func getServices(givenName string) (services []string) {
-	name, out := getInternalName(givenName), getColumn(givenName, "Names")
+	name, out := getInternalName(givenName), getColumn(givenName, "Names", "")
 	for _, line := range out { // determine what are the status messages for all associated containers
 		l := strings.TrimSpace(line) // use only the first word
 		if len(l) > 0 {
@@ -131,8 +135,19 @@ func getServices(givenName string) (services []string) {
 	return
 }
 
+// get container ID associated with a given `instance` and `service` of Chemotion
+func getContainerID(givenName, service string) (id string) {
+	out := getColumn(givenName, "ID", service)
+	if len(out) == 2 {
+		id = out[0]
+	} else {
+		id = "not found"
+	}
+	return
+}
+
 // split address into subcomponents
-func splitAddress(full string) (protocol string, address string, port uint) {
+func splitAddress(full string) (protocol string, address string, port uint64) {
 	if err := addressValidate(full); err != nil {
 		zboth.Fatal().Err(err).Msgf("Given address %s is invalid.", full)
 	}
@@ -141,46 +156,7 @@ func splitAddress(full string) (protocol string, address string, port uint) {
 	address, portStr, _ := strings.Cut(address, ":")
 	if port = 0; portStr != "" {
 		p, _ := strconv.Atoi(portStr)
-		port = uint(p)
+		port = uint64(p)
 	}
 	return
 }
-
-// TODO
-
-// Start shell for user
-// var shellSystemRootCmd = &cobra.Command{
-// 	Use:        "shell",
-// 	SuggestFor: []string{"she"},
-// 	Args:       cobra.NoArgs,
-// 	Run: func(cmd *cobra.Command, args []string) {
-//
-//
-// 		fmt.Println("We are now going to start shell")
-// 	},
-// }
-
-// Start a rails shell for user
-// var railsSystemRootCmd = &cobra.Command{
-// 	Use:        "rails",
-// 	SuggestFor: []string{"rai"},
-// 	Args:       cobra.NoArgs,
-// 	Run: func(cmd *cobra.Command, args []string) {
-//
-//
-// 		fmt.Println("We are now going to start Rails shell")
-// 	},
-// }
-
-// example starter
-
-// var uninstallAdvancedRootCmd = &cobra.Command{
-// 	Use:   "uninstall",
-// 	Args:  cobra.NoArgs,
-// 	Short: toSprintf("Uninstall %s completely.", nameCLI),
-// 	Run: func(cmd *cobra.Command, args []string) {
-//
-//
-// 		confirmInteractive()
-// 	},
-// }

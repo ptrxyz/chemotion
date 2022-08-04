@@ -2,29 +2,23 @@ package cli
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
-func instancePing(domain string) (code int, err error) {
-	var resp *http.Response
-	if resp, err = http.Get(domain); err == nil {
-		code = resp.StatusCode
-	} else {
-		code = 0
+func instancePing(givenName string) (response string) {
+	url := conf.GetString(joinKey(instancesWord, currentInstance, "accessAddress"))
+	client := http.Client{Timeout: 2 * time.Second}
+	if req, err := http.NewRequest("HEAD", url, nil); err == nil {
+		if resp, err := client.Do(req); err == nil {
+			resp.Body.Close()
+			response = resp.Status
+		} else {
+			response = err.Error()
+		}
 	}
 	return
-}
-
-// sends the URL of a given chemotion instance
-func getURL(givenName string) string {
-	hostProtocol := conf.GetString(joinKey(instancesWord, givenName, "protocol"))
-	hostAddress := conf.GetString(joinKey(instancesWord, givenName, "address"))
-	hostPort := conf.GetString(joinKey(instancesWord, givenName, "port"))
-	if hostProtocol == "" || hostAddress == "" || hostPort == "" {
-		zboth.Fatal().Err(toError("key not found")).Msgf("Failed to find parts of URL for %s in %s.", givenName, conf.ConfigFileUsed())
-	}
-	return toSprintf("%s://%s:%s", hostProtocol, hostAddress, hostPort)
 }
 
 // PingCmd represents the ping command
@@ -33,12 +27,10 @@ var pingInstanceRootCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Short: "Ping an instance of " + nameCLI,
 	Run: func(cmd *cobra.Command, _ []string) {
-		url := getURL(currentInstance)
-		zboth.Info().Msgf("Ping %s at %s.", currentInstance, url)
-		if resp, err := instancePing(url); err == nil {
-			zboth.Info().Msgf("Success, response %d received from %s.", resp, url)
+		if response := instancePing(currentInstance); response == "200 OK" {
+			zboth.Info().Msgf("Success, received: %s.", response)
 		} else {
-			zboth.Warn().Err(err).Msgf("Failure, response %d received from %s.", resp, url)
+			zboth.Warn().Msgf("Failed with response: %s.", response)
 		}
 	},
 }
