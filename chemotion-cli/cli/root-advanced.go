@@ -20,21 +20,20 @@ var advancedRootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		isInteractive(true)
-		acceptedOpts := []string{"info", "console"}
+		acceptedOpts := []string{"info"}
+		advancedCmdTable["info"] = infoAdvancedRootCmd.Run
 		if updateRequired() {
 			acceptedOpts = append(acceptedOpts, "update cli")
 			advancedCmdTable["update cli"] = updateSelfAdvancedRootCmd.Run
 		}
-		acceptedOpts = append(acceptedOpts, []string{"pull image", "uninstall"}...)
 		if cmd.Use == cmd.CalledAs() { // || elementInSlice(cmd.CalledAs(), &cmd.Aliases) > -1 { { // there are no aliases at the moment
-			acceptedOpts = append(acceptedOpts, "exit")
+			acceptedOpts = append(acceptedOpts, []string{"uninstall", "exit"}...)
+			advancedCmdTable["uninstall"] = uninstallAdvancedRootCmd.Run
 		} else {
-			acceptedOpts = append(acceptedOpts, []string{"back", "exit"}...)
+			acceptedOpts = append(acceptedOpts, []string{"uninstall", "back", "exit"}...)
+			advancedCmdTable["uninstall"] = uninstallAdvancedRootCmd.Run
 			advancedCmdTable["back"] = cmd.Run
 		}
-		advancedCmdTable["info"] = infoAdvancedRootCmd.Run
-		advancedCmdTable["console"] = consoleAdvancedRootCmd.Run
-		advancedCmdTable["uninstall"] = uninstallAdvancedRootCmd.Run
 		advancedCmdTable[selectOpt(acceptedOpts, "")](cmd, args)
 	},
 }

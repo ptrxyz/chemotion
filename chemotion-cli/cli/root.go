@@ -128,15 +128,18 @@ var rootCmd = &cobra.Command{
 		status := instanceStatus(currentInstance)
 		if status == "Up" {
 			acceptedOpts = []string{"off", "restart"}
+			rootCmdTable["off"] = offRootCmd.Run
+			rootCmdTable["restart"] = restartRootCmd.Run
 		} else if status == "Created" || status == "Exited" {
 			acceptedOpts = []string{"on"}
+			rootCmdTable["on"] = onRootCmd.Run
 		} else {
 			acceptedOpts = []string{"on", "off", "restart"}
+			rootCmdTable["on"] = onRootCmd.Run
+			rootCmdTable["off"] = offRootCmd.Run
+			rootCmdTable["restart"] = restartRootCmd.Run
 		}
 		acceptedOpts = append(acceptedOpts, []string{"instance", "advanced", "exit"}...)
-		rootCmdTable["on"] = onRootCmd.Run
-		rootCmdTable["off"] = offRootCmd.Run
-		rootCmdTable["restart"] = restartRootCmd.Run
 		rootCmdTable["instance"] = instanceRootCmd.Run
 		rootCmdTable["advanced"] = advancedRootCmd.Run
 		rootCmdTable[selectOpt(acceptedOpts, "")](cmd, args)
