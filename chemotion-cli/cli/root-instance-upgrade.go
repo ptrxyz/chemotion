@@ -32,17 +32,17 @@ func instanceUpgrade(givenName, use string) {
 	}
 	// backup the old compose file
 	oldComposeFile := workDir.Join(instancesWord, name, defaultComposeFilename)
-	if err := oldComposeFile.Rename(workDir.Join(instancesWord, name, toSprintf("%s.old.%s.%s", getNewUniqueID(), time.Now().Format("Basic short date")), defaultComposeFilename)); err == nil {
+	if err := oldComposeFile.Rename(workDir.Join(instancesWord, name, toSprintf("old.%s.%s", time.Now().Format("060102150405"), defaultComposeFilename))); err == nil {
 		zboth.Info().Msgf("The old compose file is now called %s:", oldComposeFile.String())
 	} else {
 		newComposeFile.Remove()
-		zboth.Fatal().Err(err).Msgf("Failed to remove the old compose file. Check log. ABORT!")
+		zboth.Fatal().Err(err).Msgf("Failed to remove the new compose file. Check log. ABORT!")
 	}
 	if err := newComposeFile.Rename(workDir.Join(instancesWord, name, defaultComposeFilename)); err != nil {
 		zboth.Fatal().Err(err).Msgf("Failed to rename the new compose file: %s. Check log. ABORT!", newComposeFile.String())
 	}
 	// shutdown existing instance's docker
-	if _, success, _ = gotoFolder(givenName), callVirtualizer(composeCall+"down --remove-orphans"), gotoFolder("workdir"); success {
+	if _, success, _ = gotoFolder(givenName), callVirtualizer(composeCall+"down --remove-orphans"), gotoFolder("workdir"); !success {
 		zboth.Fatal().Err(toError("compose down failed")).Msgf("Failed to stop %s. Check log. ABORT!", givenName)
 	}
 	if success {
@@ -56,6 +56,7 @@ func instanceUpgrade(givenName, use string) {
 		if _, success, _ = gotoFolder(givenName), callVirtualizer(commandStr), gotoFolder("workdir"); !success {
 			zboth.Fatal().Err(toError("%s failed", commandStr)).Msgf("Failed to initialize upgraded %s. Check log. ABORT!", givenName)
 		}
+		zboth.Info().Msgf("Instance upgraded successfully!")
 	}
 }
 

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/schollz/progressbar/v3"
@@ -21,6 +22,7 @@ func waitStartSpinner(seconds int, givenName string) (waitTime int) {
 	for i := 0; i < seconds; i++ {
 		if instancePing(givenName) == "200 OK" {
 			bar.Finish()
+			fmt.Println()
 			waitTime = i
 			return
 		}
@@ -29,6 +31,7 @@ func waitStartSpinner(seconds int, givenName string) (waitTime int) {
 	}
 	bar.Finish()
 	waitTime = -1
+	fmt.Println()
 	return
 }
 

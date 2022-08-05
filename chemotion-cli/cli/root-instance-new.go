@@ -136,9 +136,9 @@ func processInstallAndInstanceCreateCmd(cmd *cobra.Command, details map[string]s
 	return
 }
 
-func createExtendedCompose(details map[string]string) (extendedCompose viper.Viper) {
+func createExtendedCompose(details map[string]string, use string) (extendedCompose viper.Viper) {
 	extendedCompose = *viper.New()
-	compose := parseCompose(details["use"])
+	compose := parseCompose(use)
 	sections := []string{"services", "volumes", "networks"}
 	// set labels on services, volumes and networks for future identification
 	for _, section := range sections {
@@ -182,7 +182,21 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 		}
 	}
 	details["port"] = strconv.FormatUint(port, 10)
-	extendedCompose := createExtendedCompose(details)
+	// download and modify the compose file
+	var composeFile pathlib.Path
+	if existingFile(details["use"]) {
+		if err := copyfile(details["use"], toSprintf("%s.%s", getNewUniqueID(), defaultComposeFilename)); err == nil {
+			composeFile = *pathlib.NewPath(toSprintf("%s.%s", getNewUniqueID(), defaultComposeFilename))
+		} else {
+			zboth.Fatal().Err(err).Msgf("Failed to copy the suggested compose file: %s. This is necessary for future use.")
+		}
+	} else {
+		composeFile = downloadFile(details["use"], toSprintf("%s.%s", getNewUniqueID(), defaultComposeFilename))
+	}
+	if err := removeKeys(composeFile.String(), []string{joinKey("services", "eln", "ports")}); err != nil {
+		zboth.Fatal().Err(err).Msgf("Failed to update the downloaded compose file. This is necessary for future use.")
+	}
+	extendedCompose := createExtendedCompose(details, composeFile.String())
 	// store values in the conf, the conf file is modified only later
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
@@ -192,26 +206,16 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 		conf.Set(joinKey(stateWord, "debug"), false)
 		conf.Set(joinKey(stateWord, "version"), versionCLI)
 	}
-	// create new unique name for the instance
-	conf.Set(joinKey(instancesWord, details["givenName"], "name"), details["name"])
 	conf.Set(joinKey(instancesWord, details["givenName"], "port"), port)
-	conf.Set(joinKey(instancesWord, details["givenName"], "address"), details["address"])
-	conf.Set(joinKey(instancesWord, details["givenName"], "protocol"), details["protocol"])
-	conf.Set(joinKey(instancesWord, details["givenName"], "accessAddress"), details["accessAddress"])
-	// make folder
+	for _, key := range []string{"name", "address", "protocol", "accessAddress"} {
+		conf.Set(joinKey(instancesWord, details["givenName"], key), details[key])
+	}
+	// make folder and move the compose file into it
 	zboth.Info().Msgf("Creating a new instance of %s called %s.", nameCLI, details["name"])
-	if err := workDir.Join(instancesWord, details["name"]).MkdirAll(); err != nil {
-		zboth.Fatal().Err(err).Msgf("Unable to create folder to store instances of %s.", nameCLI)
-	}
-	// download and modify the compose file
-	if existingFile(details["use"]) {
-		copyfile(details["use"], workDir.Join(instancesWord, details["name"], defaultComposeFilename).String())
+	if err := workDir.Join(instancesWord, details["name"]).MkdirAll(); err == nil {
+		composeFile.Rename(workDir.Join(instancesWord, details["name"], defaultComposeFilename))
 	} else {
-		compose := downloadFile(details["use"], toSprintf("%s.%s", getNewUniqueID(), defaultComposeFilename))
-		compose.Rename(workDir.Join(instancesWord, details["name"], defaultComposeFilename))
-	}
-	if _, err, _ := gotoFolder(details["givenName"]), removeKeys(defaultComposeFilename, []string{joinKey("services", "eln", "ports")}), gotoFolder("workdir"); err != nil {
-		zboth.Fatal().Err(err).Msgf("Failed to update the downloaded compose file. This is necessary for future use.")
+		zboth.Fatal().Err(err).Msgf("Unable to create folder to store instances of %s.", nameCLI)
 	}
 	// write out the extended compose file
 	if _, err, _ := gotoFolder(details["givenName"]), extendedCompose.WriteConfigAs(extenedComposeFilename), gotoFolder("workdir"); err == nil {
