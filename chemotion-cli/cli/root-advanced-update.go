@@ -40,13 +40,19 @@ func getLatestVersion() (version string) {
 }
 
 func updateRequired() (required bool) {
-	key := joinKey(stateWord, "version_checked_on")
-	checkedOn := conf.GetTime(key)
+	verKey, timeKey := joinKey(stateWord, "version"), joinKey(stateWord, "version_checked_on")
+	// update version in conf if required
+	confVersion := conf.GetString(verKey)
+	if confVersion == "" || confVersion != versionCLI {
+		conf.Set(verKey, versionCLI)
+		rewriteConfig()
+	}
+	checkedOn := conf.GetTime(timeKey)
 	if checkedOn.IsZero() || (time.Since(checkedOn).Hours() > 24) { // check every 24 hours
 		existingVer, _ := vercompare.NewVersion(versionCLI)
 		newVer, _ := vercompare.NewVersion(getLatestVersion())
 		required = newVer.GreaterThan(existingVer)
-		conf.Set(key, time.Now())
+		conf.Set(timeKey, time.Now())
 		rewriteConfig()
 	}
 	return

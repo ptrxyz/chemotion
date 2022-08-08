@@ -8,7 +8,7 @@ Chemotion CLI tool is there to help you manage installation(s) of Chemotion on a
 
 ### Get the binary
 
-The Chemotion CLI tool is a binary file and needs no installation. The only prerequisite is that you install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (and, on Windows, [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). Depending on your OS, you can download the lastest release of the CLI from [here](https://github.com/harivyasi/chemotion/releases/). Builds for the following systems are available:
+The Chemotion CLI tool is a binary file and needs no installation. The only prerequisite is that you install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (and, on Windows, [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). Depending on your OS, you can download the lastest release of the CLI from [here](https://github.com/harivyasi/chemotion/releases/latest). Builds for the following systems are available:
 
 - Linux, amd64
 - Windows, amd64; remember to turn on [Docker integration with WSL](https://docs.docker.com/desktop/windows/wsl/)
@@ -76,7 +76,7 @@ As long as you installed an instance of Chemotion using this tool, the upgrade p
 
 Starting from version `0.2.0-alpha`, the tool itself can be updated to the latest version by running `chemotion advanced update`.
 
-> :info: If you are updating from version `0.1.x-alpha` to a newer version, please get in touch with your `chemotion-cli.yml` file. We will update this file manually (< 5 minutes) to get your installation up and working again!
+> :info: If you are updating from version `0.1.x-alpha` to a newer version, please get in touch with your `chemotion-cli.yml` file. We will update this file manually (< 5 minutes) to get your installation up and working again! If you want, you can do it yourself following the example at the bottom of this page.
 
 ### Uninstallation
 
@@ -129,3 +129,66 @@ Following features are planned:
 - Manage Settings: `chemotion instance settings --import|--export` to import/export settings and to run auto-configuring wizards.
 - Features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`
 - Command to manage underlying docker installation i.e. free up space and prune network
+
+## Moving from CLI version 0.1.x-alpha to 0.2.0-alpha
+
+The only difference is formatting of the `chemotion-cli.yml` file.
+
+- The global keys that handle state of the tool i.e. `selected`, `quiet` and `debug` have now been moved to `cli_state:selected`, `cli_state:quiet` and `cli_state:debug` respectively.
+- The `instances:<instance_name>:address` and `instances:<instance_name>:protocol` keys have been removed. Instead, we have `instances:<instance_name>:accessaddress` which stores the full URL that is used to access the ELN instance.
+- A new key called `instances:<instance_name>:environment` has been introduced. This is now used to create the `shared/pullin/.env` file **everytime** the instance is (re)started. **Please** move all your `key=value` pairs from this `.env` file to the `chemotion-cli.yml` in `key: value` format as sub-keys of the `instances:<instance_name>:environment` key.
+- With these changes, the version of this YAML file has been changed from `"1.0"` to `"1.1"`.
+
+Therefore, if your file looked as follows:
+
+```yaml
+instances:
+  main:
+    address: mynotebook.kit.edu
+    debug: false
+    kind: Production
+    name: main-ee5e5424
+    port: 4000
+    protocol: http
+    quiet: false
+  second:
+    address: localhost
+    debug: false
+    kind: Production
+    name: second-ff6f6535
+    port: 4100
+    protocol: http
+    quiet: false
+selected: main
+version: "1.0"
+```
+
+Please change it to look as follows:
+
+```yaml
+cli_state:
+  debug: false
+  quiet: false
+  selected: main
+instances:
+  main:
+    accessaddress: http://mynotebook.kit.edu
+    environment:
+      url_host: ifgs6.ifg.kit.edu
+      url_protocol: http
+    kind: Production
+    name: main-ee5e5044
+    port: 4000
+  second:
+    accessaddress: http://localhost:4100
+    environment:
+      url_host: localhost:4100
+      url_protocol: http
+      smtp_port: ...<key-value pairs from /shared/pullin/.env file>...
+    kind: Production
+    name: second-ff6f6535
+    port: 4100
+version: "1.1"
+```
+
+Once you have made the changes, please downloaded the latest version of the CLI from [here](https://github.com/harivyasi/chemotion/releases/latest).

@@ -208,7 +208,7 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 		conf.Set(joinKey(stateWord, "version"), versionCLI)
 	}
 	conf.Set(joinKey(instancesWord, details["givenName"], "port"), port)
-	for _, key := range []string{"name", "accessAddress"} {
+	for _, key := range []string{"name", "kind", "accessAddress"} {
 		conf.Set(joinKey(instancesWord, details["givenName"], key), details[key])
 	}
 	// make folder and move the compose file into it
