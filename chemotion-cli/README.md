@@ -72,6 +72,12 @@ As long as you installed an instance of Chemotion using this tool, the upgrade p
 - Prepare for update by running `chemotion advanced pull-image`. This will download the latest chemotion image from the internet if not already present on the system. Downloading the image outside of downtime saves you time later on.
 - Schedule a downtime of at least 15 minutes; more if you have a lot of data that needs to backed up. During the downtime, run `chemotion instance backup` to backup your data followed by `chemotion instance upgrade` to update the instance.
 
+### Updating this CLI tool
+
+Starting from version `0.2.0-alpha`, the tool itself can be updated to the latest version by running `chemotion advanced update`.
+
+> :info: If you are updating from version `0.1.x-alpha` to a newer version, please get in touch with your `chemotion-cli.yml` file. We will update this file manually (< 5 minutes) to get your installation up and working again!
+
 ### Uninstallation
 
 > :warning: be sure about what you want to do!
