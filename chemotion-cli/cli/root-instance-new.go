@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/chigopher/pathlib"
 	"github.com/spf13/cobra"
@@ -207,7 +208,7 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 		conf.Set(joinKey(stateWord, "version"), versionCLI)
 	}
 	conf.Set(joinKey(instancesWord, details["givenName"], "port"), port)
-	for _, key := range []string{"name", "address", "protocol", "accessAddress"} {
+	for _, key := range []string{"name", "accessAddress"} {
 		conf.Set(joinKey(instancesWord, details["givenName"], key), details[key])
 	}
 	// make folder and move the compose file into it
@@ -226,24 +227,9 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 	if _, success, _ = gotoFolder(details["givenName"]), callVirtualizer(composeCall+"up --no-start"), gotoFolder("workdir"); !success {
 		zboth.Fatal().Err(toError("compose up failed")).Msgf("Failed to setup %s. Check log. ABORT!", nameCLI)
 	}
-
-	// write env file into the container
-	// envFile := workDir.Join(instancesWord, name, ".env")
-	// env.SetConfigFile(envFile.String())
-	// env.Set("URL_HOST", strings.TrimPrefix(givenAddress, protocol+"://"))
-	// env.Set("URL_PROTOCOL", protocol)
-	// if err := env.WriteConfig(); err == nil {
-	// 	modifyContainer(givenName, "mkdir -p", "shared/pullin", "")
-	// 	if worked := modifyContainer(givenName, "cp", ".env", "shared/pullin/."); !worked {
-	// 		success = worked
-	// 		zboth.Warn().Msgf("Failed to write .env file in `%s/shared/pullin`", name)
-	// 	}
-	// } else {
-	// 	zboth.Warn().Err(err).Msgf("Failed to write .env file")
-	// }
-	// envFile.Remove()
-	// zboth.Info().Msgf("Successfully created the instance called %s. New %s port available at %d.", givenName, nameCLI, port)
-	// now modify the config file
+	// initialize the env file
+	conf.Set(joinKey(instancesWord, details["givenName"], "environment", "URL_HOST"), strings.TrimPrefix(details["accessAddress"], pro+"://"))
+	conf.Set(joinKey(instancesWord, details["givenName"], "environment", "URL_PROTOCOL"), pro)
 	if err := rewriteConfig(); err != nil {
 		zboth.Fatal().Err(err).Msg("Failed to write config file. Check log. ABORT!")
 	}
@@ -262,7 +248,7 @@ var newInstanceRootCmd = &cobra.Command{
 			switch details["kind"] {
 			case "Production":
 				if success := instanceCreateProduction(details); success {
-					zboth.Info().Msgf("Successfully created a new production instance. It can be found at: %s", details["accessAddress"])
+					zboth.Info().Msgf("Successfully created a new production instance. Once switched on, it can be found at: %s", details["accessAddress"])
 				}
 			case "Development":
 				if success := instanceCreateDevelopment(details); success {

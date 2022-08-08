@@ -40,6 +40,14 @@ func instanceStart(givenName string) {
 	if status == "Up" {
 		zboth.Warn().Msgf("The instance called %s is already running.", givenName)
 	} else {
+		env := conf.Sub(joinKey(instancesWord, givenName, "environment"))
+		env.SetConfigType("env")
+		if _, errWrite, _ := gotoFolder(givenName), env.WriteConfigAs(".env"), gotoFolder("workdir"); errWrite != nil {
+			zboth.Fatal().Err(errWrite).Msgf("Failed to write .env file for the container.")
+		}
+		if errMove := modifyContainer(givenName, "mv", ".env", "shared/pullin"); !errMove {
+			zboth.Fatal().Err(toError("move .env failed")).Msgf("Failed to move .env file into the respecitive container.")
+		}
 		if _, success, _ := gotoFolder(givenName), callVirtualizer(composeCall+"up -d"), gotoFolder("workdir"); success {
 			waitFor := 120 // in seconds
 			if status == "Exited" {
@@ -48,9 +56,9 @@ func instanceStart(givenName string) {
 			zlog.Info().Msgf("Starting instance called %s.", givenName) // because user sees the spinner
 			waitTime := waitStartSpinner(waitFor, givenName)
 			if waitTime >= 0 {
-				zboth.Info().Msgf("Successfully started instance called %s in %d seconds.", givenName, waitTime)
+				zboth.Info().Msgf("Successfully started instance called %s in %d seconds at %s.", givenName, waitTime, conf.GetString(joinKey(instancesWord, givenName, "accessAddress")))
 			} else {
-				zboth.Fatal().Msgf("Failed to start instance called %s. Please check logs using `%s instance %s`.", givenName, commandForCLI, logInstanceRootCmd.Use)
+				zboth.Fatal().Err(toError("ping timeout after %d seconds", waitTime)).Msgf("Failed to start instance called %s. Please check logs using `%s instance %s`.", givenName, commandForCLI, logInstanceRootCmd.Use)
 			}
 		} else {
 			zboth.Fatal().Msgf("Failed to start instance called %s.", givenName)

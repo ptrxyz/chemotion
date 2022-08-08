@@ -19,7 +19,7 @@ func modifyContainer(givenName, command, source, target string) (success bool) {
 		command = toSprintf("%s /mountedFolder/%s", command, source)
 	}
 	zboth.Debug().Msgf("Executing `%s` in the container of %s", command, givenName)
-	commandStr := toSprintf("run --rm -v %s:/mountedFolder --name chemotion-helper-safe-to-remove busybox %s", gotoFolder(givenName), command)
+	commandStr := toSprintf("run --rm -v %s:/mountedFolder busybox %s", gotoFolder(givenName), command)
 	success = callVirtualizer(commandStr)
 	gotoFolder("workdir")
 	return
