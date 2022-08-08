@@ -9,15 +9,16 @@ var consoleInstanceCmdTable = make(cmdTable)
 
 var consoleInstanceRootCmd = &cobra.Command{
 	Use:       "console",
+	Aliases:   []string{"consoles"},
 	Short:     "Allow users to interact with an instance's command line interface",
 	ValidArgs: maps.Keys(consoleInstanceCmdTable),
 	Run: func(cmd *cobra.Command, args []string) {
 		isInteractive(true)
-		acceptedOpts := []string{"shell", "ruby", "psql"}
+		acceptedOpts := []string{"shell", "ruby on rails", "postgresSQL"}
 		consoleInstanceCmdTable["shell"] = shellConsoleInstanceRootCmd.Run
-		consoleInstanceCmdTable["ruby"] = railsConsoleInstanceRootCmd.Run
-		consoleInstanceCmdTable["psql"] = psqlConsoleInstanceRootCmd.Run
-		if cmd.Use == cmd.CalledAs() { // || elementInSlice(cmd.CalledAs(), &cmd.Aliases) > -1 { { // there are no aliases at the moment
+		consoleInstanceCmdTable["ruby on rails"] = railsConsoleInstanceRootCmd.Run
+		consoleInstanceCmdTable["postgresSQL"] = psqlConsoleInstanceRootCmd.Run
+		if cmd.Use == cmd.CalledAs() || elementInSlice(cmd.CalledAs(), &cmd.Aliases) > -1 {
 			acceptedOpts = append(acceptedOpts, "exit")
 		} else {
 			acceptedOpts = append(acceptedOpts, []string{"back", "exit"}...)

@@ -29,10 +29,27 @@ func logwhere() {
 
 // to rewrite the configuration file
 func rewriteConfig() (err error) {
+	var (
+		keysToPreserve = []string{joinKey(stateWord, "quiet"), joinKey(stateWord, "debug")}
+		preserve       = make(map[string]any)
+	)
+	if !firstRun { // backup values
+		oldConf := parseCompose(conf.ConfigFileUsed())
+		for _, key := range keysToPreserve {
+			preserve[key] = conf.GetBool(key)   // backup key into memory
+			conf.Set(key, oldConf.GetBool(key)) // set conf's key to what is read from existing file
+		}
+	}
+	// write to file
 	if err = conf.WriteConfig(); err == nil {
 		zboth.Debug().Msgf("Modified configuration file `%s`.", conf.ConfigFileUsed())
 	} else {
 		zboth.Warn().Err(err).Msgf("Failed to update the configuration file.")
+	}
+	if !firstRun { // restore values in conf from memory
+		for _, key := range keysToPreserve {
+			conf.Set(key, preserve[key])
+		}
 	}
 	return
 }

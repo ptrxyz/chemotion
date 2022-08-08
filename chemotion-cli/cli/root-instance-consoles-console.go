@@ -10,7 +10,10 @@ import (
 func dropIntoConsole(givenName string, consoleName string) {
 	commandExec := exec.Command(toLower(virtualizer), []string{"compose", "exec", "eln", "chemotion", consoleName}...)
 	commandExec.Stdin, commandExec.Stdout, commandExec.Stderr = os.Stdin, os.Stdout, os.Stderr
-	if consoleName == "psql" {
+	switch consoleName {
+	case "railsc":
+		consoleName = "rails"
+	case "psql":
 		consoleName = "postgreSQL" // use proper name for psql when printing to user
 	}
 	if instanceStatus(givenName) == "Up" {
@@ -41,7 +44,7 @@ var railsConsoleInstanceRootCmd = &cobra.Command{
 	Short:   "Drop into a Ruby on Rails console",
 	Args:    cobra.NoArgs,
 	Run: func(_ *cobra.Command, _ []string) {
-		dropIntoConsole(currentInstance, "rails")
+		dropIntoConsole(currentInstance, "railsc")
 	},
 }
 

@@ -12,13 +12,13 @@ func initLog() {
 	// alas, it works only with command line flags, otherwise
 	// we have to wait for the values to be read in from the config file
 	// this low-level reading has to be done because logging begins before reading the config file.
-	if zerolog.SetGlobalLevel(zerolog.InfoLevel); elementInSlice("--debug", &os.Args) > 0 || elementInSlice("-d", &os.Args) > 0 {
+	if zerolog.SetGlobalLevel(zerolog.InfoLevel); elementInSlice("--debug", &os.Args) > 0 || elementInSlice("-d", &os.Args) > 0 || elementInSlice("-qd", &os.Args) > 0 || elementInSlice("-dq", &os.Args) > 0 {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 	// start logging
 	if logFile, err := workDir.Join(logFilename).OpenFile(os.O_APPEND | os.O_CREATE | os.O_WRONLY); err == nil {
 		zlog = zerolog.New(logFile).With().Timestamp().Logger()
-		if elementInSlice("-q", &os.Args) > 0 || elementInSlice("--quiet", &os.Args) > 0 {
+		if elementInSlice("-q", &os.Args) > 0 || elementInSlice("--quiet", &os.Args) > 0 || elementInSlice("-qd", &os.Args) > 0 || elementInSlice("-dq", &os.Args) > 0 {
 			zboth = zlog // in this case, both the loggers point to the same file and there should be no console output
 		} else {
 			console := zerolog.ConsoleWriter{Out: os.Stdout}

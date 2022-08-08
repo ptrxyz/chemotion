@@ -55,7 +55,7 @@ This will create the first (production-grade) `instance` of Chemotion on your sy
 
 Once you install multiple instances of Chemotion, the actions of CLI will pertain to only one of them i.e. you will be managing only one of them. This instance is referred to as the `selected` instance and it's name is stored in a local file (`chemotion-cli.yml`). You can do `chemotion instance switch` to switch to another instance.
 
-You can also select an instance _temporarily_ by giving its name to the CLI as a flag e.g. `chemotion instance status --instance the-other-one`.
+You can also select an instance _temporarily_ by giving its name to the CLI as a flag when you start it e.g. `chemotion instance status --instance the-other-one`.
 
 ### Start and Stop Chemotion
 
@@ -85,8 +85,8 @@ Almost all features of the CLI can be used in silent mode i.e. without any input
 To use the CLI in silent mode, add the flag `-q`/`--quiet` to your command. The CLI will then use default values and other flags to try and accomplish the action. Examples:
 
 ```bash
-./chemotion install -q --name first-instance --address https://myuni.de:3000 --env ~/chem-settings.env
-./chemotion instance switch -i switch-to-this-instance -q
+./chemotion install -q --name first-instance --address https://myuni.de:3000
+./chemotion instance switch --name switch-to-this-instance -q
 ```
 
 Similarly, the CLI can be run in Debug mode when you encounter an error. This produces a very detailed log file containing a trace of actions you undertake. Telling us about the error and sending us the log file can help us a lot when it comes to helping you.
@@ -115,10 +115,11 @@ Following features are exist:
 - ✔ Multiple instances: `chemotion instance add|switch|remove` can be used to manage multiple instances.
 - ✔ Upgrade: use `chemotion instance upgrade` to upgrade an existing Chemotion instance.
 - ✔ Backups: use `chemotion instance backup` to save the data associated with an instance.
+- ✔ Shell access: using `chemotion instance console` to access shell/rails/SQL console of an instance
 
 Following features are planned:
 
 - Restore backup: `chemotion restore`
 - Manage Settings: `chemotion instance settings --import|--export` to import/export settings and to run auto-configuring wizards.
-- Frequently asked for features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`, `chemotion system info|rails-shell|shell`
+- Features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`
 - Command to manage underlying docker installation i.e. free up space and prune network
