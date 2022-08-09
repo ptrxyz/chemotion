@@ -132,7 +132,7 @@ Following features are planned:
 
 ## Moving from CLI version 0.1.x-alpha to 0.2.0-alpha
 
-The only difference is formatting of the `chemotion-cli.yml` file.
+### The first difference is formatting of the `chemotion-cli.yml` file.
 
 - The global keys that handle state of the tool i.e. `selected`, `quiet` and `debug` have now been moved to `cli_state:selected`, `cli_state:quiet` and `cli_state:debug` respectively.
 - The `instances:<instance_name>:address` and `instances:<instance_name>:protocol` keys have been removed. Instead, we have `instances:<instance_name>:accessaddress` which stores the full URL that is used to access the ELN instance.
@@ -191,4 +191,16 @@ instances:
 version: "1.1"
 ```
 
-Once you have made the changes, please downloaded the latest version of the CLI from [here](https://github.com/harivyasi/chemotion/releases/latest).
+### The second difference is splitting of `docker-compose.yml` file into two files.
+
+So far dockerized installations of Chemotion have relied on `docker-compose.yml` file from [here](https://github.com/ptrxyz/chemotion).
+
+The CLI in version 0.1.x-alpha diverged from this by modifying the file to suit the needs of the CLI by
+
+1. changing the `services:eln:ports` key
+2. including this label on `networks`, `services` and `volumes`: `net.chemotion.cli.project: <instance_name>-<instance_uniqueID>
+3. including names on the `volumes` so that they are named the following: `<instance_name>-<instance_uniqueID>_chemotion_<app|data|db|spectra>`.
+
+Version 0.2.x onwards, we refrain from modifying the file, making only one change in it (Change 1. is still done.). Changes 2. and 3. are inlcuded in the configuration by adding a new file called `docker-compose.cli.yml` (that we use in addition to the `docker-compose.yml` file). The `docker compose` tool seamlessly merges the two files when reading them. (At least) for version 0.2.x, the tool automatically writes the required `docker-compose.cli.yml` file if it is missing.
+
+Once you have made the changes to the `chemotion-cli.yml` file, please downloaded the latest version of the CLI from [here](https://github.com/harivyasi/chemotion/releases/latest) and run Chemotion as usual.

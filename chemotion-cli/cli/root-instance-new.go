@@ -137,7 +137,7 @@ func processInstallAndInstanceCreateCmd(cmd *cobra.Command, details map[string]s
 	return
 }
 
-func createExtendedCompose(details map[string]string, use string) (extendedCompose viper.Viper) {
+func createExtendedCompose(name, use string) (extendedCompose viper.Viper) {
 	extendedCompose = *viper.New()
 	compose := parseCompose(use)
 	sections := []string{"services", "volumes", "networks"}
@@ -145,7 +145,7 @@ func createExtendedCompose(details map[string]string, use string) (extendedCompo
 	for _, section := range sections {
 		subheadings := getSubHeadings(&compose, section) // subheadings are the names of the services, volumes and networks
 		for _, k := range subheadings {
-			extendedCompose.Set(joinKey(section, k, "labels"), map[string]string{"net.chemotion.cli.project": details["name"]})
+			extendedCompose.Set(joinKey(section, k, "labels"), map[string]string{"net.chemotion.cli.project": name})
 		}
 	}
 	// set unique name for volumes in the compose file
@@ -155,11 +155,9 @@ func createExtendedCompose(details map[string]string, use string) (extendedCompo
 		if n == "" && volume == "spectra" {
 			n = "chemotion_spectra"
 		} // because the spectra volume has no names
-		extendedCompose.Set(joinKey("volumes", volume, "name"), details["name"]+"_"+n)
+		extendedCompose.Set(joinKey("volumes", volume, "name"), name+"_"+n)
 
 	}
-	// for some reason (no idea why), labels must be set before port
-	extendedCompose.Set(joinKey("services", "eln", "ports"), []string{toSprintf("%s:4000", details["port"])})
 	return
 }
 
@@ -194,10 +192,10 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 	} else {
 		composeFile = downloadFile(details["use"], toSprintf("%s.%s", getNewUniqueID(), defaultComposeFilename))
 	}
-	if err := removeKeys(composeFile.String(), []string{joinKey("services", "eln", "ports")}); err != nil {
+	if err := changeKey(composeFile.String(), joinKey("services", "eln", "ports[0]"), toSprintf("%s:4000", details["port"])); err != nil {
 		zboth.Fatal().Err(err).Msgf("Failed to update the downloaded compose file. This is necessary for future use.")
 	}
-	extendedCompose := createExtendedCompose(details, composeFile.String())
+	extendedCompose := createExtendedCompose(details["name"], composeFile.String())
 	// store values in the conf, the conf file is modified only later
 	if firstRun {
 		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
@@ -231,7 +229,7 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 	conf.Set(joinKey(instancesWord, details["givenName"], "environment", "URL_HOST"), strings.TrimPrefix(details["accessAddress"], pro+"://"))
 	conf.Set(joinKey(instancesWord, details["givenName"], "environment", "URL_PROTOCOL"), pro)
 	if err := rewriteConfig(); err != nil {
-		zboth.Fatal().Err(err).Msg("Failed to write config file. Check log. ABORT!")
+		zboth.Fatal().Err(err).Msg("Failed to write config file. Check log. ABORT!") // we want a fatal error in this case, `rewriteConfig()` does a Warn error
 	}
 	return success
 }

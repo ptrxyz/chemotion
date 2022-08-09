@@ -26,12 +26,14 @@ func instanceUpgrade(givenName, use string) {
 	name := getInternalName(givenName)
 	// download the new compose (in the working directory)
 	newComposeFile := downloadFile(getLatestComposeURL(), workDir.String())
-	if err := removeKeys(newComposeFile.String(), []string{joinKey("services", "eln", "ports")}); err != nil {
+	// get port from old compose
+	oldComposeFile := workDir.Join(instancesWord, name, defaultComposeFilename)
+	oldCompose := parseCompose(oldComposeFile.String())
+	if err := changeKey(newComposeFile.String(), joinKey("services", "eln", "ports[0]"), oldCompose.GetStringSlice(joinKey("services", "eln", "ports"))[0]); err != nil {
 		newComposeFile.Remove()
 		zboth.Fatal().Err(err).Msgf("Failed to update the downloaded compose file. This is necessary for future use. The file was removed.")
 	}
 	// backup the old compose file
-	oldComposeFile := workDir.Join(instancesWord, name, defaultComposeFilename)
 	if err := oldComposeFile.Rename(workDir.Join(instancesWord, name, toSprintf("old.%s.%s", time.Now().Format("060102150405"), defaultComposeFilename))); err == nil {
 		zboth.Info().Msgf("The old compose file is now called %s:", oldComposeFile.String())
 	} else {

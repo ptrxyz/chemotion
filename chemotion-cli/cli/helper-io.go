@@ -111,16 +111,14 @@ func execShell(command string) (result []byte, err error) {
 }
 
 // to be called from the folder where file exists
-func removeKeys(filename string, keys []string) (err error) {
+func changeKey(filename string, key string, value string) (err error) {
 	var where string
 	where, err = os.Getwd()
 	if err == nil {
 		if existingFile(filename) {
-			for _, key := range keys {
-				if success := callVirtualizer(toSprintf("run --rm -v %s:/workdir mikefarah/yq eval -i del(.%s) %s", where, key, filename)); !success {
-					err = toError("failed to update %s in %s", key, filename)
-					return
-				}
+			if success := callVirtualizer(toSprintf("run --rm -v %s:/workdir mikefarah/yq eval -i .%s=\"%s\" %s", where, key, value, filename)); !success {
+				err = toError("failed to update %s in %s", key, filename)
+				return
 			}
 		} else {
 			err = toError("file %s not found", filename)
