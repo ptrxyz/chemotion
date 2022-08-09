@@ -72,7 +72,7 @@ volumes:
         name: chemotion_data
     chemotion_db:
         name: chemotion_db
-    spectra:    
-        name: chemotion_spectra
+    spectra:
+
 networks:
     chemotion:

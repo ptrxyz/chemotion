@@ -8,7 +8,7 @@ Chemotion CLI tool is there to help you manage installation(s) of Chemotion on a
 
 ### Get the binary
 
-The Chemotion CLI tool is a binary file and needs no installation. The only prerequisite is that you install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (and, on Windows, [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). Depending on your OS, you can download the lastest release of the CLI from [here](https://github.com/harivyasi/chemotion/releases/). Builds for the following systems are available:
+The Chemotion CLI tool is a binary file and needs no installation. The only prerequisite is that you install [Docker Desktop](https://www.docker.com/products/docker-desktop/) (and, on Windows, [WSL](https://docs.microsoft.com/en-us/windows/wsl/install)). Depending on your OS, you can download the lastest release of the CLI from [here](https://github.com/harivyasi/chemotion/releases/latest). Builds for the following systems are available:
 
 - Linux, amd64
 - Windows, amd64; remember to turn on [Docker integration with WSL](https://docs.docker.com/desktop/windows/wsl/)
@@ -55,7 +55,7 @@ This will create the first (production-grade) `instance` of Chemotion on your sy
 
 Once you install multiple instances of Chemotion, the actions of CLI will pertain to only one of them i.e. you will be managing only one of them. This instance is referred to as the `selected` instance and it's name is stored in a local file (`chemotion-cli.yml`). You can do `chemotion instance switch` to switch to another instance.
 
-You can also select an instance _temporarily_ by giving its name to the CLI as a flag e.g. `chemotion instance status --instance the-other-one`.
+You can also select an instance _temporarily_ by giving its name to the CLI as a flag when you start it e.g. `chemotion instance status --instance the-other-one`.
 
 ### Start and Stop Chemotion
 
@@ -72,6 +72,12 @@ As long as you installed an instance of Chemotion using this tool, the upgrade p
 - Prepare for update by running `chemotion advanced pull-image`. This will download the latest chemotion image from the internet if not already present on the system. Downloading the image outside of downtime saves you time later on.
 - Schedule a downtime of at least 15 minutes; more if you have a lot of data that needs to backed up. During the downtime, run `chemotion instance backup` to backup your data followed by `chemotion instance upgrade` to update the instance.
 
+### Updating this CLI tool
+
+Starting from version `0.2.0-alpha`, the tool itself can be updated to the latest version by running `chemotion advanced update`.
+
+> :info: If you are updating from version `0.1.x-alpha` to a newer version, please get in touch with your `chemotion-cli.yml` file. We will update this file manually (< 5 minutes) to get your installation up and working again! If you want, you can do it yourself following the example at the bottom of this page.
+
 ### Uninstallation
 
 > :warning: be sure about what you want to do!
@@ -85,8 +91,8 @@ Almost all features of the CLI can be used in silent mode i.e. without any input
 To use the CLI in silent mode, add the flag `-q`/`--quiet` to your command. The CLI will then use default values and other flags to try and accomplish the action. Examples:
 
 ```bash
-./chemotion install -q --name first-instance --address https://myuni.de:3000 --env ~/chem-settings.env
-./chemotion instance switch -i switch-to-this-instance -q
+./chemotion install -q --name first-instance --address https://myuni.de:3000
+./chemotion instance switch --name switch-to-this-instance -q
 ```
 
 Similarly, the CLI can be run in Debug mode when you encounter an error. This produces a very detailed log file containing a trace of actions you undertake. Telling us about the error and sending us the log file can help us a lot when it comes to helping you.
@@ -115,8 +121,86 @@ Following features are exist:
 - ✔ Multiple instances: `chemotion instance add|switch|remove` can be used to manage multiple instances.
 - ✔ Upgrade: use `chemotion instance upgrade` to upgrade an existing Chemotion instance.
 - ✔ Backups: use `chemotion instance backup` to save the data associated with an instance.
+- ✔ Shell access: using `chemotion instance console` to access shell/rails/SQL console of an instance
 
 Following features are planned:
 
+- Restore backup: `chemotion restore`
 - Manage Settings: `chemotion instance settings --import|--export` to import/export settings and to run auto-configuring wizards.
-- Frequently asked for features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`, `chemotion system info|rails-shell|shell`
+- Features for the Chemotion Administrator: `chemotion user show|add|delete|password-reset`
+- Command to manage underlying docker installation i.e. free up space and prune network
+
+## Moving from CLI version 0.1.x-alpha to 0.2.0-alpha
+
+### The first difference is formatting of the `chemotion-cli.yml` file.
+
+- The global keys that handle state of the tool i.e. `selected`, `quiet` and `debug` have now been moved to `cli_state:selected`, `cli_state:quiet` and `cli_state:debug` respectively.
+- The `instances:<instance_name>:address` and `instances:<instance_name>:protocol` keys have been removed. Instead, we have `instances:<instance_name>:accessaddress` which stores the full URL that is used to access the ELN instance.
+- A new key called `instances:<instance_name>:environment` has been introduced. This is now used to create the `shared/pullin/.env` file **everytime** the instance is (re)started. **Please** move all your `key=value` pairs from this `.env` file to the `chemotion-cli.yml` in `key: value` format as sub-keys of the `instances:<instance_name>:environment` key.
+- With these changes, the version of this YAML file has been changed from `"1.0"` to `"1.1"`.
+
+Therefore, if your file looked as follows:
+
+```yaml
+instances:
+  main:
+    address: mynotebook.kit.edu
+    debug: false
+    kind: Production
+    name: main-ee5e5424
+    port: 4000
+    protocol: http
+    quiet: false
+  second:
+    address: localhost
+    debug: false
+    kind: Production
+    name: second-ff6f6535
+    port: 4100
+    protocol: http
+    quiet: false
+selected: main
+version: "1.0"
+```
+
+Please change it to look as follows:
+
+```yaml
+cli_state:
+  debug: false
+  quiet: false
+  selected: main
+instances:
+  main:
+    accessaddress: http://mynotebook.kit.edu
+    environment:
+      url_host: ifgs6.ifg.kit.edu
+      url_protocol: http
+    kind: Production
+    name: main-ee5e5044
+    port: 4000
+  second:
+    accessaddress: http://localhost:4100
+    environment:
+      url_host: localhost:4100
+      url_protocol: http
+      smtp_port: ...<key-value pairs from /shared/pullin/.env file>...
+    kind: Production
+    name: second-ff6f6535
+    port: 4100
+version: "1.1"
+```
+
+### The second difference is splitting of `docker-compose.yml` file into two files.
+
+So far dockerized installations of Chemotion have relied on `docker-compose.yml` file from [here](https://github.com/ptrxyz/chemotion).
+
+The CLI in version 0.1.x-alpha diverged from this by modifying the file to suit the needs of the CLI by
+
+1. changing the `services:eln:ports` key
+2. including this label on `networks`, `services` and `volumes`: `net.chemotion.cli.project: <instance_name>-<instance_uniqueID>
+3. including names on the `volumes` so that they are named the following: `<instance_name>-<instance_uniqueID>_chemotion_<app|data|db|spectra>`.
+
+Version 0.2.x onwards, we refrain from modifying the file, making only one change in it (Change 1. is still done.). Changes 2. and 3. are inlcuded in the configuration by adding a new file called `docker-compose.cli.yml` (that we use in addition to the `docker-compose.yml` file). The `docker compose` tool seamlessly merges the two files when reading them. (At least) for version 0.2.x, the tool automatically writes the required `docker-compose.cli.yml` file if it is missing.
+
+Once you have made the changes to the `chemotion-cli.yml` file, please downloaded the latest version of the CLI from [here](https://github.com/harivyasi/chemotion/releases/latest) and run Chemotion as usual.
