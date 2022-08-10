@@ -40,16 +40,6 @@ func instanceStart(givenName string) {
 	if status == "Up" {
 		zboth.Warn().Msgf("The instance called %s is already running.", givenName)
 	} else {
-		name := getInternalName(givenName)
-		if !existingFile(workDir.Join(instancesWord, name, extenedComposeFilename).String()) {
-			extendedCompose := createExtendedCompose(name, workDir.Join(instancesWord, name, defaultComposeFilename).String())
-			// write out the extended compose file
-			if _, err, _ := gotoFolder(givenName), extendedCompose.WriteConfigAs(extenedComposeFilename), gotoFolder("workdir"); err == nil {
-				zboth.Info().Msgf("Written extended file %s in the above step.", extenedComposeFilename)
-			} else {
-				zboth.Fatal().Err(err).Msgf("Failed to write the extended compose file to its repective folder. This is necessary for future use.")
-			}
-		}
 		env := conf.Sub(joinKey(instancesWord, givenName, "environment"))
 		env.SetConfigType("env")
 		if _, errWrite, _ := gotoFolder(givenName), env.WriteConfigAs(".env"), gotoFolder("workdir"); errWrite != nil {
