@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:focal
 
 # set timezone
 ENV TIMEZONE=Europe/Berlin
