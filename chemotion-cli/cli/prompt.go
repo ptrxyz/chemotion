@@ -110,6 +110,9 @@ func addressValidate(input string) (err error) {
 // kind of opposite of instanceValidate
 func newInstanceValidate(input string) (err error) {
 	err = textValidate(input)
+	if strings.ContainsRune(input, '.') {
+		err = toError("cannot have `.` in an instance name")
+	}
 	if elementInSlice(input, &reseveredWords) > -1 {
 		err = toError("this is a reserved word; pick another")
 	}
