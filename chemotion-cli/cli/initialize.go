@@ -2,8 +2,11 @@ package cli
 
 import (
 	"os"
+	"time"
 
+	"github.com/chigopher/pathlib"
 	"github.com/rs/zerolog"
+	"github.com/spf13/viper"
 )
 
 // Initializes logging. Ignores values in the configuration as configuration is loaded after this initialization.
@@ -51,6 +54,69 @@ func initFlags() {
 	zlog.Debug().Msg("End: initialize flags")
 }
 
+func upgradeThisTool(transition string) (success bool) {
+	switch transition {
+	case "0.1_to_0.2":
+		if success = selectYesNo("It seems you are upgrading from version 0.1.x of the tool to 0.2.x. Is this true?", true); success {
+			newConfig := viper.New()
+			newConfig.Set("version", versionYAML)
+			newConfig.Set(joinKey(stateWord, selectorWord), conf.GetString(selectorWord))
+			newConfig.Set(joinKey(stateWord, "debug"), false)
+			newConfig.Set(joinKey(stateWord, "quiet"), false)
+			newConfig.Set(joinKey(stateWord, "version"), versionCLI)
+			instances := getSubHeadings(&conf, instancesWord)
+			newConfig.Set(instancesWord, instances)
+			for _, givenName := range instances {
+				name := conf.GetString(joinKey(instancesWord, givenName, "name"))
+				newConfig.Set(joinKey(instancesWord, givenName, "name"), name)
+				newConfig.Set(joinKey(instancesWord, givenName, "kind"), conf.GetString(joinKey(instancesWord, givenName, "kind")))
+				newConfig.Set(joinKey(instancesWord, givenName, "port"), conf.GetInt(joinKey(instancesWord, givenName, "port")))
+				env := viper.New()
+				env.SetConfigType("env")
+				env.SetConfigFile(workDir.Join(instancesWord, name, "shared", "pullin", ".env").String())
+				if err := env.ReadInConfig(); err == nil {
+					newConfig.Set(joinKey(instancesWord, givenName, "environment"), env.AllSettings())
+				} else {
+					zboth.Warn().Err(err).Msgf("Failed to read the .env file, using existing information to create reasonable entries. Please check the created file manually!")
+				}
+				if env.IsSet("URL_HOST") && env.IsSet("URL_PROTOCOL") {
+					newConfig.Set(joinKey(instancesWord, givenName, "accessaddress"), env.GetString("URL_PROTOCOL")+"://"+env.GetString("URL_HOST"))
+				} else {
+					newConfig.Set(joinKey(instancesWord, givenName, "accessaddress"), conf.GetString(joinKey(instancesWord, givenName, "protocol")+"://"+conf.GetString(joinKey(instancesWord, givenName, "address"))))
+				}
+				if !existingFile(workDir.Join(instancesWord, name, extenedComposeFilename).String()) {
+					extendedCompose := createExtendedCompose(name, workDir.Join(instancesWord, name, defaultComposeFilename).String())
+					// write out the extended compose file
+					if _, err, _ := gotoFolder(givenName), extendedCompose.WriteConfigAs(extenedComposeFilename), gotoFolder("workdir"); err == nil {
+						zboth.Info().Msgf("Written extended file %s in the above step.", extenedComposeFilename)
+					} else {
+						zboth.Fatal().Err(err).Msgf("Failed to write the extended compose file to its repective folder. This is necessary for future use.")
+					}
+				}
+			}
+			oldConfigPath := pathlib.NewPath(conf.ConfigFileUsed())
+			if errWrite := newConfig.WriteConfigAs("new." + defaultConfigFilepath); errWrite == nil {
+				zboth.Debug().Msgf("New configuration file  `%s`.", "new."+defaultConfigFilepath)
+				if errRenameOld := oldConfigPath.RenameStr(toSprintf("old.%s.%s", time.Now().Format("060102150405"), defaultConfigFilepath)); errRenameOld == nil {
+					zboth.Debug().Msgf("Renamed old configuration file to %s", oldConfigPath.String())
+					if errRenameNew := workDir.Join("new." + defaultConfigFilepath).RenameStr(conf.ConfigFileUsed()); errRenameNew == nil {
+						zboth.Info().Msgf("Successfully written new configuration file at %s.", conf.ConfigFileUsed())
+						oldConfigPath.Remove()
+						success = true
+					} else {
+						zboth.Fatal().Err(errRenameNew).Msgf("Failed to rename the new configuration file. It is available at: %s", configFile+".new")
+					}
+				} else {
+					zboth.Fatal().Err(errRenameOld).Msgf("Failed to rename existing configuration file. New one is available at: %s", configFile+".new")
+				}
+			} else {
+				zboth.Fatal().Err(errWrite).Msgf("Failed to write the new configuration file. Old one is still available at %s for use with version 0.1.x of this tool.", oldConfigPath.String())
+			}
+		}
+	}
+	return
+}
+
 // Viper is used to load values from config file. Cobra is the basis of our command line interface.
 // This function uses Viper to set flags on Cobra.
 // (See how cool this sounds, make sure you pick fun project names!)
@@ -80,7 +146,13 @@ func initConf() {
 					zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the description for instance `%s` in the file: %s.", currentInstance, configFile)
 				}
 			} else {
-				zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the mandatory keys %s, `%s` and `%s` in the file: %s.", stateWord, selectorWord, instancesWord, configFile)
+				if conf.IsSet(joinKey(selectorWord)) {
+					if upgradeThisTool("0.1_to_0.2") {
+						zboth.Info().Msgf("Upgrade was successful. Please restart this tool.")
+						os.Exit(0)
+					}
+				}
+				zboth.Fatal().Err(toError("unmarshal failed")).Msgf("Failed to find the mandatory keys `%s`, `%s` and `%s` in the file: %s.", stateWord, selectorWord, instancesWord, configFile)
 			}
 		} else {
 			zboth.Fatal().Err(err).Msgf("Failed to read configuration file: %s. ABORT!", configFile)

@@ -154,9 +154,12 @@ func createExtendedCompose(name, use string) (extendedCompose viper.Viper) {
 		n := compose.GetString(joinKey("volumes", volume, "name"))
 		if n == "" && volume == "spectra" {
 			n = "chemotion_spectra"
-		} // because the spectra volume has no names
-		extendedCompose.Set(joinKey("volumes", volume, "name"), name+"_"+n)
-
+		} // because the spectra volume has no name
+		if strings.HasPrefix(n, name) { // for compatibility with upgradeThisTool("0.1_to_0.2")
+			extendedCompose.Set(joinKey("volumes", volume, "name"), n)
+		} else {
+			extendedCompose.Set(joinKey("volumes", volume, "name"), name+"_"+n)
+		}
 	}
 	return
 }
@@ -198,7 +201,7 @@ func instanceCreateProduction(details map[string]string) (success bool) {
 	extendedCompose := createExtendedCompose(details["name"], composeFile.String())
 	// store values in the conf, the conf file is modified only later
 	if firstRun {
-		conf.SetConfigFile(workDir.Join(defaultConfigFilepath).String())
+		conf.SetConfigFile(workDir.Join(configFile).String())
 		conf.Set("version", versionYAML)
 		conf.Set(joinKey(stateWord, selectorWord), details["givenName"])
 		conf.Set(joinKey(stateWord, "quiet"), false)
