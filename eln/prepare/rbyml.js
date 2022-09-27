@@ -1,4 +1,4 @@
-import yaml from "yaml"
+import yaml from 'yaml'
 
 class RawTag {
     constructor(v) {
@@ -11,13 +11,13 @@ class RawTag {
 }
 
 const regexp = {
-    identify: value => {
+    identify: (value) => {
         return value instanceof RawTag === true
     },
     tag: '!ruby/regexp',
     resolve(doc, cst) {
         return new RawTag(cst.strValue)
-    }
+    },
 }
 
 yaml.defaultOptions.customTags = [regexp]
@@ -27,7 +27,12 @@ function yamlLoad(str) {
 }
 
 function yamlDump(yml) {
-    return yaml.stringify(yml)
+    return yaml.stringify(yml, {
+        simpleKeys: true,
+        defaultKeyType: 'BLOCK_LITERAL',
+        keepSourceTokens: true,
+        schema: 'yaml-1.1',
+    })
 }
 
 export { yamlLoad, yamlDump }
