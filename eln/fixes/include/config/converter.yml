@@ -1,0 +1,13 @@
+production:
+  :url: 'http://converter:8000/api/v1/'
+  :profile: 'chemotion'
+  :secret_key: 'imsupersecretandwanttobechanged'
+  :timeout: 300
+  :ext:
+    - '.xy'
+    - '.xls'
+    - '.xlsx'
+    - '.txt'
+    - '.brml'
+    - '.dta'
+    - '.pssession'

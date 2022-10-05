@@ -1,0 +1,47 @@
+Sending build context to Docker daemon   5.12kB
+Step 1/18 : ARG BASE=ubuntu:22.04
+Step 2/18 : ARG CONVERTER_BUILD_TAG=v0.6.0
+Step 3/18 : ARG CONVERTER_VERSION=1.4.0
+Step 4/18 : ARG BUILDRUN
+Step 5/18 : ARG PORT=8000
+Step 6/18 : FROM ${BASE} as converter-base
+ ---> 2dc39ba059dc
+Step 7/18 : RUN apt-get update &&     apt-get install -y --no-install-recommends python3-pip python3-venv libmagic1 curl &&     apt-get clean &&     rm -rf /var/lib/apt/lists/*
+ ---> Using cache
+ ---> c4af56f0e00e
+Step 8/18 : FROM converter-base as app
+ ---> c4af56f0e00e
+Step 9/18 : ARG CONVERTER_BUILD_TAG
+ ---> Using cache
+ ---> 785e2a753672
+Step 10/18 : ARG SRVDIR=/srv/chemotion
+ ---> Using cache
+ ---> 54ffcc02fdee
+Step 11/18 : WORKDIR ${SRVDIR}
+ ---> Using cache
+ ---> 038f877c5438
+Step 12/18 : ADD https://github.com/ComPlat/chemotion-converter-app/archive/refs/tags/${CONVERTER_BUILD_TAG}.tar.gz /tmp/code.tar.gz
+
+
+ ---> Using cache
+ ---> 88fd0cc3bf8c
+Step 13/18 : RUN tar -xzf /tmp/code.tar.gz --strip-components=1 -C ${SRVDIR} && rm /tmp/code.tar.gz &&     python3 -m venv env && . env/bin/activate &&     pip install --no-cache-dir -r ${SRVDIR}/requirements/common.txt
+ ---> Using cache
+ ---> 32bed0b5fb87
+Step 14/18 : ENV PATH=${SRVDIR}/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin     VIRTUAL_ENV=${SRVDIR}/env
+ ---> Using cache
+ ---> 0549d90623f2
+Step 15/18 : ARG PORT
+ ---> Using cache
+ ---> 084bb49c4906
+Step 16/18 : EXPOSE ${PORT}
+ ---> Using cache
+ ---> 5259d3dc7a0e
+Step 17/18 : CMD ["gunicorn", "--bind", "0.0.0.0", "converter_app.app:create_app()", "--preload"]
+ ---> Using cache
+ ---> 92de96953c82
+Step 18/18 : HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3     CMD curl --fail http://localhost:${PORT-8000}/ || exit 1
+ ---> Using cache
+ ---> de5496562679
+Successfully built de5496562679
+Successfully tagged chemotion-build/converter:1.4.0

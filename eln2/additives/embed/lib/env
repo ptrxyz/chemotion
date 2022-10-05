@@ -1,0 +1,9 @@
+#!/bin/bash
+set -a
+
+# file where most init scripts log stuff to
+export LOGFILE="/chemotion/app/log/init.log"
+
+# lock file thats shared between worker and ELN to the worker
+# knows that the ELN is up.
+export PIDFILE="/chemotion/app/tmp/eln.pid"

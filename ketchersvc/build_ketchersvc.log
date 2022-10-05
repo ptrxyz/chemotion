@@ -1,0 +1,64 @@
+Sending build context to Docker daemon  5.632kB
+Step 1/24 : ARG BASE=ubuntu:22.04
+Step 2/24 : ARG KETCHERSVC_BUILD_TAG=ba28832
+Step 3/24 : ARG KETCHERSVC_VERSION=1.4.0
+Step 4/24 : ARG BUILDRUN
+Step 5/24 : FROM ${BASE} as ketcher-base
+ ---> 2dc39ba059dc
+Step 6/24 : RUN apt-get update;     apt-get install -y --no-install-recommends gnupg wget curl unzip ca-certificates;
+ ---> Using cache
+ ---> 8ff44dc3aeaf
+Step 7/24 : RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub |     gpg --no-default-keyring --keyring gnupg-ring:/etc/apt/trusted.gpg.d/google.gpg --import;     chmod 644 /etc/apt/trusted.gpg.d/google.gpg;     echo "deb https://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list;     apt-get update -y;
+ ---> Using cache
+ ---> 6bcc7bb61ce5
+Step 8/24 : RUN apt-get install -y --no-install-recommends google-chrome-stable;     CHROME_VERSION=$(google-chrome --product-version | grep -o "[^\.]*\.[^\.]*\.[^\.]*");     CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION");     wget -q --continue -P /chromedriver "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip";     unzip /chromedriver/chromedriver* -d /usr/local/bin/
+ ---> Using cache
+ ---> 1c3774beb8a3
+Step 9/24 : RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - && apt-get update -y
+ ---> Using cache
+ ---> 14e02990cb1c
+Step 10/24 : RUN apt-get install -y --no-install-recommends nodejs
+ ---> Using cache
+ ---> 227d49c76bac
+Step 11/24 : FROM ketcher-base as builder
+ ---> 227d49c76bac
+Step 12/24 : ARG KETCHERSVC_BUILD_TAG
+ ---> Using cache
+ ---> 2cfb77a927d8
+Step 13/24 : RUN apt-get install -y --no-install-recommends git
+ ---> Using cache
+ ---> 02464b03061d
+Step 14/24 : RUN git clone --depth 1 https://github.com/ptrxyz/chemotion-ketchersvc.git /src &&     git -C /src checkout ${KETCHERSVC_BUILD_TAG}
+ ---> Using cache
+ ---> 6a39ecd3e079
+Step 15/24 : WORKDIR /src
+ ---> Using cache
+ ---> 655a48ac4cdc
+Step 16/24 : RUN npm install &&     npm run build &&     cp -R package.json package-lock.json src/.env.example dist/src/
+ ---> Using cache
+ ---> 9da07b0e5c45
+Step 17/24 : FROM ketcher-base as app
+ ---> 227d49c76bac
+Step 18/24 : COPY --from=builder /src/dist/src /app
+ ---> Using cache
+ ---> 327033c8efa1
+Step 19/24 : WORKDIR /app
+ ---> Using cache
+ ---> 8960d7a3b43f
+Step 20/24 : RUN npm install --omit=dev
+ ---> Using cache
+ ---> 303f23081b21
+Step 21/24 : EXPOSE 9000
+ ---> Using cache
+ ---> a5a9875f7d93
+Step 22/24 : ENV CONFIG_PORT=9000     CONFIG_KETCHER_URL=https://chemotion/ketcher     CONFIG_MIN_WORKERS=1     CONFIG_MAX_WORKERS=4
+ ---> Using cache
+ ---> caa7ef9ce14c
+Step 23/24 : CMD [ "node", "app.js" ]
+ ---> Using cache
+ ---> 8a581b241393
+Step 24/24 : HEALTHCHECK --interval=5s --timeout=1s --start-period=30s --retries=3     CMD /usr/bin/pidof node || exit 1
+ ---> Using cache
+ ---> 6f5a8af0578d
+Successfully built 6f5a8af0578d
+Successfully tagged chemotion-build/ketchersvc:1.4.0

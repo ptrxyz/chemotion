@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   db:
     image: postgres:13
@@ -14,6 +14,8 @@ services:
     image: chemotion-build:msconvert
     restart: unless-stopped
     hostname: msconvert
+    ports:
+      - '8088:8088'
     volumes:
       - spectra:/shared:rw
 
@@ -57,6 +59,25 @@ services:
       - chemotion:/chemotion/app
     ports:
       - 4000:4000
+
+  ketchersvc:
+    image: chemotion-build:ketchersvc
+    restart: unless-stopped
+    environment:
+      - CONFIG_KETCHER_URL=http://eln:4000/ketcher/
+    init: true
+    depends_on:
+      - eln
+
+  converter:
+    image: chemotion-build:converter
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=imsupersecretandwanttobechanged
+    volumes:
+      - /tmp/converter/profiles:/srv/chemotion/profiles
+      - /tmp/converter/datasets:/srv/chemotion/datasets
+      - /tmp/converter/htpasswd:/srv/chemotion/htpasswd
 
 volumes:
   chemotion:

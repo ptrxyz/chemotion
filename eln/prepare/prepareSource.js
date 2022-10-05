@@ -30,7 +30,7 @@ const inSrcDir = (x) => path.join(`${config.srcDir}`, x)
 //      - "package-upgrade" to upgrade the version set in package.json to the highest possible minor release.
 const config = {
     tag: process.env.CHEMOTION_BUILD_TAG || 'v1.1.2',
-    release: process.env.CHEMOTION_BUILD_RELEASE || 'local-build',
+    release: process.env.CHEMOTION_RELEASE || 'local-build',
     srcDir: `${process.cwd()}/src/app`,
     dataDir: `${process.cwd()}/src/data`,
     // seedDir: `${process.cwd()}/seed`,

@@ -1,3 +1,4 @@
+#syntax=docker/dockerfile-upstream:1.4.0-rc1
 ####################################################################################################
 # BASE
 ####################################################################################################
@@ -15,16 +16,22 @@ ENV LANG=en_US.UTF-8 \
 RUN echo -e "LANG=${LANG}\nLC_ALL=${LANG}" > /etc/locale.conf && \
     echo "${LANG} UTF-8" > /etc/locale.gen
 
+RUN sed -i -re 's/([a-z]{2}\.)?archive.ubuntu.com|security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+
 # install system packages
 RUN apt-get -y update && apt-get -y upgrade && \
     apt-get install locales && \
     locale-gen en_US.UTF-8
 
+# RUN apt-get install -y software-properties-common && apt-add-repository -y ppa:rael-gc/rvm && apt-get update
+# RUN apt-get install -y --allow-downgrades libssl-dev=1.1.1l-1ubuntu1.4
+
 ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
 RUN chmod +x /tini
 ENTRYPOINT ["/tini", "--"]
 
-LABEL "org.opencontainers.image.authors" "Chemotion Team" \
+LABEL \
+    "org.opencontainers.image.authors" "Chemotion Team" \
     "org.opencontainers.image.title" "Chemotion Base" \
     "org.opencontainers.image.description" "Base image for Chemotion services" \
     "org.opencontainers.image.build-date" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
