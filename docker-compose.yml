@@ -13,7 +13,7 @@ services:
       - chemotion
 
   msconvert:
-    image: ptrxyz/chemotion:msconvert-1.4.1-1
+    image: ptrxyz/chemotion:msconvert-1.4.1-2
     restart: unless-stopped
     hostname: msconvert
     volumes:
@@ -22,7 +22,7 @@ services:
       - chemotion
 
   spectra:
-    image: ptrxyz/chemotion:spectra-1.4.1-1
+    image: ptrxyz/chemotion:spectra-1.4.1-2
     restart: unless-stopped
     hostname: spectra
     volumes:
@@ -33,7 +33,7 @@ services:
       - chemotion
 
   worker:
-    image: ptrxyz/chemotion:eln-1.4.1-1
+    image: ptrxyz/chemotion:eln-1.4.1-2
     restart: unless-stopped
     environment:
       - CONFIG_ROLE=worker
@@ -48,7 +48,7 @@ services:
       - chemotion
 
   eln:
-    image: ptrxyz/chemotion:eln-1.4.1-1
+    image: ptrxyz/chemotion:eln-1.4.1-2
     restart: unless-stopped
     environment:
       - CONFIG_ROLE=eln
@@ -66,7 +66,7 @@ services:
       - chemotion
 
   ketchersvc:
-    image: ptrxyz/chemotion:ketchersvc-1.4.1-1
+    image: ptrxyz/chemotion:ketchersvc-1.4.1-2
     restart: unless-stopped
     environment:
       - CONFIG_KETCHER_URL=http://eln:4000/ketcher/
@@ -77,7 +77,7 @@ services:
       - chemotion
 
   converter:
-    image: ptrxyz/chemotion:converter-1.4.1-1
+    image: ptrxyz/chemotion:converter-1.4.1-2
     restart: unless-stopped
     environment:
       - SECRET_KEY=imsupersecretandwanttobechanged
@@ -85,6 +85,10 @@ services:
       - ./services/converter/profiles:/srv/chemotion/profiles
       - ./services/converter/datasets:/srv/chemotion/datasets
       - ./services/converter/htpasswd:/srv/chemotion/htpasswd
+      # Please make sure to create htpasswd manually before running this compose file
+      # as otherwise docker would create it as a folder. This is not meant to be the case,
+      # in fact the file should contain a htpasswd-generated list of users.
+      # See the documentation for more information
     networks:
       - chemotion
 
