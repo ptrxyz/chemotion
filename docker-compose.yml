@@ -1,4 +1,4 @@
-version: '3.5'
+version: '3.9'
 services:
   db:
     image: postgres:13
@@ -13,7 +13,7 @@ services:
       - chemotion
 
   msconvert:
-    image: ptrxyz/chemotion:msconvert-1.4.1-3
+    image: ptrxyz/chemotion:msconvert-1.5.0
     restart: unless-stopped
     hostname: msconvert
     volumes:
@@ -22,7 +22,7 @@ services:
       - chemotion
 
   spectra:
-    image: ptrxyz/chemotion:spectra-1.4.1-3
+    image: ptrxyz/chemotion:spectra-1.5.0
     restart: unless-stopped
     hostname: spectra
     volumes:
@@ -33,11 +33,10 @@ services:
       - chemotion
 
   worker:
-    image: ptrxyz/chemotion:eln-1.4.1-3
+    image: ptrxyz/chemotion:eln-1.5.0
     restart: unless-stopped
     environment:
       - CONFIG_ROLE=worker
-      - SECRET_KEY_BASE=PleaseChangeMe
     depends_on:
       - db
       - eln
@@ -49,11 +48,11 @@ services:
       - chemotion
 
   eln:
-    image: ptrxyz/chemotion:eln-1.4.1-3
+    image: ptrxyz/chemotion:eln-1.5.0
     restart: unless-stopped
     environment:
       - CONFIG_ROLE=eln
-      - SECRET_KEY_BASE=PleaseChangeMe
+      - SECRET_KEY_BASE=pleasechangeme
     depends_on:
       - db
       - spectra
@@ -68,30 +67,25 @@ services:
       - chemotion
 
   ketchersvc:
-    image: ptrxyz/chemotion:ketchersvc-1.4.1-3
+    image: ptrxyz/chemotion:ketchersvc-1.5.0
     restart: unless-stopped
     environment:
-      - STARTUPDELAY=30
       - CONFIG_KETCHER_URL=http://eln:4000/ketcher/
     init: true
     depends_on:
-      - eln
+      eln:
+        condition: service_healthy
     networks:
       - chemotion
 
   converter:
-    image: ptrxyz/chemotion:converter-1.4.1-3
+    image: ptrxyz/chemotion:converter-1.5.0
     restart: unless-stopped
     environment:
       - SECRET_KEY=imsupersecretandwanttobechanged
     volumes:
       - ./services/converter/profiles:/srv/chemotion/profiles
       - ./services/converter/datasets:/srv/chemotion/datasets
-      - ./services/converter/htpasswd:/srv/chemotion/htpasswd
-      # Please make sure to create htpasswd manually before running this compose file
-      # as otherwise docker would create it as a folder. This is not meant to be the case,
-      # in fact the file should contain a htpasswd-generated list of users.
-      # See the documentation for more information
     networks:
       - chemotion
 

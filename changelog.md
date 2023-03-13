@@ -1,5 +1,24 @@
 # Changelog
 
+
+## [1.5.0] - 2023-03-07
+
+-   Chore: new version of spectra supported
+-   Feature: added support for NMRium
+-   Feature: added healthchecks to all containers
+-   Feature: containers now show internal versions on startup
+-   Feature: it's now possible to dump the current config with the `chemotion dumpConfig` command
+
+-   Change: Recreation of Ketcher sprite sheet is now triggered on boot up (during [dbcheck] step)
+-   Change: Container startup is now cancelled if subtasks fail
+-   Change: added config for Shrine
+
+-   Fixed a bug with `chemotion railsc` command.
+-   Fixed a bug where thumbnails were not generated for research plans. (rsvg-convert is now a dependency)
+-   Fixed an issue where convert did not allow to convert PDF/EPS/PS files.
+-   Fixed an issue with `chemotion restore`-command not being found under certain circumstances
+-   Fixed an issue where the ELN application's secret key was not generated correctly.
+
 ## [1.4.1-3] - 2022-12-19
 
 -   Fixed a bug where the ELN looses some stylesheets under certain circumstances.
