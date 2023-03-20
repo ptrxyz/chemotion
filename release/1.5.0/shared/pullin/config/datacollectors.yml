@@ -1,0 +1,5 @@
+production:
+  :services:
+  :mailcollector:
+  :sftpusers:
+  :localcollectors:

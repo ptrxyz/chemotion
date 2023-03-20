@@ -1,0 +1,44 @@
+diff --git a/lib/ketcherails/svg_processor.rb b/lib/ketcherails/svg_processor.rb
+index 666fc5a..d7f0c06 100644
+--- a/lib/ketcherails/svg_processor.rb
++++ b/lib/ketcherails/svg_processor.rb
+@@ -41,10 +41,15 @@ module Ketcherails
+
+     def get_internal_transform_shift(path)
+       transformation = path["transform"]
+-      if transformation.match(/^matrix/)
++
++      if transformation.nil? or transformation.empty?
++        return [0, 0]
++      end
++
++      if transformation&.match(/^matrix/)
+         matrix = get_matrix_from_transform_matrix(transformation)
+         get_translation_from_matrix(matrix)
+-      elsif transformation.match(/^translate/)
++      elsif transformation&.match(/^translate/)
+         get_translation_from_transform_translate(transformation)
+       end
+     end
+@@ -184,7 +189,7 @@ module Ketcherails
+
+     def splitxy_for_path(d="",origin=[0,0])
+       splitted=[]
+-      d.match(/\s*([mlhvzMLHVZ])/) && (command,data=$1,$')
++      d&.match(/\s*([mlhvzMLHVZ])/) && (command,data=$1,$')
+       while data!=""
+         case command
+         when "M"
+@@ -211,7 +216,11 @@ module Ketcherails
+         when "c"
+         when "C"
+         end
+-        data.match(/\s*([mlhvzscMLHVZSC])/) && (command,data=$1,$') || (data="")
++        if data
++          data&.match(/\s*([mlhvzscMLHVZSC])/) && (command,data=$1,$') || (data="")
++        else
++          data=""
++        end
+       end
+       splitted
+     end

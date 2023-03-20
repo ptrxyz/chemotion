@@ -1,0 +1,7 @@
+#!/bin/bash
+now=$(date +%s)
+$@
+ret=$?
+then=$(date +%s)
+echo -e "\x1B[90mDuration: $((then - now))s\x1B[0m"
+exit $ret

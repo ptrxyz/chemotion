@@ -1,0 +1,14 @@
+:80 {
+	# Set path to your site's directory
+	root * /www
+
+	# Enable the static file server.
+	file_server
+
+	bind 0.0.0.0
+
+	# Enable logging.
+	log {
+		output stdout
+	}
+}

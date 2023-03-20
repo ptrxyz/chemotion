@@ -1,0 +1,77 @@
+#!/bin/bash
+
+DB_CONFIG="/chemotion/app/config/database.yml"
+FROZEN_DB_CONFIG="/tmp/$(basename ${DB_CONFIG})"
+
+touch /chemotion/app/.env
+
+LOGFILE=${LOGFILE-/dbenv.log}
+export LOGFILE
+
+cd /chemotion/app || exit 200
+
+getenv() {
+    # $1: env variable name
+    # $2: yml key
+    # $3: default value
+
+    # we escalate the priority of the values:
+
+    # first: return value is default value
+    ret="$3"
+
+    # second: if env variable is set, use it
+    [[ -n "${!1}" ]] && ret="${!1}"
+
+    # third: check yml file
+    if yml=$(yq .production."$2" "${FROZEN_DB_CONFIG}" 2>>"${LOGFILE}"); then
+        # remove quotes around value if present
+        if [[ "$yml" =~ ^\".*\"$ ]] || [[ "$yml" =~ ^\'.*\'$ ]]; then
+            yml="${yml:1:-1}"
+        fi
+
+        # if value is null, set to empty string
+        if [[ "$yml" == "null" ]]; then
+            yml=""
+        fi
+
+        # if we still have a value, set return value
+        [[ -n "$yml" ]] && ret="$yml"
+    fi
+
+    # return default value
+    echo "$ret"
+}
+
+freezeDBConfig() {
+    cd /chemotion/app || exit 200
+    touch "${FROZEN_DB_CONFIG}"
+    bundle exec dotenv erb "${DB_CONFIG}" 2>>"${LOGFILE}" | yq -o json 2>>"${LOGFILE}" | yq -P -o yaml > "${FROZEN_DB_CONFIG}" 2>>"${LOGFILE}" || true
+}
+
+if [[ -f /chemotion/app/.env ]]; then
+    # we load the .env file into the environment
+    # this is important, when we late try to call getenv, we already have env
+    # even if "bundle exec dotenv ..." fails for some reason.
+
+    # shellcheck disable=SC1091
+    source /chemotion/app/.env 2>>"${LOGFILE}"
+    # shellcheck disable=SC2046,SC2086
+    to_export=$(sed -r -e '/^\s*$/d' -e '/^\s*#/d' -e 's/^\s*//g' -e '/^\S+=\S+$/!d' -e 's/=.*$//g' /chemotion/app/.env)
+    # shellcheck disable=SC2086
+    [[ -n "$to_export" ]] && export ${to_export?}
+fi
+
+freezeDBConfig || exit 1
+
+PGHOST=$(getenv DB_HOST host db)
+PGPORT=$(getenv DB_PORT port 5432)
+PGUSER=$(getenv DB_USERNAME username chemotion)
+PGPASSWORD=$(getenv DB_PASSWORD password chemotion)
+PGDATABASE=$(getenv DB_DATABASE database chemotion)
+
+export PGHOST
+export PGPORT
+export PGUSER
+export PGPASSWORD
+export PGDATABASE

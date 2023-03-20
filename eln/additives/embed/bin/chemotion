@@ -1,0 +1,84 @@
+#!/bin/bash -i
+
+[[ -z "$1" ]] && {
+    usage() {
+        BASENAME=$(basename "$0")
+        echo "$BASENAME COMMAND [OPTIONS]"
+        echo ""
+        echo "Commands:"
+        echo "  backup         create a backup of Chemotion in /backup."
+        echo "  restore        restre a backup of Chemotion from /backup."
+        echo "  resetAdminPW   Resets the password of the first Administrator account (lowest ID)"
+        echo "                 in the database to 'chemotion'."
+        echo "  shell          creates a bash shell with all necessary environment variables set."
+        echo "  psql           drops you to PostgreSQL client."
+        echo "  railsc         drops you to Rails interactive console."
+        echo "  info           show versions of used software."
+        echo "  lddcheck       check if all binary dependencies resolve."
+        echo "  dumpConfig     dump config to /shared/dump/"
+        echo ""
+    }
+
+    usage
+    exit 1
+}
+
+[[ -f /embed/lib/env ]] && source /embed/lib/env &&
+    [[ -f /embed/lib/dbenv ]] && source /embed/lib/dbenv &&
+    [[ -f /embed/lib/utils.sh ]] && source /embed/lib/utils.sh
+
+case $1 in
+backup | restore | resetAdminPW)
+    cd /embed || exit 1
+    mkdir -p /chemotion/app/log
+    make "$1" | tee /chemotion/app/log/"${1}".log
+    exit $?
+    ;;
+info)
+    echo "Container versions: "
+    cat /.version
+    echo ""
+    echo "Volume versions: "
+    cat /chemotion/app/.version
+    this="$(grep '^RELEASE=' /.version | cut -d'=' -f2)"
+    theirs="$(grep '^RELEASE=' /chemotion/app/.version | cut -d'=' -f2)"
+    if [[ "$this" == "$theirs" ]]; then
+        echo "--> Versions match."
+    else
+        echo "--> Versions DO NOT match."
+    fi
+    echo ""
+    echo "Runtime versions: "
+    (cd /chemotion/app && ruby -v && bundle -v && gem -v && rails -v && node -v && npm -v && npx -v && yarn -v)
+    echo ""
+    exit 0
+    ;;
+lddcheck)
+    mkdir -p /chemotion/app/log
+    find /root /asdf /cache /chemotion/app/node_modules -iname '*.so' -type f -exec /embed/bin/lddcheck \{\} \; | tee /chemotion/app/log/lddlog.txt | grep not | grep -v libRD | sort | uniq
+    echo ""
+    echo "Full log stored in /lddlog.txt"
+    exit 0
+    ;;
+shell)
+    shift
+    bash --rcfile <(echo "PS1='(chemotion) $PS1$ '") -i "$@"
+    exit $?
+    ;;
+psql)
+    psql
+    exit $?
+    ;;
+dumpConfig)
+    bash /embed/scripts/dumpConfig.sh
+    ;;
+railsc)
+    cd /chemotion/app || exit 1
+    bundle exec rails c
+    exit $?
+    ;;
+*)
+    echo "Unknown command: $1"
+    exit 2
+    ;;
+esac

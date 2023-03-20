@@ -1,3 +1,5 @@
-.dockerfile
+**/*.log
+release/dev
 latest-release
-eln2/cache
+.dockerignore
+.scratch

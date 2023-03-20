@@ -1,9 +1,0 @@
-diff --git a/app/assets/images/favicon.ico b/app/assets/images/favicon.ico
-index 4fe66686..1fe002e2 120000
---- a/app/assets/images/favicon.ico
-+++ b/app/assets/images/favicon.ico
-@@ -1 +1 @@
--../../../public/favicon.ico.example
-\ No newline at end of file
-+../../../public/favicon.ico
-\ No newline at end of file

@@ -1,0 +1,70 @@
+This patch fixes a bug, where the delayed_job was refering to the wrong property.
+This caused the delayed_job to fail, when the user requested to download all analysis files
+or to recreate `.edit.jdx` files.
+
+diff --git a/app/jobs/download_analyses_job.rb b/app/jobs/download_analyses_job.rb
+index 1a18be9..c6892fe 100644
+--- a/app/jobs/download_analyses_job.rb
++++ b/app/jobs/download_analyses_job.rb
+@@ -38,7 +38,7 @@ class DownloadAnalysesJob < ApplicationJob
+     @file_path = Rails.public_path.join('zip', @filename)
+
+     begin
+-      @link = "#{app.root_url}/zip/#{@filename}"
++      @link = "#{Rails.application.config.root_url}/zip/#{@filename}"
+       @expires_at = Time.now + 24.hours
+
+       zip = Zip::OutputStream.write_buffer do |zip|
+diff --git a/app/jobs/export_collections_job.rb b/app/jobs/export_collections_job.rb
+index 910e3bb..2f70079 100644
+--- a/app/jobs/export_collections_job.rb
++++ b/app/jobs/export_collections_job.rb
+@@ -36,7 +36,7 @@ class ExportCollectionsJob < ApplicationJob
+     @user_id = user_id
+     begin
+       @labels = Collection.where(id: collection_ids[0..9]).pluck(:label)
+-      @link = "#{app.root_url}/zip/#{job_id}.#{extname}"
++      @link = "#{Rails.application.config.root_url}/zip/#{job_id}.#{extname}"
+       @expires_at = Time.now + 24.hours
+
+       export = Export::ExportCollections.new(job_id, collection_ids, extname, nested)
+
+diff --git a/lib/ketcher_service/render_svg.rb b/lib/ketcher_service/render_svg.rb
+index 8340c5e..a44a796 100644
+--- a/lib/ketcher_service/render_svg.rb
++++ b/lib/ketcher_service/render_svg.rb
+@@ -8,9 +8,10 @@ module KetcherService
+   # Use Ketcher-as-a-Service to render molfiles to SVG
+   module RenderSvg
+     def self.call_render_service(url, request)
+-      Rails.logger.info("Sending molfile to render service at: #{url}")
++      use_ssl = url.instance_of? URI::HTTPS
++      Rails.logger.info("Sending molfile to render service at: #{url} (SSL: #{use_ssl})")
+       start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+-      res = Net::HTTP.start(url.host, url.port, read_timeout: 1.5) { |http| http.request(request) }
++      res = Net::HTTP.start(url.host, url.port, :read_timeout => 1.5, :use_ssl => use_ssl) { |http| http.request(request) }
+       finish = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+       Rails.logger.info("Render service response: #{res.code} in #{finish - start} seconds")
+       raise Net::HTTPError.new("Server replied #{res.code}.", res) if res.code != '200'
+
+diff --git a/Gemfile b/Gemfile
+index c39265f..bab4c01 100644
+--- a/Gemfile
++++ b/Gemfile
+@@ -113,6 +113,8 @@ gem 'whenever', require: false
+
+ gem 'yaml_db'
+
++gem 'puma'
++
+ group :development do
+   gem 'better_errors' # allows to debug exception on backend from browser
+
+@@ -161,7 +163,6 @@ group :development, :test do
+   gem 'pry-byebug'
+   gem 'pry-rails'
+
+-  gem 'puma'
+
+   gem 'rspec-rails'
+   gem 'ruby_jard'

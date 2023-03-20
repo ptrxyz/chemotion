@@ -1,7 +1,0 @@
-FROM scratch as gather
-
-COPY --from=eln /etc/hosts /
-COPY --from=spectra /etc/hosts /
-COPY --from=msconvert /etc/hosts /
-COPY --from=ruby /etc/hosts /
-COPY --from=node /etc/hosts /

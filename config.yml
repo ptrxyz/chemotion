@@ -1,0 +1,26 @@
+define:
+  - cache: &cachesettings
+      useCache: false
+
+build:
+  base:
+    context: base
+    <<: *cachesettings
+  converter:
+    context: converter
+    <<: *cachesettings
+  eln:
+    context: eln
+    <<: *cachesettings
+  ketcher:
+    context: ketchersvc
+    <<: *cachesettings
+  ketcher-caddy:
+    context: ketchersvc
+    <<: *cachesettings
+  spectra:
+    context: spectra
+    <<: *cachesettings
+  spectra-msconvert:
+    context: spectra
+    <<: *cachesettings

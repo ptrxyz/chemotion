@@ -1,0 +1,13 @@
+production:
+  :url: 'https://141.converter.hydrogen.scc.kit.edu/'
+  :profile: 'eln-pk01'
+  :secret_key: 'eln-pk01'
+  :timeout: 300
+  :ext:
+    - '.xy'
+    - '.xls'
+    - '.xlsx'
+    - '.txt'
+    - '.brml'
+    - '.dta'
+    - '.pssession'

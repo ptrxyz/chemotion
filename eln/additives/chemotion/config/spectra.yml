@@ -1,0 +1,11 @@
+# production:
+#   :url: 'spectra'
+#   :port: '4000'
+
+production:
+  #  :url: something
+  #  :port: 11833
+  :chemspectra:
+    :url: 'http://spectra:4000/'
+  # :nmriumwrapper:
+  #   :url: 'https://dev-nmrium-next.eln.hydrogen.scc.kit.edu'

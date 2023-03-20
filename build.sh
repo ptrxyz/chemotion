@@ -1,145 +1,98 @@
 #!/bin/bash
 set -euo pipefail
 
-BUILDRUN="dev"  #$(date +%s)
-VERSION=1.4.0
-ARGZ=""  #--force-rm --squash
-LOS=$(date)
+VERSION=dev
 
-# function cleanup() {
-#     local pids
-#     mapfile -t pids < <(jobs -rp)
-#     if [[ ${#pids[@]} -gt 0 ]]; then
-#         kill -9 "${pids[@]}"
-#     fi
-#     echo $LOS
-# }
+BUILDRUN="$(date +%s)"
+BUILDRUN="dev"
 
-# # trap cleanup EXIT
-# trap cleanup SIGTERM
-# trap cleanup SIGINT
+# OPTS="--force-rm --no-cache"
+OPTS=""
 
-getImageIdByServiceID() {
-    docker images --filter "label=chemotion.internal.service.id=$1" \
-    --format "{{.CreatedAt}}\t{{.ID}}" | sort -nr | head -n 1 | cut -f2
+export ARGS_VERSION=${VERSION}
+export ARGS_BUILDRUN=${BUILDRUN}
+export ARGS_BUILD_TAG_KETCHERSVC="v1.0.0"
+export ARGS_BUILD_TAG_CONVERTER="v0.6.0"
+export ARGS_BUILD_TAG_SPECTRA="0.11.0"
+export ARGS_BUILD_TAG_CHEMOTION="490b86403532106e052710b71de011dbb8e0f9a7"
+
+STATUS_FILE="$(mktemp)"
+export STATUS_FILE
+
+trap 'rm -f "${STATUS_FILE}"' EXIT
+
+function listContainers() {
+    docker image ls | grep chemotion-build
 }
 
-(
-    echo "Building BASE ..."
-    cd base
+function tagContainer() {
+    for i in base converter eln ketchersvc ketchersvc-sc spectra msconvert; do
+        docker tag chemotion-build/$i:1.4.1 ptrxyz/internal:$i-1.4.1
+    done
+}
 
-    docker build $ARGZ -f build.dockerfile \
-        --build-arg BASE_VERSION="$VERSION" \
-        --build-arg BUILDRUN="$BUILDRUN" \
-        --target base \
-        -t chemotion-build/base:"$VERSION" . 2>&1 | tee build_base.log
+function buildContainer() {
+    # $1: filename of dockerfile relative to this script
+    # $2: basename of image
+    # $3: optional OPTS
+    df=$1
+    basename=$2
+    myOPTS=${3-$OPTS}
 
-    echo ">> BASE built."
+    tag="chemotion-build/${basename}:${VERSION}"
+    tag2="chemotion-build/${basename}:latest"
+    subdir=$(dirname "$df")
+    filename=$(basename "$df")
 
-    # IMAGE_ID=$(getImageIdByServiceID "base")
-    # [[ -n "$IMAGE_ID" ]] && docker tag "$IMAGE_ID" chemotion-build/base:1.4.0
-    # echo -e "\n\nTagged [$IMAGE_ID] as BASE.\n\n"
-    # sleep 2
-)
+    IFS=" " read -r -a opts <<<"$myOPTS"
+    mapfile -t args < <(set | grep ^ARGS_ | sed 's/^ARGS_//g')
 
-(
-    echo "Building CONVERTER ..."
-    cd converter
+    bargs=()
+    for arg in "${args[@]}"; do
+        bargs+=("--build-arg")
+        bargs+=("$arg")
+    done
 
-    docker build $ARGZ -f build.dockerfile \
-        --build-arg CONVERTER_BUILD_TAG="v0.6.0" \
-        --build-arg CONVERTER_VERSION="$VERSION" \
-        --build-arg BUILDRUN="$BUILDRUN" \
-        --target app \
-        -t chemotion-build/converter:"$VERSION" . 2>&1 | tee build_converter.log
+    if [[ -n "$myOPTS" ]]; then
+        echo "Building [$df] as [$tag] in [$subdir] with [$myOPTS]."
+    else
+        echo "Building [$df] as [$tag] in [$subdir]."
+    fi
 
-    echo ">> CONVERTER built."
+    if (
+        cd "$subdir" || exit 1
+        # echo "Build args:"
+        # echo "${bargs[@]}"
 
-    # [[ -n "$IMAGE_ID" ]] && docker tag "$IMAGE_ID" chemotion-build/converter:1.4.0
-    # IMAGE_ID=$(getImageIdByServiceID "converter")
-    # echo -e "\n\nTagged [$IMAGE_ID] as CONVERTER.\n\n"
-    # sleep 2
-)
+        systemd-inhibit docker build "${opts[@]}" -f "$filename" \
+            "${bargs[@]}" \
+            -t "$tag" -t "$tag2" . 2>&1 | tee "build-${basename}.log" >/dev/null
+    ); then
+        echo "+ Successfully built [$df] as [$tag]." | tee -a "${STATUS_FILE}"
+    else
+        echo "- Failed to build [$df]. See [${subdir}/build-${basename}.log] for details." | tee -a "${STATUS_FILE}"
+    fi
+}
 
-(
-    echo "Building KETCHERSVC ..."
-    cd ketchersvc
+export DOCKER_BUILDKIT=0
 
-    docker build $ARGZ -f build.dockerfile \
-        --build-arg KETCHERSVC_BUILD_TAG="ba28832" \
-        --build-arg KETCHERSVC_VERSION="$VERSION" \
-        --build-arg BUILDRUN="$BUILDRUN" \
-        --target app \
-        -t chemotion-build/ketchersvc:"$VERSION" . 2>&1 | tee build_ketchersvc.log
-
-    echo ">> KETCHERSVC built."
-
-    # IMAGE_ID=$(getImageIdByServiceID "ketchersvc")
-    # [[ -n "$IMAGE_ID" ]] && docker tag "$IMAGE_ID" chemotion-build/ketchersvc:1.4.0
-    # echo -e "\n\nTagged [$IMAGE_ID] as KETCHERSVC.\n\n"
-    # sleep 2
-)
-
-(
-    echo "Building SPECTRA ..."
-    cd spectra
-
-    docker build $ARGZ -f build.dockerfile \
-        --build-arg SPECTRA_BUILD_TAG="0.10.15" \
-        --build-arg SPECTRA_VERSION="$VERSION" \
-        --build-arg BUILDRUN="$BUILDRUN" \
-        --target spectra \
-        -t chemotion-build/spectra:"$VERSION" . 2>&1 | tee build_spectra.log
-
-    echo ">> SPECTRA built."
-
-    # IMAGE_ID=$(getImageIdByServiceID "spectra")
-    # [[ -n "$IMAGE_ID" ]] && docker tag "$IMAGE_ID" chemotion-build/spectra:1.4.0
-    # echo -e "\n\nTagged [$IMAGE_ID] as SPECTRA.\n\n"
-    # sleep 2
-
-    # IMAGE_ID=$(getImageIdByServiceID "msconvert")
-    # [[ -n "$IMAGE_ID" ]] && docker tag "$IMAGE_ID" chemotion-build/msconvert:1.4.0
-    # echo -e "\n\nTagged [$IMAGE_ID] as MSCONVERT.\n\n"
-    # sleep 2
-)
-
-(
-    echo "Building MSCONVERT ..."
-    cd spectra
-
-    docker build $ARGZ -f build2.dockerfile \
-        --build-arg SPECTRA_VERSION="$VERSION" \
-        --build-arg BUILDRUN="$BUILDRUN" \
-        --target msconvert \
-        -t chemotion-build/msconvert:"$VERSION" . 2>&1 | tee build_msconvert.log
-
-    echo ">> MSCONVERT built."
-)
-
-(
-    echo "Building ELN ..."
-    cd eln2
-
-    docker build $ARGZ -f build.dockerfile \
-        --build-arg CHEMOTION_BUILD_TAG=67d363fa018ff448e0c83919c3e07535022e4978 \
-        --build-arg CHEMOTION_VERSION=1.4.0 \
-        --build-arg BUILDRUN="$BUILDRUN" \
-        --target eln \
-        -t chemotion-build/eln:"$VERSION" . 2>&1 | tee build_eln.log
-
-    echo ">> ELN built."
-
-    # IMAGE_ID=$(getImageIdByServiceID "eln")
-    # [[ -n "$IMAGE_ID" ]] && docker tag "$IMAGE_ID" chemotion-build/eln:1.4.0
-    # echo -e "\n\nTagged [$IMAGE_ID] as ELN.\n\n"
-    # sleep 2
-)
+START_TIME=$(date +%s)
+buildContainer "base/build.dockerfile" "base" # "--force-rm --no-cache"
+buildContainer "converter/build.dockerfile" "converter" &
+buildContainer "ketchersvc/build.dockerfile" "ketchersvc" &
+buildContainer "ketchersvc/build2.dockerfile" "ketchersvc-sc" &
+buildContainer "spectra/build.dockerfile" "spectra" &
+buildContainer "spectra/build2.dockerfile" "msconvert" &
+buildContainer "eln/build.dockerfile" "eln" &
 
 while [[ -n "$(jobs -rp)" ]]; do
     sleep 1
-    echo "looping: $(jobs -rp)"
+    # echo "looping: $(jobs -rp)"
 done
-date
-echo "DONE: $LOS"
+END_TIME=$(date +%s)
 
+echo -e "\n\nSummary:"
+cat "${STATUS_FILE}"
+echo -e "\n--\nBuild took $((END_TIME - START_TIME)) seconds."
+
+listContainers

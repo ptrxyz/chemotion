@@ -1,0 +1,13 @@
+production:
+  :url: 'http://converter:4000/'
+  :profile: 'chemotion'
+  :secret_key: 'chemotion'
+  :timeout: 300
+  :ext:
+    - '.xy'
+    - '.xls'
+    - '.xlsx'
+    - '.txt'
+    - '.brml'
+    - '.dta'
+    - '.pssession'

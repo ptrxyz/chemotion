@@ -1,0 +1,28 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:13
+    restart: unless-stopped
+    hostname: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  eln:
+    image: all-in-one
+    restart: unless-stopped
+    environment:
+      - DBNAME="dev-box"
+      - PUBLIC_URL=http://localhost:4000
+      - CRASHDELAY=100
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 4000:4000

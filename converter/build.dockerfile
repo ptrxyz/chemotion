@@ -1,46 +1,71 @@
-ARG BASE=ubuntu:22.04
-ARG CONVERTER_BUILD_TAG=v0.6.0
-ARG CONVERTER_VERSION=1.4.0
-ARG BUILDRUN
+# GLOBALs that should be passed to this file
+ARG VERSION=UNSET
+ARG BUILD_TAG_CONVERTER=UNSET
 
-ARG PORT=8000
+# Derived values
+ARG BASE=chemotion-build/base:${VERSION}
 
+# Private variables, not passed in from outside, but helpful for this file
+# -
+
+
+# Stage 1: prepare the base image
 # hadolint ignore=DL3006
 FROM ${BASE} as converter-base
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends python3-pip python3-venv libmagic1 curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends --autoremove --fix-missing python3-pip python3-venv libmagic1 curl
 
-# Stage: build the app
-FROM converter-base as app
-ARG CONVERTER_BUILD_TAG
-ARG SRVDIR=/srv/chemotion
+# Stage 2: build the app
+FROM converter-base as converter
+ARG BUILD_TAG_CONVERTER
 
-WORKDIR ${SRVDIR}
-ADD https://github.com/ComPlat/chemotion-converter-app/archive/refs/tags/${CONVERTER_BUILD_TAG}.tar.gz /tmp/code.tar.gz
+WORKDIR /srv/chemotion
+ADD https://github.com/ComPlat/chemotion-converter-app/archive/refs/tags/${BUILD_TAG_CONVERTER}.tar.gz /tmp/code.tar.gz
 
-RUN tar -xzf /tmp/code.tar.gz --strip-components=1 -C ${SRVDIR} && rm /tmp/code.tar.gz && \
+RUN tar -xzf /tmp/code.tar.gz --strip-components=1 -C /srv/chemotion && rm /tmp/code.tar.gz && \
     python3 -m venv env && . env/bin/activate && \
-    pip install --no-cache-dir -r ${SRVDIR}/requirements/common.txt
+    pip install --no-cache-dir -r /srv/chemotion/requirements/common.txt
 
-ENV PATH=${SRVDIR}/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
-    VIRTUAL_ENV=${SRVDIR}/env
+COPY pass /bin/genpass
+RUN chmod +x /bin/genpass && echo "$(/bin/genpass)" > /srv/chemotion/htpasswd   # use echo to append newline.
 
-ARG PORT
-EXPOSE ${PORT}
+ENV PATH=/srv/chemotion/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    VIRTUAL_ENV=/srv/chemotion/env       \
+    MAX_CONTENT_LENGTH=10M               \
+    PROFILES_DIR=/srv/chemotion/profiles \
+    DATASETS_DIR=/srv/chemotion/datasets \
+    HTPASSWD_PATH=/srv/chemotion/htpasswd
 
-CMD ["gunicorn", "--bind", "0.0.0.0", "converter_app.app:create_app()", "--preload"]
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# FROM ${BASE} as final
+# COPY --from=converter / /
+
+# SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c", "--"]
+
+# ENV PATH=/srv/chemotion/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+#     VIRTUAL_ENV=/srv/chemotion/env       \
+#     MAX_CONTENT_LENGTH=10M               \
+#     PROFILES_DIR=/srv/chemotion/profiles \
+#     DATASETS_DIR=/srv/chemotion/datasets \
+#     HTPASSWD_PATH=/srv/chemotion/htpasswd
+
+# Stage 4: finalize the image
+FROM converter as app
+ARG VERSION
+
+EXPOSE 4000
+
+WORKDIR /srv/chemotion
+CMD ["gunicorn", "--bind", "0.0.0.0:4000", "converter_app.app:create_app()", "--preload"]
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl --fail http://localhost:${PORT-8000}/ || exit 1
+    CMD curl --fail http://localhost:4000/
 
-FROM app
-ARG CONVERTER_VERSION
-ARG BUILDRUN
-LABEL "org.opencontainers.image.authors"="Chemotion Team" \
+LABEL \
+    "org.opencontainers.image.authors"="Chemotion Team" \
     "org.opencontainers.image.title"="Chemotion Converter" \
     "org.opencontainers.image.description"="Image for Chemotion Converter" \
-    "org.opencontainers.image.version"="${CONVERTER_VERSION}" \
-    "chemotion.internal.buildrun"="${BUILDRUN}" \
+    "org.opencontainers.image.version"="${VERSION}" \
     "chemotion.internal.service.id"="converter"

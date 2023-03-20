@@ -1,0 +1,15 @@
+# production:
+#   :url: '141.spectra.hydrogen.scc.kit.edu'
+#   :port: '443'
+#   :nmriumwrapper:
+#     :protocol: 'https'
+#     :url: 'nmriumdev.nmrxiv.org'
+#     :port: ''
+
+production:
+  #  :url: something
+  #  :port: 11833
+  :chemspectra:
+    :url: 'https://011.spectra.hydrogen.scc.kit.edu'
+  :nmriumwrapper:
+    :url: 'https://dev-nmrium-next.eln.hydrogen.scc.kit.edu'

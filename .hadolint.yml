@@ -1,0 +1,7 @@
+ignored:
+  - DL3008
+  - DL3009 # official ubuntu images do run `apt-get clean` automatically.
+  - DL3016
+  - DL3059
+  - SC1091
+  - SC2154

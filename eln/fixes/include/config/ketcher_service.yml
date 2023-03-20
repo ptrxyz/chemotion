@@ -1,2 +1,0 @@
-production:
-  :url: 'http://ketchersvc:9000/render'

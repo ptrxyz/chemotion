@@ -1,0 +1,108 @@
+version: '3.9'
+services:
+  db:
+    image: postgres:13
+    restart: unless-stopped
+    hostname: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - chemotion_db:/var/lib/postgresql/data/
+    networks:
+      - chemotion
+
+  msconvert:
+    image: chemotion-build/msconvert:dev-main
+    restart: unless-stopped
+    hostname: msconvert
+    volumes:
+      - spectra:/shared:rw
+    networks:
+      - chemotion
+
+  spectra:
+    image: chemotion-build/spectra:dev-main
+    restart: unless-stopped
+    hostname: spectra
+    volumes:
+      - spectra:/shared:rw
+    depends_on:
+      - msconvert
+    networks:
+      - chemotion
+
+  worker:
+    image: chemotion-build/eln:dev-main
+    restart: unless-stopped
+    environment:
+      - CONFIG_ROLE=worker
+    depends_on:
+      - db
+      - eln
+      - spectra
+    volumes:
+      - chemotion_data:/chemotion/data/
+      - chemotion:/chemotion/app
+    networks:
+      - chemotion
+
+  eln:
+    image: chemotion-build/eln:dev-main
+    restart: unless-stopped
+    environment:
+      - CONFIG_ROLE=eln
+      - SECRET_KEY_BASE=pleasechangeme
+    depends_on:
+      - db
+      - spectra
+    volumes:
+      - ./shared/pullin:/shared
+      - ./shared/backup:/backup
+      - chemotion_data:/chemotion/data/
+      - chemotion:/chemotion/app
+    ports:
+      - 4000:4000
+    networks:
+      - chemotion
+
+  ketchersvc:
+    image: chemotion-build/ketchersvc:dev-main
+    restart: unless-stopped
+    environment:
+      - CONFIG_KETCHER_URL=http://eln:4000/ketcher/
+    init: true
+    depends_on:
+      eln:
+        condition: service_healthy
+    networks:
+      - chemotion
+
+  converter:
+    image: chemotion-build/converter:dev-main
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=imsupersecretandwanttobechanged
+    volumes:
+      - ./services/converter/profiles:/srv/chemotion/profiles
+      - ./services/converter/datasets:/srv/chemotion/datasets
+      - ./services/converter/htpasswd:/srv/chemotion/htpasswd
+      # Please make sure to create htpasswd manually before running this compose file
+      # as otherwise docker would create it as a folder. This is not meant to be the case,
+      # in fact the file should contain a htpasswd-generated list of users.
+      # See the documentation for more information
+    networks:
+      - chemotion
+
+volumes:
+  chemotion:
+    name: chemotion_app
+  chemotion_data:
+    name: chemotion_data
+  chemotion_db:
+    name: chemotion_db
+  spectra:
+    name: chemotion_spectra
+
+networks:
+  chemotion:

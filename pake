@@ -1,0 +1,83 @@
+#!/bin/bash
+
+function parseEnvFiles() {
+	for i in "$@"; do
+		case "$i" in
+		"--env="*)
+			filename="${i:6}"
+			envfiles+=("$filename")
+			;;
+		*) ;;
+		esac
+	done
+}
+
+function parseFlags() {
+	for i in "$@"; do
+		case "$i" in
+		"--remake-base")
+			base_opts="${base_opts} --no-cache --force-rm"
+			export base_opts
+			;;
+		"--remake-all")
+			OPTS="${OPTS} --no-cache --force-rm"
+			export OPTS
+			;;
+		"--verbose")
+			VERBOSE=1
+			export VERBOSE
+			;;
+		"--env="*)
+			# skip
+			;;
+		*)
+			makeargs+=("$i")
+			;;
+		esac
+	done
+}
+
+set -o allexport
+# shellcheck disable=SC1091
+source ./func.sh
+set +o allexport
+
+envfiles=()
+parseEnvFiles "$@"
+
+if [[ ${#envfiles[@]} -eq 0 && -f ".env" ]]; then
+	envfiles+=(".env")
+fi
+
+if [[ ${#envfiles[@]} -gt 0 ]]; then
+	for i in "${envfiles[@]}"; do
+		if [[ -f "$i" ]]; then
+			set -o allexport
+			# shellcheck disable=SC1090
+			source "$i"
+			set +o allexport
+		else
+			echo "Could not load environment file [$i]."
+			exit 1
+		fi
+	done
+fi
+
+function listContainers() {
+	docker image ls | grep -E "^${REPO}"
+}
+
+makeargs=()
+parseFlags "$@"
+
+START_TIME=$(date +%s)
+echo "pake run started at $(date)."
+echo
+make -j4 --no-print-directory "${makeargs[@]}"
+END_TIME=$(date +%s)
+
+echo -e "\n--\nBuild took $((END_TIME - START_TIME)) seconds."
+echo -e "pake run ended at $(date).\n"
+
+# list images that belong to REPO
+listContainers

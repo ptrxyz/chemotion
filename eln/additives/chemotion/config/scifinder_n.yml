@@ -1,0 +1,7 @@
+production:
+  # :provider:
+  #   :metadata: 'api/oauth2/metadata' # DON'T CHANGE
+  #   :host: 'https://scifinder-n.cas.org' # DON'T CHANGE
+  #   :client_id: 'client-id' # your client id, issued by CAS SciFinder
+  #   :redirect: 'sfn_cb' # DON'T CHANGE
+  #   :redirect_host: ENV['PUBLIC_URL'] # your server's public endpoint

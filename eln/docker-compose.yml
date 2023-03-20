@@ -1,0 +1,112 @@
+version: '3.5'
+services:
+  db:
+    image: postgres:13
+    restart: unless-stopped
+    hostname: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - chemotion_db:/var/lib/postgresql/data/
+    networks:
+      - chemotion
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  msconvert:
+    image: chemotion-build/msconvert:1.4.0
+    restart: unless-stopped
+    hostname: msconvert
+    volumes:
+      - spectra:/shared:rw
+    networks:
+      - chemotion
+
+  spectra:
+    image: chemotion-build/spectra:1.4.0
+    restart: unless-stopped
+    hostname: spectra
+    volumes:
+      - spectra:/shared:rw
+    depends_on:
+      - msconvert
+    networks:
+      - chemotion
+
+  worker:
+    image: chemotion-build/eln:1.4.0
+    restart: unless-stopped
+    environment:
+      - CONFIG_ROLE=worker
+      - PUBLIC_URL=http://localhost:4000
+    depends_on:
+      eln:
+        condition: service_healthy
+    volumes:
+      - chemotion_data:/chemotion/data/
+      - chemotion:/chemotion/app
+    networks:
+      - chemotion
+
+  eln:
+    image: chemotion-build/eln:1.4.0
+    restart: unless-stopped
+    environment:
+      - CONFIG_ROLE=eln
+      - PUBLIC_URL=http://localhost:4000
+    depends_on:
+      db:
+        condition: service_healthy
+      spectra:
+        condition: service_started
+    volumes:
+      - ./shared/pullin:/shared
+      - ./shared/backup:/backup
+      - chemotion_data:/chemotion/data/
+      - chemotion:/chemotion/app
+    ports:
+      - 4000:4000
+    networks:
+      - chemotion
+
+  ketchersvc:
+    image: chemotion-build/ketchersvc:1.4.0
+    restart: unless-stopped
+    environment:
+      - CONFIG_KETCHER_URL=http://eln:4000/ketcher/
+    init: true
+    depends_on:
+      eln:
+        condition: service_healthy
+    networks:
+      - chemotion
+
+  converter:
+    image: chemotion-build/converter:1.4.0
+    restart: unless-stopped
+    environment:
+      - SECRET_KEY=imsupersecretandwanttobechanged
+    volumes:
+      - ./services/converter/profiles:/srv/chemotion/profiles
+      - ./services/converter/datasets:/srv/chemotion/datasets
+      - ./services/converter/htpasswd:/srv/chemotion/htpasswd
+    networks:
+      - chemotion
+
+volumes:
+  chemotion:
+    name: chemotion_app
+  chemotion_data:
+    name: chemotion_data
+  chemotion_db:
+    name: chemotion_db
+  spectra:
+    name: chemotion_spectra
+
+networks:
+  chemotion:
