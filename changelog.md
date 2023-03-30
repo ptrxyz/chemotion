@@ -1,7 +1,9 @@
 # Changelog
 
+## [1.5.1] - 2023-03-24
+-   Fixed bugs in embeded scripts.
 
-## [1.5.0] - 2023-03-07
+## [1.5.0] - 2023-03-14
 
 -   Chore: new version of spectra supported
 -   Feature: added support for NMRium
