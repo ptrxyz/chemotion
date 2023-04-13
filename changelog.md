@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.5.2] - 2023-04-11
+-   See Changelog for [ELN](https://github.com/ComPlat/chemotion_ELN/blob/main/CHANGELOG.md#v152)
+
 ## [1.5.1] - 2023-03-24
 -   Fixed bugs in embeded scripts.
 
