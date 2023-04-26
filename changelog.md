@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.5.3] - 2023-04-25
+-   See Changelog for [ELN](https://github.com/ComPlat/chemotion_ELN/blob/main/CHANGELOG.md)
+
 ## [1.5.2] - 2023-04-11
 -   See Changelog for [ELN](https://github.com/ComPlat/chemotion_ELN/blob/main/CHANGELOG.md#v152)
 
