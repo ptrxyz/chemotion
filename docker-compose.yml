@@ -31,6 +31,7 @@ services:
       - msconvert
     networks:
       - chemotion
+    command: ["gunicorn", "--timeout", "600", "-w", "4", "-b", "0.0.0.0:4000", "server:app"]
 
   worker:
     image: ptrxyz/chemotion:eln-1.5.3
