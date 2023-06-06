@@ -25,7 +25,7 @@ ARG BUILD_TAG_SPECTRA
 WORKDIR /builder/app
 RUN git init --initial-branch=main . && \
     git remote add origin https://github.com/ComPlat/chem-spectra-app && \
-    git fetch --tags --depth 1 origin ${BUILD_TAG_SPECTRA} && \
+    git fetch --tags --depth 1 origin "${BUILD_TAG_SPECTRA}" && \
     git reset --hard FETCH_HEAD && \
     rm -rf .git
 
@@ -93,7 +93,7 @@ EXPOSE 4000
 
 WORKDIR "/app"
 ENTRYPOINT ["/tini", "--", "/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra"]
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:4000", "server:app"]
+CMD ["gunicorn", "--timeout", "600", "-w", "4", "-b", "0.0.0.0:4000", "server:app"]
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=30s --retries=3 \
     CMD curl --fail http://localhost:4000/ping || exit 1

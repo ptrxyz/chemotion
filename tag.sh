@@ -2,6 +2,7 @@
 
 action=${1:-"tag"}
 tag=${2:-}
+latest=${3:-}
 services=("base" "converter" "ketchersvc" "ketchersvc-sc" "spectra" "msconvert" "eln")
 
 case "$action" in
@@ -34,12 +35,14 @@ case "$action" in
         echo "Pushing containers:"
         docker image ls | grep -e "ptrxyz/chemotion:" -e "-${tag}"
         for i in "${services[@]}"; do
-            echo -e "\n+ Pushing [$i]..."
+            echo -e "\n+ Pushing [$i:${tag}]..."
             docker image ls "ptrxyz/chemotion:${i}-${tag}" | grep -q "${i}-${tag}" || {
                 echo "Image not found: ptrxyz/chemotion:${i}-${tag}"
             }
             systemd-inhibit docker push "ptrxyz/chemotion:${i}-${tag}"
-            systemd-inhibit docker push "ptrxyz/chemotion:${i}-latest"
+            if [[ -n "$latest" ]]; then
+                systemd-inhibit docker push "ptrxyz/chemotion:${i}-latest"
+            fi
         done
         ;;
     "tag-prod")
@@ -51,7 +54,9 @@ case "$action" in
         for i in "${services[@]}"; do
             echo "+ Tagging [$i]..."
             # echo "  [chemotion-build/${i}:latest]  ->  [ptrxyz/internal:${i}-dev]"
-            docker tag "chemotion-build/${i}:latest" "ptrxyz/chemotion:${i}-latest"
+            if [[ -n "$latest" ]]; then
+                docker tag "chemotion-build/${i}:latest" "ptrxyz/chemotion:${i}-latest"
+            fi
             docker tag "chemotion-build/${i}:latest" "ptrxyz/chemotion:${i}-${tag}"
         done
         echo -e "\nTagged containers:"

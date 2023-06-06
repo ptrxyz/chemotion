@@ -11,7 +11,8 @@ backup restore resetAdminPW precheck configure secret dbready dbcheck precompile
 	echo -e "\x1B[38;2;255;255;255mRunning task: [$@]\x1B[0m"
 	[[ -f /embed/lib/env      ]] && source /embed/lib/env && \
 	[[ -f /embed/lib/utils.sh ]] && source /embed/lib/utils.sh && \
-	TASKNAME="$@" ./bin/timeit bash ./scripts/$@.sh
+	[[ -f "./scripts/$@.sh"   ]] && \
+	TASKNAME="$@" ./bin/timeit bash "./scripts/$@.sh"
 	echo -e "\x1B[90mTask [$@] finished.\x1B[0m"
 
 all-eln: precheck configure secret dbready dbcheck precompile permissions

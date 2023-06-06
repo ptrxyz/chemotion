@@ -13,7 +13,8 @@ COPY dev.sh /embed/scripts/dev.sh
 COPY run.sh /embed/run.sh
 COPY health.sh /embed/health.sh
 
-RUN chmod +x /embed/run.sh /embed/scripts/dev.sh /embed/health.sh
+
+RUN echo '#!/bin/bash' > /embed/scripts/zero.sh && chmod +x /embed/run.sh /embed/health.sh /embed/scripts/*.sh
 
 COPY build_dev.sh /embed
 RUN chmod +x /embed/build_dev.sh && /embed/build_dev.sh && rm -r /embed/build_dev.sh

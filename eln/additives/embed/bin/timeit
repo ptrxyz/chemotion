@@ -1,7 +1,12 @@
 #!/bin/bash
-now=$(date +%s)
+startTS=$(date +%s)
 $@
 ret=$?
-then=$(date +%s)
-echo -e "\x1B[90mDuration: $((then - now))s\x1B[0m"
+endTS=$(date +%s)
+if [[ $ret -eq 0 ]]; then
+	echo -e "\x1B[90mCommand finished successfully.\x1B[0m"
+else
+	echo -e "\x1B[90mCommand finished with an error.\x1B[0m"
+fi
+echo -e "\x1B[90mDuration: $((endTS - startTS))s\x1B[0m"
 exit $ret

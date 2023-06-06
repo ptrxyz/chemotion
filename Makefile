@@ -2,6 +2,8 @@ MAKEFLAGS += --always-make
 MAKEFLAGS += -s
 MAKEFLAGS += --no-print-directory
 
+SHELL := /bin/bash
+
 .PHONY: *
 
 default: all

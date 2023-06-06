@@ -13,6 +13,10 @@ ARG NODE_VERSION=latest:14
 ARG BUNDLER_VERSION=2.2.33
 ARG ASDF_VERSION=v0.10.2
 ARG PANDOC_VERSION=2.10.1
+ARG BUILD_REPO_CHEMOTION=https://github.com/ComPlat/chemotion_ELN
+
+FROM scratch as cache-vol
+ADD ./tmp/cache.tar.gz /
 
 
 ########################################################################################################################
@@ -51,6 +55,8 @@ ENV PATH="${GEM_HOME}/bin:${GEM_HOME}/gems/bin:${ASDF_DIR}/shims:${ASDF_DIR}/bin
 # ASDF
 RUN git clone https://github.com/asdf-vm/asdf.git /asdf --branch "${ASDF_VERSION}"
 
+COPY --from=cache-vol /cache /cache
+
 # NodeJS
 RUN MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)" && export MAKEFLAGS && \
     asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git && \
@@ -63,13 +69,13 @@ RUN MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)" && export MAKEFLAGS && \
     asdf plugin add ruby https://github.com/asdf-vm/asdf-ruby.git && \
     asdf install ruby "${RUBY_VERSION}" && \
     asdf global ruby "${RUBY_VERSION}"  && \
+    rm -r /asdf/installs/ruby/2.7.8/lib/ruby/gems/2.7.0/gems/bundler-* && \
+    rm /asdf/installs/ruby/**/lib/ruby/gems/**/specifications/default/bundler-*.gemspec && \
     gem install bundler -v "${BUNDLER_VERSION}"
 
 # fix the openSSL thing explained above.
 RUN SSL_PATH="$(asdf where ruby)" && \
     ln -s "${SSL_PATH}/openssl/lib/libcrypto.so.1.1" /lib/x86_64-linux-gnu/
-
-ADD /tmp/cache.tar.gz /
 
 
 
@@ -80,16 +86,22 @@ RUN apt-get install -y --no-install-recommends --autoremove --fix-missing git ca
 SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c", "--"]
 
 ARG BUILD_TAG_CHEMOTION
+ARG BUILD_REPO_CHEMOTION
 ARG CHEMOTION_RELEASE
 ARG VERSION
 
 # checkout Chemotion
-RUN test -n "${BUILD_TAG_CHEMOTION}" && echo "CHECKOUT: ${BUILD_TAG_CHEMOTION}" && \
+RUN test -n "${BUILD_TAG_CHEMOTION}" && echo "BUILD FROM: ${BUILD_REPO_CHEMOTION}" && \
+    echo "CHECKOUT: ${BUILD_TAG_CHEMOTION}" && \
     git init --initial-branch=main /chemotion/app && \
-    git -C /chemotion/app remote add origin https://github.com/ComPlat/chemotion_ELN && \
+    git -C /chemotion/app remote add origin "${BUILD_REPO_CHEMOTION}" && \
     git -C /chemotion/app fetch --tags --depth 1 origin "${BUILD_TAG_CHEMOTION}" && \
     git -C /chemotion/app reset --hard FETCH_HEAD && \
-    git -C /chemotion/app describe --abbrev=0 --tags || echo ${BUILD_TAG_CHEMOTION}
+    git -C /chemotion/app describe --abbrev=0 --tags || true
+
+# make sure checkout (kind of) worked
+RUN ls -la /chemotion/app | grep -i gemfile
+RUN stat /chemotion/app/Gemfile.lock && rm -f /chemotion/app/.tool-versions
 
 WORKDIR /chemotion/app
 
@@ -238,6 +250,7 @@ RUN apt-get install -y --no-install-recommends --autoremove --fix-missing \
     imagemagick \
     librsvg2-bin `# for thumbnail generation of reasearch plans` \
     locales \
+    ghostscript \
     `# utilitites` \
     vim iproute2 sudo make
 
@@ -245,8 +258,10 @@ COPY --from=asdf-enabled /root/.tool-versions /root/.tool-versions
 COPY --from=asdf-enabled /asdf/ /asdf/
 COPY --from=asdf-enabled /lib/x86_64-linux-gnu/libcrypto.so.1.1 /lib/x86_64-linux-gnu/libcrypto.so.1.1
 COPY --from=raw-eln /chemotion /chemotion
+# COPY --from=bundle-installed /cache/bundle/ /cache/bundle/
+COPY --from=bundle-installed /cache/bundle /cache/bundle
+COPY --from=bundle-installed /cache/gems /cache/gems
 COPY --from=yarn-installed /cache/node_modules/ /cache/node_modules/
-COPY --from=bundle-installed /cache/bundle/ /cache/bundle/
 
 # Add other additives
 COPY ./additives/various/fontfix.conf /etc/fonts/conf.d/99-chemotion-fontfix.conf
@@ -322,6 +337,9 @@ RUN export SECRET_KEY_BASE="build"                                              
     bundle exec rake DISABLE_DATABASE_ENVIRONMENT_CHECK=1 DATABASE_URL=nulldb://user:pass@127.0.0.1/dbname webpacker:compile 2>&1 | grep -v ^warning  && \
     bundle exec rake DISABLE_DATABASE_ENVIRONMENT_CHECK=1 DATABASE_URL=nulldb://user:pass@127.0.0.1/dbname assets:precompile 2>&1 | grep -v ^warning  && \
     mv /tmp/ui.js.bak "${UIFILE_PATH}"
+
+# Safety valve to make sure things seem to be fine ...
+RUN env ; touch /chemotion/app/.env && bundle exec dotenv erb /chemotion/app/config/secrets.yml
 
 # cleanup
 RUN rm -rf /tmp/* /var/tmp/*

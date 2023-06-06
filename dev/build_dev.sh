@@ -1,10 +1,21 @@
 #!/bin/bash
 cd /chemotion/app || exit 1
 
+
+touch /chemotion/app/config/secrets.yml.example
+
 # mirror the production sections of all config/*.yml to a development section
 mkdir -p /tmp/prod/ /tmp/dev/ && cp config/*.yml /tmp/prod
 for i in /tmp/prod/*.yml; do
 	fname=$(basename "${i}")
+	if [[ ! -f "config/${fname}.example" ]]; then
+		echo "Skipping config [$fname] since it doesn't seem to have an example."
+		sleep 1
+		continue
+	else
+		echo "Section-patching config [$fname]..."
+		sleep 1
+	fi
 	j=/tmp/dev/"${fname}"
 	cat "${i}" > "${j}"
 	cat "${i}" | sed 's/^production:\s*$/development:/g' >> "${j}"
@@ -20,7 +31,7 @@ PROC_ONLINE=${PROC_ONLINE-4}
 yarn install --ignore-engines
 sed -i -e "/gem 'faker'/d" /chemotion/app/Gemfile
 echo "gem 'faker'" >> /chemotion/app/Gemfile
-bundle check || bundle install --jobs="${PROC_ONLINE}" --path "${BUNDLE_PATH}"
+bundle check || bundle install --jobs="${PROC_ONLINE}" # --path "${BUNDLE_PATH}"
 
 
 # expose logs

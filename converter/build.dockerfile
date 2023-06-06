@@ -26,12 +26,15 @@ RUN tar -xzf /tmp/code.tar.gz --strip-components=1 -C /srv/chemotion && rm /tmp/
     python3 -m venv env && . env/bin/activate && \
     pip install --no-cache-dir -r /srv/chemotion/requirements/common.txt
 
+RUN test -f "/srv/chemotion/.env.prod" && mv "/srv/chemotion/.env.prod" "/srv/chemotion/.env" && mkdir -p /var/log/chemotion-converter/ && chmod a+wrx /var/log/chemotion-converter/
+
 COPY pass /bin/genpass
-RUN chmod +x /bin/genpass && echo "$(/bin/genpass)" > /srv/chemotion/htpasswd   # use echo to append newline.
+RUN chmod +x /bin/genpass && echo "$(/bin/genpass chemotion chemotion)" > /srv/chemotion/htpasswd   # use echo to append newline.
 
 ENV PATH=/srv/chemotion/env/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
     VIRTUAL_ENV=/srv/chemotion/env       \
-    MAX_CONTENT_LENGTH=10M               \
+    MAX_CONTENT_LENGTH=250M              \
+    GUNICORN_TIMEOUT=180                 \
     PROFILES_DIR=/srv/chemotion/profiles \
     DATASETS_DIR=/srv/chemotion/datasets \
     HTPASSWD_PATH=/srv/chemotion/htpasswd

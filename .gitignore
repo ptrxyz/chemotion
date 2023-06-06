@@ -3,3 +3,5 @@ release/dev
 latest-release
 .dockerignore
 .scratch
+eln/tmp/cache.*.tar.gz
+envs/

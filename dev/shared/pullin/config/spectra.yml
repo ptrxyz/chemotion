@@ -7,9 +7,8 @@
 #     :port: ''
 
 production:
-  #  :url: something
-  #  :port: 11833
   :chemspectra:
-    :url: 'https://011.spectra.hydrogen.scc.kit.edu'
+    :url: 'https://153.spectra.hydrogen.scc.kit.edu'
   :nmriumwrapper:
-    :url: 'https://dev-nmrium-next.eln.hydrogen.scc.kit.edu'
+    # :url: 'http://nmrium-0-2-1-bare.eln.hydrogen.scc.kit.edu:4080'
+    :url: 'https://nmrium-0-2-1-secure.eln.hydrogen.scc.kit.edu'
