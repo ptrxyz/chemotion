@@ -1,0 +1,60 @@
+version: "3.5"
+services:
+  hull:
+    image: chemotion-cli/hull-122 # to change
+    build:
+      dockerfile: hull.Dockerfile
+      args: # to change
+        - TZ=Europe/Berlin
+        - LANG=en_US
+        - VERSION_PANDOC=2.10.1
+        - VERSION_ASDF=v0.10.0
+        - VERSION_NODE=14.16.0
+        - VERSION_RUBY=latest:2.6
+        - VERSION_BUNDLER=1.17.3
+    entrypoint: ["/bin/tini", "--"]
+    command: ["/bin/bash"]
+  cargo:
+    image: chemotion-cli/hull-122 # to change
+    environment: # to change
+      - BRANCH=f57052c4d3771e95b93ad3a65db9caba9d53e3ed
+      - RAILS_ENV=development
+      - NODE_ENV=development
+      - UID=1000
+      - GID=1000
+      - CHEMOTION_DIR=/cargo/chemotion
+      - GEM_HOME=/cargo/cache/gems
+      - NODE_MODULES=/cargo/chemotion/node_modules
+      - YARN_CACHE=/cargo/cache/yarn
+      - THOR_SILENCE_DEPRECATION=1
+    volumes:
+      - ./cargo-122:/cargo
+      - ./scripts:/scripts:ro
+    entrypoint: ["/bin/tini", "--"]
+    # command: ["/bin/bash"]
+    command: ["bash", "/scripts/create_cargo.sh"]
+  db:
+    image: postgres:13
+    restart: unless-stopped
+    hostname: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - chemotion_db:/var/lib/postgresql/data/
+    networks:
+      - chemotion
+  sail:
+    image: chemotion-cli/hull-122
+    volumes:
+      - ./cargo-122:/cargo
+    entrypoint: ["/bin/tini", "--"]
+    command: ["/bin/bash"]
+
+volumes:
+  chemotion_db:
+    name: chemotion_db
+
+networks:
+  chemotion:
+    name: cargo-122
