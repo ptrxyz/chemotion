@@ -25,7 +25,10 @@ RUN curl -L https://dl-ssl.google.com/linux/linux_signing_key.pub | \
     chmod 644 /etc/apt/trusted.gpg.d/google.gpg && \
     echo "deb https://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get update -y && apt-get install -y --no-install-recommends --autoremove --fix-missing google-chrome-stable && \
-    CHROME_VERSION=$(google-chrome --product-version | grep -o "[^\.]*\.[^\.]*\.[^\.]*") && \
+    `# next line: we only go for the latest major release.` && \
+    CHROME_VERSION=$(google-chrome --product-version | grep -oE '[0-9]+' | head -n1) && \
+    CHROME_VERSION=114 && \
+    echo "CURLING: https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION" && \
     CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION") && \
     mkdir -p /chromedriver && \
     curl -L -o /chromedriver/chromedriver_linux64.zip "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip" && \

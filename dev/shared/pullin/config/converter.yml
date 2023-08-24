@@ -1,7 +1,7 @@
 production:
-  :url: 'https://153.converter.hydrogen.scc.kit.edu/'
-  :profile: 'eln-pk01'
-  :secret_key: 'eln-pk01'
+  :url: <%= ENV['CONVERTER_URL'] || 'https://153.converter.hydrogen.scc.kit.edu/' %>
+  :profile: <%= ENV['CONVERTER_PROFILE'] || 'dev-0000' %>
+  :secret_key: <%= ENV['CONVERTER_SECRET'] || 'dev-0000' %>
   :timeout: 300
   :ext:
     - '.xy'

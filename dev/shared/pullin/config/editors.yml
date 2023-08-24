@@ -1,7 +1,7 @@
 production:
   :docserver:
     :enable: false
-    :uri: https://610.onlyoffice.hydrogen.scc.kit.edu/
+    :uri: <%= ENV['OFFICE_URL'] || 'https://610.onlyoffice.hydrogen.scc.kit.edu/' %>
     :api: web-apps/apps/api/documents/api.js
     :callback_server: <%= ENV['PUBLIC_URL'] %>
     :ext:

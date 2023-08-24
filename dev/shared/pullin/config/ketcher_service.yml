@@ -1,2 +1,2 @@
 production:
-  :url: 'https://153.ketchersvc.hydrogen.scc.kit.edu:443/render'
+  :url: <%= ENV['KETCHER_URL'] || 'https://153.ketchersvc.hydrogen.scc.kit.edu:443/render' %>

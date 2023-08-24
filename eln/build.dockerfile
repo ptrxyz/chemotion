@@ -151,7 +151,8 @@ RUN mkdir -p /chemotion/data && \
     mkdir -p /chemotion/data/public/ && \
     mv /chemotion/app/public/images/ /chemotion/data/public/ || mkdir -p /chemotion/data/public/images && \
     ln -s /chemotion/data/public/images/ /chemotion/app/public/images && \
-    cp /chemotion/app/.version /chemotion/data/.version
+    cp /chemotion/app/.version /chemotion/data/.version && \
+    mkdir -p /chemotion/data/public/images/thumbnail
 
 RUN sed -i "/gem 'rdkit_chem'/d"                /chemotion/app/Gemfile && \
     sed -i "/gem 'openbabel'/d"                 /chemotion/app/Gemfile && \

@@ -8,7 +8,7 @@
 
 production:
   :chemspectra:
-    :url: 'https://153.spectra.hydrogen.scc.kit.edu'
+    :url: <%= ENV['SPECTRA_URL'] || 'https://153.spectra.hydrogen.scc.kit.edu' %>
   :nmriumwrapper:
     # :url: 'http://nmrium-0-2-1-bare.eln.hydrogen.scc.kit.edu:4080'
-    :url: 'https://nmrium-0-2-1-secure.eln.hydrogen.scc.kit.edu'
+    :url: <%= ENV['NMRIUM_URL'] || 'https://nmrium-0-2-1-secure.eln.hydrogen.scc.kit.edu' %>

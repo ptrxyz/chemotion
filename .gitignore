@@ -5,3 +5,4 @@ latest-release
 .scratch
 eln/tmp/cache.*.tar.gz
 envs/
+config.yml

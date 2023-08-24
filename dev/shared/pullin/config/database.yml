@@ -1,9 +1,9 @@
 production:
   adapter: postgresql
   encoding: unicode
-  database: <%= ENV['DBNAME'] %>
+  database: <%= ENV['DB_NAME'] || 'dev-0000' %>
   pool: 5
-  username: postgres
-  password: postgres
-  host: db
-  port: '5432'
+  username: <%= ENV['DB_USER'] || 'postgres' %>
+  password: <%= ENV['DB_PASSWORD'] || 'postgres' %>
+  host: <%= ENV['DB_HOST'] || "db" %>
+  port: <%= ENV['DB_PORT'] || '5432' %>

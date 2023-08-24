@@ -15,8 +15,16 @@ FROM chemotion-build/base:${VERSION} as chemotion-build-base
 # hadolint ignore=DL3006
 FROM chambm/pwiz-skyline-i-agree-to-the-vendor-licenses as prebuild
 RUN apt-get -y update && \
-    apt-get -y upgrade && \
-    apt-get install -y --no-install-recommends --autoremove --fix-missing python3-flask python3-gevent curl
+    apt-get -y upgrade || true
+
+# 23-08-19: Workaround Ubuntu bug
+# https://github.com/termux/proot-distro/issues/90
+RUN rm -f /var/lib/dpkg/info/fprintd.postinst; \
+    rm -f /var/lib/dpkg/info/libfprint-2-2*.postinst; \
+    rm -f /var/lib/dpkg/info/libpam-fprintd*.postinst; \
+    dpkg --configure -a
+
+RUN apt-get install -y --no-install-recommends --autoremove --fix-missing python3-flask python3-gevent curl
 
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

@@ -9,4 +9,4 @@ RUN apt-get -y update && apt-get -y upgrade && \
     apt-get clean && \
     locale-gen en_US.UTF-8
 
-ADD . /pake
+COPY . /pake
