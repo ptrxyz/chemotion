@@ -8,7 +8,7 @@ ARG CHEMOTION_RELEASE=${VERSION}
 
 # Private variables, not passed in from outside, but helpful for this file
 ARG RUBY_VERSION=latest:2.7
-ARG NODE_VERSION=latest:14
+ARG NODE_VERSION=latest:18
 # ARG BUNDLER_VERSION=1.17.3
 ARG BUNDLER_VERSION=2.2.33
 ARG ASDF_VERSION=v0.10.2
@@ -318,8 +318,8 @@ RUN MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)" && export MAKEFLAGS && \
     bundle install --jobs="$(getconf _NPROCESSORS_ONLN)" --retry=3
 
 # Pierre's fix for the style sheet issue
-RUN cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-grid.css /chemotion/app/app/assets/stylesheets/.  && \
-    cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-theme-alpine.css /chemotion/app/app/assets/stylesheets/.  && \
+RUN cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-grid.css /chemotion/app/app/assets/stylesheets/.  || true && \
+    cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-theme-alpine.css /chemotion/app/app/assets/stylesheets/.  || true && \
     cp -f -l /cache/node_modules/antd/dist/antd.css /chemotion/app/app/assets/stylesheets/.  && \
     cp -f -l /cache/node_modules/react-datepicker/dist/react-datepicker.css /chemotion/app/app/assets/stylesheets/.  && \
     cp -f -l /cache/node_modules/react-select/dist/react-select.css /chemotion/app/app/assets/stylesheets/.  && \
@@ -327,6 +327,16 @@ RUN cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-grid.css /chem
     cp -f -l /cache/node_modules/react-vis/dist/style.css /chemotion/app/app/assets/stylesheets/react-vis-styles.css  && \
     cp -f -l /cache/node_modules/react-virtualized/styles.css /chemotion/app/app/assets/stylesheets/react-virtualized-styles.css  && \
     cp -f -l /cache/node_modules/react-virtualized-select/styles.css /chemotion/app/app/assets/stylesheets/react-virtualized-select-styles.css
+
+# misc. tweaks: configure yarn
+RUN echo -e "--modules-folder ${NODE_PATH}\n--ignore-engines" > /chemotion/app/.yarnrc && \
+    if [[ ! -f /chemotion/app/config/klasses.json ]] || [[ ! -f /chemotion/app/node_modules/klasses.json ]]; then \
+    echo '[]' > /chemotion/app/config/klasses.json; \
+    echo '[]' > /chemotion/app/node_modules/klasses.json; \
+    echo '[]' > /cache/node_modules/klasses.json; \
+    fi
+
+RUN cat /chemotion/app/node_modules/klasses.json
 
 # precompile
 RUN export SECRET_KEY_BASE="build"                                                                          && \
@@ -358,7 +368,7 @@ EXPOSE 4000
 WORKDIR /chemotion/app
 CMD ["/embed/run.sh"]
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=300s --retries=3 \
     CMD /embed/health.sh || exit 1
 
 VOLUME [ "/chemotion/app", "/chemotion/data" ]
