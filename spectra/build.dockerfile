@@ -29,7 +29,6 @@ RUN git init --initial-branch=main . && \
     git reset --hard FETCH_HEAD && \
     rm -rf .git
 
-COPY ./additives/environment.yml           /builder/app/environment.yml
 COPY ./additives/spectra_config.py         /builder/app/instance/config.py
 COPY ./additives/fake-docker.py            /builder/bin/docker
 COPY --from=chemotion-build-base    /tini  /builder/tini
@@ -57,11 +56,10 @@ RUN mv /builder/bin/docker /bin/docker && \
 RUN bash /tmp/conda.sh -p /anaconda3 -b && rm /tmp/conda.sh && \
     echo "PATH=/anaconda3/condabin/:$PATH" >> ~/.profile && \
     /anaconda3/condabin/conda update -y -n base -c defaults conda && \
-    /anaconda3/condabin/conda env create -f /app/environment.yml && \
-    /anaconda3/condabin/conda install -c anaconda -n chem-spectra setuptools==58.0.4
+    /anaconda3/condabin/conda env create -f /app/environment.yml
 
 # Make RUN commands use the new environment:
-SHELL ["/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra", "/bin/bash", "-c"]
+SHELL ["/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "python-v38", "/bin/bash", "-c"]
 
 WORKDIR /app
 
