@@ -74,7 +74,7 @@ RUN apt-get clean && \
 
 # FROM ${BASE} as final
 # COPY --from=spectra / /
-# SHELL ["/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra", "/bin/bash", "-c"]
+# SHELL ["/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "python-v38", "/bin/bash", "-c"]
 
 # Stage 4: finalize the image
 FROM spectra as app
@@ -90,7 +90,7 @@ ENV FLASK_ENV=production \
 EXPOSE 4000
 
 WORKDIR "/app"
-ENTRYPOINT ["/tini", "--", "/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "chem-spectra"]
+ENTRYPOINT ["/tini", "--", "/anaconda3/condabin/conda", "run", "--no-capture-output", "-n", "python-v38"]
 CMD ["gunicorn", "--timeout", "600", "-w", "4", "-b", "0.0.0.0:4000", "server:app"]
 
 HEALTHCHECK --interval=5s --timeout=3s --start-period=30s --retries=3 \
