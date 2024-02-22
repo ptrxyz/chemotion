@@ -98,9 +98,9 @@ function buildContainer() {
 	local hash=${localHash} # for future use. as of now, the dockerfiles do not use this
 	local dockerfile=${localDockerfile:-${DOCKERFILE}}
 
-	path=$(realpath -s "${path}")
+	path=$(realpath "${path}")
 	path=${path}/
-	fulldf=$(realpath -s "${path}/${dockerfile}")
+	fulldf=$(realpath "${path}/${dockerfile}")
 
 	if [[ -z "${imagetag}" ]]; then
 		error "$taskname" "Failed to build. No image tag provided."
@@ -137,7 +137,7 @@ function buildContainer() {
 
 	# inhibitor: use INHIBITOR if set, otherwise use "systemd-inhibit".
 	# Check if it exists and is executable.
-	myINHIBITOR=${INHIBITOR:-"systemd-inhibit"}
+	myINHIBITOR=${INHIBITOR:-"systemd-inhibit --what=idle"}
 	if ! which "$myINHIBITOR" >/dev/null; then
 		myINHIBITOR=""
 	fi
@@ -158,7 +158,7 @@ function buildContainer() {
 	# build log
 	logfile=build-${imagetag}.log
 	fulllogfile=${path}/${logfile}
-	fulllogfile=$(realpath -s "${fulllogfile}")
+	fulllogfile=$(realpath "${fulllogfile}")
 
 	# read OPTS into an array
 	IFS=" " read -r -a bopts <<<"$myOPTS"
