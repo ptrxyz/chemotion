@@ -151,6 +151,8 @@ RUN mkdir -p /chemotion/data && \
     mkdir -p /chemotion/data/public/ && \
     mv /chemotion/app/public/images/ /chemotion/data/public/ || mkdir -p /chemotion/data/public/images && \
     ln -s /chemotion/data/public/images/ /chemotion/app/public/images && \
+    mv /chemotion/app/public/safety_sheets/ /chemotion/data/public/ || mkdir -p /chemotion/data/public/safety_sheets && \
+    ln -s /chemotion/data/public/safety_sheets/ /chemotion/app/public/safety_sheets && \
     cp /chemotion/app/.version /chemotion/data/.version && \
     mkdir -p /chemotion/data/public/images/thumbnail
 
@@ -320,13 +322,13 @@ RUN MAKEFLAGS="-j$(getconf _NPROCESSORS_ONLN)" && export MAKEFLAGS && \
 # Pierre's fix for the style sheet issue
 RUN cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-grid.css /chemotion/app/app/assets/stylesheets/.  || true && \
     cp -f -l /cache/node_modules/ag-grid-community/dist/styles/ag-theme-alpine.css /chemotion/app/app/assets/stylesheets/.  || true && \
-    cp -f -l /cache/node_modules/antd/dist/antd.css /chemotion/app/app/assets/stylesheets/.  && \
-    cp -f -l /cache/node_modules/react-datepicker/dist/react-datepicker.css /chemotion/app/app/assets/stylesheets/.  && \
-    cp -f -l /cache/node_modules/react-select/dist/react-select.css /chemotion/app/app/assets/stylesheets/.  && \
-    cp -f -l /cache/node_modules/react-treeview/react-treeview.css /chemotion/app/app/assets/stylesheets/.  && \
-    cp -f -l /cache/node_modules/react-vis/dist/style.css /chemotion/app/app/assets/stylesheets/react-vis-styles.css  && \
-    cp -f -l /cache/node_modules/react-virtualized/styles.css /chemotion/app/app/assets/stylesheets/react-virtualized-styles.css  && \
-    cp -f -l /cache/node_modules/react-virtualized-select/styles.css /chemotion/app/app/assets/stylesheets/react-virtualized-select-styles.css
+    cp -f -l /cache/node_modules/antd/dist/antd.css /chemotion/app/app/assets/stylesheets/. || true && \
+    cp -f -l /cache/node_modules/react-datepicker/dist/react-datepicker.css /chemotion/app/app/assets/stylesheets/. || true && \
+    cp -f -l /cache/node_modules/react-select/dist/react-select.css /chemotion/app/app/assets/stylesheets/. || true && \
+    cp -f -l /cache/node_modules/react-treeview/react-treeview.css /chemotion/app/app/assets/stylesheets/.  || true && \
+    cp -f -l /cache/node_modules/react-vis/dist/style.css /chemotion/app/app/assets/stylesheets/react-vis-styles.css || true && \
+    cp -f -l /cache/node_modules/react-virtualized/styles.css /chemotion/app/app/assets/stylesheets/react-virtualized-styles.css || true && \
+    cp -f -l /cache/node_modules/react-virtualized-select/styles.css /chemotion/app/app/assets/stylesheets/react-virtualized-select-styles.css || true
 
 # misc. tweaks: configure yarn
 RUN echo -e "--modules-folder ${NODE_PATH}\n--ignore-engines" > /chemotion/app/.yarnrc && \

@@ -137,7 +137,7 @@ function buildContainer() {
 
 	# inhibitor: use INHIBITOR if set, otherwise use "systemd-inhibit".
 	# Check if it exists and is executable.
-	myINHIBITOR=${INHIBITOR:-"systemd-inhibit --what=idle"}
+	myINHIBITOR=${INHIBITOR:-"systemd-inhibit"}
 	if ! which "$myINHIBITOR" >/dev/null; then
 		myINHIBITOR=""
 	fi

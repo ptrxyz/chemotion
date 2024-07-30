@@ -30,7 +30,7 @@ elif [[ "${CONFIG_ROLE}" == "worker" ]]; then
     sleep 3
     (cd /embed/ && make all-worker)
     [[ -n ${DROP} ]] && export HOME=/chemotion/app
-    exec ${DROP} bundle exec bin/delayed_job run
+    exec ${DROP} bundle exec bin/delayed_job ${DELAYED_JOB_ARGS} run
 else
     echo "ERROR: Please specify CONFIG_ROLE ('eln'/'worker')."
 fi

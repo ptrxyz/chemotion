@@ -13,7 +13,8 @@ FROM chemotion-build/base:${VERSION} as chemotion-build-base
 
 # Stage 1: prepare the base image
 # hadolint ignore=DL3006
-FROM chambm/pwiz-skyline-i-agree-to-the-vendor-licenses as prebuild
+#FROM chambm/pwiz-skyline-i-agree-to-the-vendor-licenses as prebuild
+FROM proteowizard/pwiz-skyline-i-agree-to-the-vendor-licenses as prebuild
 RUN apt-get -y update && \
     apt-get -y upgrade || true
 
