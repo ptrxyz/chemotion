@@ -10,7 +10,7 @@ ARG CHEMOTION_RELEASE=${VERSION}
 ARG RUBY_VERSION=latest:2.7
 ARG NODE_VERSION=latest:18
 # ARG BUNDLER_VERSION=1.17.3
-ARG BUNDLER_VERSION=2.2.33
+ARG BUNDLER_VERSION=2.4.19
 ARG ASDF_VERSION=v0.10.2
 ARG PANDOC_VERSION=2.10.1
 ARG BUILD_REPO_CHEMOTION=https://github.com/ComPlat/chemotion_ELN
@@ -132,7 +132,7 @@ RUN rm -f config/deploy.rb \
 
 # deal with the weird favicon situation
 RUN if [ -f /chemotion/app/public/favicon.ico ] && [ ! -e /chemotion/app/public/favicon.ico.example ]; then \
-        cp /chemotion/app/public/favicon.ico /chemotion/app/public/favicon.ico.example; \
+    cp /chemotion/app/public/favicon.ico /chemotion/app/public/favicon.ico.example; \
     fi
 
 # misc. tweaks: configure yarn
@@ -151,7 +151,8 @@ RUN mkdir -p /chemotion/data && \
     mkdir -p /chemotion/data/public/ && \
     mv /chemotion/app/public/images/ /chemotion/data/public/ || mkdir -p /chemotion/data/public/images && \
     ln -s /chemotion/data/public/images/ /chemotion/app/public/images && \
-    mv /chemotion/app/public/safety_sheets/ /chemotion/data/public/ || mkdir -p /chemotion/data/public/safety_sheets && \
+    mkdir -p /chemotion/data/public/ && \
+    mv /chemotion/app/public/safety_sheets/ /chemotion/data/public || mkdir -p /chemotion/data/public/safety_sheets && \
     ln -s /chemotion/data/public/safety_sheets/ /chemotion/app/public/safety_sheets && \
     cp /chemotion/app/.version /chemotion/data/.version && \
     mkdir -p /chemotion/data/public/images/thumbnail
