@@ -159,10 +159,11 @@ RUN mkdir -p /chemotion/data && \
 
 RUN sed -i "/gem 'rdkit_chem'/d"                /chemotion/app/Gemfile && \
     sed -i "/gem 'openbabel'/d"                 /chemotion/app/Gemfile && \
+    sed -i "/gem 'charlock_holmes'/d"           /chemotion/app/Gemfile && \
     echo "gem 'rdkit_chem', git: 'https://github.com/ptrxyz/rdkit_chem.git', branch: 'pk01'" >> /chemotion/app/Gemfile && \
     echo "gem 'openbabel', '2.4.90.3', git: 'https://github.com/ptrxyz/openbabel-gem.git', branch: 'ptrxyz-ctime-fix'" >> /chemotion/app/Gemfile && \
-    echo "gem 'tzinfo-data'"                 >> /chemotion/app/Gemfile && \
-    echo "gem 'activerecord-nulldb-adapter'" >> /chemotion/app/Gemfile
+    echo "gem 'charlock_holmes', '0.7.9'" >> /chemotion/app/Gemfile
+
 
 RUN touch /raw-eln.done
 

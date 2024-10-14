@@ -13,7 +13,9 @@ ARG BASE=chemotion-build/base:${VERSION}
 # hadolint ignore=DL3006
 FROM ${BASE} as converter-base
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends --autoremove --fix-missing python3-pip python3-venv libmagic1 curl
+    apt-get install -y --no-install-recommends --autoremove --fix-missing python3-pip python3-venv libmagic1 curl \
+    git build-essential 
+
 
 # Stage 2: build the app
 FROM converter-base as converter
@@ -22,9 +24,12 @@ ARG BUILD_TAG_CONVERTER
 WORKDIR /srv/chemotion
 ADD https://github.com/ComPlat/chemotion-converter-app/archive/refs/tags/${BUILD_TAG_CONVERTER}.tar.gz /tmp/code.tar.gz
 
+# RUN apt-get install -y --no-install-recommends --autoremove --fix-missing build-essential python3-dev gemmi gemmi-dev python3-gemmi
+
 RUN tar -xzf /tmp/code.tar.gz --strip-components=1 -C /srv/chemotion && rm /tmp/code.tar.gz && \
     python3 -m venv env && . env/bin/activate && \
-    pip install --no-cache-dir -r /srv/chemotion/requirements/common.txt
+    pip install --no-cache-dir --upgrade wheel setuptools pip pybind11 && \
+    pip install --no-cache-dir --config-settings="cmake.args=-DFETCH_ZLIB_NG=ON" -r /srv/chemotion/requirements/common.txt
 
 RUN test -f "/srv/chemotion/.env.prod" && mv "/srv/chemotion/.env.prod" "/srv/chemotion/.env" && mkdir -p /var/log/chemotion-converter/ && chmod a+wrx /var/log/chemotion-converter/
 

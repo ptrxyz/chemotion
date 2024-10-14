@@ -43,7 +43,8 @@ FROM ${BASE} as spectra
 RUN apt-get install -y --no-install-recommends --autoremove --fix-missing git ca-certificates curl
 RUN apt-get install -y --no-install-recommends --autoremove --fix-missing \
     gcc g++ libxrender1 libxext-dev pkg-config \
-    libfreetype6-dev `# for matplotlib`
+    libfreetype6-dev `# for matplotlib` \
+    libglib2.0-0 `# for pyOpenMS`
 
 COPY --from=spectra-builder /builder /builder
 

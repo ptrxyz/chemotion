@@ -5,7 +5,7 @@ ARG VERSION=UNSET
 #-
 
 # Private variables, not passed in from outside, but helpful for this file
-ARG BASE=ubuntu:22.04
+ARG BASE=ubuntu:24.04
 ARG TINI_VERSION="v0.19.0"
 
 # Stage 1: the base image
