@@ -21,8 +21,8 @@ RUN apt-get update && \
 
 RUN git clone --depth 1 https://github.com/ptrxyz/chemotion-ketchersvc /app
 
-RUN bunx playwright install && \
-    ELECTRON_SKIP_BINARY_DOWNLOAD=1 bun install && \
+RUN ELECTRON_SKIP_BINARY_DOWNLOAD=1 bun install && \
+    bunx playwright install && \
     bun run build
 
 
@@ -34,7 +34,9 @@ EXPOSE 4000
 WORKDIR /app
 
 COPY --from=ketcher-base /app/dist /app
-RUN bunx playwright install --with-deps chromium
+COPY --from=ketcher-base /root/.cache/ms-playwright/ /root/.cache/ms-playwright/
+RUN bunx playwright install-deps chromium
+# RUN bunx playwright install --with-deps chromium
 
 HEALTHCHECK --interval=5s --timeout=1s --start-period=30s --retries=3 \
     CMD /usr/bin/pidof bun

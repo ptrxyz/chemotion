@@ -23,7 +23,10 @@ _%:
 base:
 	$(MAKE) _$@
 
-eln converter ketcher ketchersc spectra msconvert: base
+ketcher:
+	$(MAKE) _$@
+
+eln converter ketchersc spectra msconvert: base
 	$(MAKE) _$@
 
 all: base eln converter ketcher ketchersc spectra msconvert
